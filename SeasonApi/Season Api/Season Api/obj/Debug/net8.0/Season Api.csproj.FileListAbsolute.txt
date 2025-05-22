@@ -1,0 +1,32 @@
+C:\Users\a\source\repos\Season Api\Season Api\bin\Debug\net8.0\appsettings.Development.json
+C:\Users\a\source\repos\Season Api\Season Api\bin\Debug\net8.0\appsettings.json
+C:\Users\a\source\repos\Season Api\Season Api\bin\Debug\net8.0\Season Api.exe
+C:\Users\a\source\repos\Season Api\Season Api\bin\Debug\net8.0\Season Api.deps.json
+C:\Users\a\source\repos\Season Api\Season Api\bin\Debug\net8.0\Season Api.runtimeconfig.json
+C:\Users\a\source\repos\Season Api\Season Api\bin\Debug\net8.0\Season Api.dll
+C:\Users\a\source\repos\Season Api\Season Api\bin\Debug\net8.0\Season Api.pdb
+C:\Users\a\source\repos\Season Api\Season Api\bin\Debug\net8.0\Microsoft.OpenApi.dll
+C:\Users\a\source\repos\Season Api\Season Api\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\a\source\repos\Season Api\Season Api\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\a\source\repos\Season Api\Season Api\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\Season Api.csproj.AssemblyReference.cache
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\Season Api.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\Season Api.AssemblyInfoInputs.cache
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\Season Api.AssemblyInfo.cs
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\Season Api.csproj.CoreCompileInputs.cache
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\Season Api.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\Season Api.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\staticwebassets.build.json
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\staticwebassets.development.json
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\staticwebassets\msbuild.Season Api.Microsoft.AspNetCore.StaticWebAssets.props
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\staticwebassets\msbuild.build.Season Api.props
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.Season Api.props
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.Season Api.props
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\staticwebassets.pack.json
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\scopedcss\bundle\Season Api.styles.css
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\Season Api.csproj.CopyComplete
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\Season Api.dll
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\refint\Season Api.dll
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\Season Api.pdb
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\Season Api.genruntimeconfig.cache
+C:\Users\a\source\repos\Season Api\Season Api\obj\Debug\net8.0\ref\Season Api.dll
