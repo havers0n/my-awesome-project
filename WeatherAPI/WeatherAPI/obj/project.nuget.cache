@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "/dHEKPny7r67tH89ZI0/jo3Rv6u2gToNvIWm8n01NfpRqnfaDvw3Z1cRtdVUIY8ZaLezkE53Yl5gJa3cxdJYmA==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\a\\source\\repos\\WeatherAPI\\WeatherAPI\\WeatherAPI.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\a\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
