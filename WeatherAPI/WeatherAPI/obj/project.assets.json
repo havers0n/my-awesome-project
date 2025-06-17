@@ -61,11 +61,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\a\\source\\repos\\WeatherAPI\\WeatherAPI\\WeatherAPI.csproj",
+      "projectUniqueName": "C:\\Users\\a\\Documents\\GitHub\\SalesPrediction\\WeatherAPI\\WeatherAPI\\WeatherAPI.csproj",
       "projectName": "WeatherAPI",
-      "projectPath": "C:\\Users\\a\\source\\repos\\WeatherAPI\\WeatherAPI\\WeatherAPI.csproj",
+      "projectPath": "C:\\Users\\a\\Documents\\GitHub\\SalesPrediction\\WeatherAPI\\WeatherAPI\\WeatherAPI.csproj",
       "packagesPath": "C:\\Users\\a\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\a\\source\\repos\\WeatherAPI\\WeatherAPI\\obj\\",
+      "outputPath": "C:\\Users\\a\\Documents\\GitHub\\SalesPrediction\\WeatherAPI\\WeatherAPI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "D:\\VisualStudioFolder\\Components\\NuGetPackages"

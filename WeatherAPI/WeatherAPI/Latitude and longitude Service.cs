@@ -1,6 +1,8 @@
 ﻿
 using Newtonsoft.Json;
+using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace WeatherAPI
 {
@@ -191,7 +193,6 @@ namespace WeatherAPI
                     List<dynamic> FirstData = new List<dynamic>();
                     for (int i = 0; i < SplitStr.Length; i++)
                     {
-                        Console.WriteLine("Region1 Complete: " + i + "/" + SplitStr.Length);
                         try
                         {
                             DateTime dt = DateTime.ParseExact(SplitStr[i] + " " + SplitStr[i + 1], "dd.MM.yyyy HH:mm", null);
@@ -225,23 +226,321 @@ namespace WeatherAPI
             double[] Region = [55.388578, 37.541027];
             return Region;
         }
-        public List<dynamic> GetWeatherByDate(DateTime date)
+        public List<dynamic> GetWeatherByDate(DateTime targetDate)
         {
-            for (int i = 0; i < Data.Count; i++)
+
+            List<dynamic> closestFutureRecord = null;
+            TimeSpan smallestFutureDiff = TimeSpan.MaxValue; // минимальная положительная разница (инициализируем максимальным значением)
+
+            foreach (List<dynamic> record in Data)
             {
-                if (Data[i][0] == date)
+                // Проверяем наличие даты и правильный тип первого элемента
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                // Интересуют только даты после целевой (в будущем относительно targetDate)
+                if (recordDate <= targetDate)
+                    continue;
+
+                TimeSpan diff = recordDate - targetDate;
+                if (diff < smallestFutureDiff)
                 {
-                    return Data[i];
+                    smallestFutureDiff = diff;
+                    closestFutureRecord = record;
+                }
+                // Если diff == smallestFutureDiff, оставляем уже найденный, т.к. он наступит не позже другого
+            }
+
+            return closestFutureRecord;
+        }
+        public DateTime? FindLatestDate()
+        {
+            DateTime? latestDate = null;
+
+            foreach (List<dynamic> record in Data)
+            {
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                if (latestDate == null || recordDate > latestDate.Value)
+                {
+                    latestDate = recordDate;
                 }
             }
-            return [];
+
+            return latestDate;
         }
+
+
+        public async Task UpdateWeekForecastAsync()
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            string url = "https://rp5.ru/%D0%9F%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0_%D0%B2_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B5_(%D1%86%D0%B5%D0%BD%D1%82%D1%80,_%D0%91%D0%B0%D0%BB%D1%87%D1%83%D0%B3)";
+
+            string html;
+            try
+            {
+                html = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                return;
+            }
+
+            var tableMatch = Regex.Match(html, "<table[^>]*class=\\\".*?forecast.*?\\\"[^>]*>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (!tableMatch.Success)
+                return;
+
+            var rowMatches = Regex.Matches(tableMatch.Groups[1].Value, "<tr[^>]*>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            List<string> lines = new List<string>();
+
+            foreach (Match row in rowMatches)
+            {
+                var cellMatches = Regex.Matches(row.Groups[1].Value, "<t[dh][^>]*>(.*?)</t[dh]>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                List<string> cells = new List<string>();
+                foreach (Match cell in cellMatches)
+                {
+                    string text = Regex.Replace(cell.Groups[1].Value, "<[^>]+>", "");
+                    text = WebUtility.HtmlDecode(text).Trim();
+                    cells.Add(text);
+                }
+                if (cells.Count > 0)
+                {
+                    lines.Add(string.Join("\t", cells) + "\tКонец строки");
+
+                    List<dynamic> rowData = new List<dynamic>();
+                    DateTime dt;
+                    if (DateTime.TryParseExact(cells[0], "dd.MM.yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        rowData.Add(dt);
+                        rowData.AddRange(cells.Skip(1));
+                    }
+                    else
+                    {
+                        foreach (var c in cells)
+                            rowData.Add(c);
+                    }
+                    rowData.Add("Конец строки");
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                bool isFind = false;
+                int latestIndex = 0;
+                List<List<string>> FindIndexData = new List<List<string>>();
+                int indexofWeather = 0;
+                int indexofPrecipitation = 0;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    List<string> datasplit = lines[i].Split('\t').ToList<string>();
+                    if (datasplit[0] == "Температура,  °C °F")
+                    {
+                        indexofWeather = i;
+                    }
+                    if (datasplit[0] == "Влажность, %")
+                    {
+                        indexofPrecipitation = i;
+                    }
+                    FindIndexData.Add(datasplit);
+                }
+                string[] NewTempertureData = lines[indexofWeather].Split('\t');
+                string[] NewPrecipitationData = lines[indexofPrecipitation].Split('\t');
+                if ((DateTime.Now.Hour < 3 || DateTime.Now.Hour >= 21) && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> {DateTime.Today.AddHours(3), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[4].Split(' ')[0], NewPrecipitationData[4], "Ветер," });
+                    latestIndex = 5;
+                }
+                if (DateTime.Now.Hour < 9 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    latestIndex = 4;
+                }
+                if (DateTime.Now.Hour < 15 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    latestIndex = 3;
+                }
+                if (DateTime.Now.Hour < 21 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    latestIndex = 2;
+                }
+                int days = 1;
+                int ltTemp = latestIndex;
+                try
+                {
+                    for (int i = 0; i < NewTempertureData.Length - ltTemp - 1; i++)
+                    {
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(3).AddDays(days), NewTempertureData[latestIndex].Split(' ')[0], NewPrecipitationData[latestIndex], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(9).AddDays(days), NewTempertureData[latestIndex + 1].Split(' ')[0], NewPrecipitationData[latestIndex + 1], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(15).AddDays(days), NewTempertureData[latestIndex + 2].Split(' ')[0], NewPrecipitationData[latestIndex + 2], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(21).AddDays(days), NewTempertureData[latestIndex + 3].Split(' ')[0], NewPrecipitationData[latestIndex + 3], "Ветер," });
+                        days += 1;
+                        latestIndex += 4;
+                    }
+                }
+                catch 
+                {
+                    Data.RemoveAt(Data.Count - 1);
+                }
+               
+                SaveData(Data);
+            }
+        }
+
     }
     public class Region2
     {
         List<List<dynamic>> Data = new List<List<dynamic>>() { };
 
+        public async Task UpdateWeekForecastAsync()
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            string url = "https://rp5.ru/%D0%9F%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0_%D0%B2_%D0%97%D0%B0%D0%BC%D0%BE%D1%81%D0%BA%D0%B2%D0%BE%D1%80%D0%B5%D1%87%D1%8C%D0%B5";
 
+            string html;
+            try
+            {
+                html = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                return;
+            }
+
+            var tableMatch = Regex.Match(html, "<table[^>]*class=\\\".*?forecast.*?\\\"[^>]*>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (!tableMatch.Success)
+                return;
+
+            var rowMatches = Regex.Matches(tableMatch.Groups[1].Value, "<tr[^>]*>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            List<string> lines = new List<string>();
+
+            foreach (Match row in rowMatches)
+            {
+                var cellMatches = Regex.Matches(row.Groups[1].Value, "<t[dh][^>]*>(.*?)</t[dh]>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                List<string> cells = new List<string>();
+                foreach (Match cell in cellMatches)
+                {
+                    string text = Regex.Replace(cell.Groups[1].Value, "<[^>]+>", "");
+                    text = WebUtility.HtmlDecode(text).Trim();
+                    cells.Add(text);
+                }
+                if (cells.Count > 0)
+                {
+                    lines.Add(string.Join("\t", cells) + "\tКонец строки");
+
+                    List<dynamic> rowData = new List<dynamic>();
+                    DateTime dt;
+                    if (DateTime.TryParseExact(cells[0], "dd.MM.yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        rowData.Add(dt);
+                        rowData.AddRange(cells.Skip(1));
+                    }
+                    else
+                    {
+                        foreach (var c in cells)
+                            rowData.Add(c);
+                    }
+                    rowData.Add("Конец строки");
+                    
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                bool isFind = false;
+                int latestIndex = 0;
+                List<List<string>> FindIndexData = new List<List<string>>();
+                int indexofWeather = 0;
+                int indexofPrecipitation = 0;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    List<string> datasplit = lines[i].Split('\t').ToList<string>();
+                    if (datasplit[0] == "Температура,  °C °F")
+                    {
+                        indexofWeather = i;
+                    }
+                    if (datasplit[0] == "Влажность, %")
+                    {
+                        indexofPrecipitation = i;
+                    }
+                    FindIndexData.Add(datasplit);
+                }
+                string[] NewTempertureData = lines[indexofWeather].Split('\t');
+                string[] NewPrecipitationData = lines[indexofPrecipitation].Split('\t');
+                if ((DateTime.Now.Hour < 3 || DateTime.Now.Hour >= 21) && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(3), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[4].Split(' ')[0], NewPrecipitationData[4], "Ветер," });
+                    latestIndex = 5;
+                }
+                if (DateTime.Now.Hour < 9 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    latestIndex = 4;
+                }
+                if (DateTime.Now.Hour < 15 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    latestIndex = 3;
+                }
+                if (DateTime.Now.Hour < 21 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Console.WriteLine(DateTime.Today.AddHours(21).ToString() + NewTempertureData[1].Split(' ')[0].ToString() + NewPrecipitationData[1].ToString() + "Ветер,");
+                    latestIndex = 2;
+                }
+                int days = 1;
+                int ltTemp = latestIndex;
+                try
+                {
+                    for (int i = 0; i < NewTempertureData.Length - ltTemp - 1; i++)
+                    {
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(3).AddDays(days), NewTempertureData[latestIndex].Split(' ')[0], NewPrecipitationData[latestIndex], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(9).AddDays(days), NewTempertureData[latestIndex + 1].Split(' ')[0], NewPrecipitationData[latestIndex + 1], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(15).AddDays(days), NewTempertureData[latestIndex + 2].Split(' ')[0], NewPrecipitationData[latestIndex + 2], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(21).AddDays(days), NewTempertureData[latestIndex + 3].Split(' ')[0], NewPrecipitationData[latestIndex + 3], "Ветер," });
+                        days += 1;
+                        latestIndex += 4;
+                    }
+                }
+                catch
+                {
+                    Data.RemoveAt(Data.Count - 1);
+                }
+
+                SaveData(Data);
+            }
+        }
         public void SaveData(List<List<dynamic>> data, string path = "CashedRegions/Region2.json")
         {
             string directory = Path.GetDirectoryName(path);
@@ -320,22 +619,169 @@ namespace WeatherAPI
             double[] Region = [55.508881, 37.849877];
             return Region;
         }
-        public List<dynamic> GetWeatherByDate(DateTime date)
+        public List<dynamic> GetWeatherByDate(DateTime targetDate)
         {
-            for (int i = 0; i < Data.Count; i++)
+
+            List<dynamic> closestFutureRecord = null;
+            TimeSpan smallestFutureDiff = TimeSpan.MaxValue; // минимальная положительная разница (инициализируем максимальным значением)
+
+            foreach (List<dynamic> record in Data)
             {
-                if (Data[i][0] == date)
+                // Проверяем наличие даты и правильный тип первого элемента
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                // Интересуют только даты после целевой (в будущем относительно targetDate)
+                if (recordDate <= targetDate)
+                    continue;
+
+                TimeSpan diff = recordDate - targetDate;
+                if (diff < smallestFutureDiff)
                 {
-                    return Data[i];
+                    smallestFutureDiff = diff;
+                    closestFutureRecord = record;
                 }
+                // Если diff == smallestFutureDiff, оставляем уже найденный, т.к. он наступит не позже другого
             }
-            return [];
+
+            return closestFutureRecord;
         }
     }
     public class Region3
     {
         List<List<dynamic>> Data = new List<List<dynamic>>() { };
+        public async Task UpdateWeekForecastAsync()
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            string url = "https://rp5.ru/%D0%9F%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0_%D0%B2%D0%BE_%D0%92%D0%BD%D1%83%D0%BA%D0%BE%D0%B2%D0%BE,_%D0%B8%D0%BC._%D0%90._%D0%9D._%D0%A2%D1%83%D0%BF%D0%BE%D0%BB%D0%B5%D0%B2%D0%B0_(%D0%B0%D1%8D%D1%80%D0%BE%D0%BF%D0%BE%D1%80%D1%82)";
 
+            string html;
+            try
+            {
+                html = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                return;
+            }
+
+            var tableMatch = Regex.Match(html, "<table[^>]*class=\\\".*?forecast.*?\\\"[^>]*>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (!tableMatch.Success)
+                return;
+
+            var rowMatches = Regex.Matches(tableMatch.Groups[1].Value, "<tr[^>]*>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            List<string> lines = new List<string>();
+
+            foreach (Match row in rowMatches)
+            {
+                var cellMatches = Regex.Matches(row.Groups[1].Value, "<t[dh][^>]*>(.*?)</t[dh]>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                List<string> cells = new List<string>();
+                foreach (Match cell in cellMatches)
+                {
+                    string text = Regex.Replace(cell.Groups[1].Value, "<[^>]+>", "");
+                    text = WebUtility.HtmlDecode(text).Trim();
+                    cells.Add(text);
+                }
+                if (cells.Count > 0)
+                {
+                    lines.Add(string.Join("\t", cells) + "\tКонец строки");
+
+                    List<dynamic> rowData = new List<dynamic>();
+                    DateTime dt;
+                    if (DateTime.TryParseExact(cells[0], "dd.MM.yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        rowData.Add(dt);
+                        rowData.AddRange(cells.Skip(1));
+                    }
+                    else
+                    {
+                        foreach (var c in cells)
+                            rowData.Add(c);
+                    }
+                    rowData.Add("Конец строки");
+                    
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                bool isFind = false;
+                int latestIndex = 0;
+                List<List<string>> FindIndexData = new List<List<string>>();
+                int indexofWeather = 0;
+                int indexofPrecipitation = 0;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    List<string> datasplit = lines[i].Split('\t').ToList<string>();
+                    if (datasplit[0] == "Температура,  °C °F")
+                    {
+                        indexofWeather = i;
+                    }
+                    if (datasplit[0] == "Влажность, %")
+                    {
+                        indexofPrecipitation = i;
+                    }
+                    FindIndexData.Add(datasplit);
+                }
+                string[] NewTempertureData = lines[indexofWeather].Split('\t');
+                string[] NewPrecipitationData = lines[indexofPrecipitation].Split('\t');
+                if ((DateTime.Now.Hour < 3 || DateTime.Now.Hour >= 21) && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(3), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[4].Split(' ')[0], NewPrecipitationData[4], "Ветер," });
+                    latestIndex = 5;
+                }
+                if (DateTime.Now.Hour < 9 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    latestIndex = 4;
+                }
+                if (DateTime.Now.Hour < 15 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    latestIndex = 3;
+                }
+                if (DateTime.Now.Hour < 21 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Console.WriteLine(DateTime.Today.AddHours(21).ToString() + NewTempertureData[1].Split(' ')[0].ToString() + NewPrecipitationData[1].ToString() + "Ветер,");
+                    latestIndex = 2;
+                }
+                int days = 1;
+                int ltTemp = latestIndex;
+                try
+                {
+                    for (int i = 0; i < NewTempertureData.Length - ltTemp - 1; i++)
+                    {
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(3).AddDays(days), NewTempertureData[latestIndex].Split(' ')[0], NewPrecipitationData[latestIndex], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(9).AddDays(days), NewTempertureData[latestIndex + 1].Split(' ')[0], NewPrecipitationData[latestIndex + 1], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(15).AddDays(days), NewTempertureData[latestIndex + 2].Split(' ')[0], NewPrecipitationData[latestIndex + 2], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(21).AddDays(days), NewTempertureData[latestIndex + 3].Split(' ')[0], NewPrecipitationData[latestIndex + 3], "Ветер," });
+                        days += 1;
+                        latestIndex += 4;
+                    }
+                }
+                catch
+                {
+                    Data.RemoveAt(Data.Count - 1);
+                }
+
+                SaveData(Data);
+            }
+        }
 
         public void SaveData(List<List<dynamic>> data, string path = "CashedRegions/Region3.json")
         {
@@ -415,22 +861,168 @@ namespace WeatherAPI
             double[] Region = [55.561670, 38.117736];
             return Region;
         }
-        public List<dynamic> GetWeatherByDate(DateTime date)
+        public List<dynamic> GetWeatherByDate(DateTime targetDate)
         {
-            for (int i = 0; i < Data.Count; i++)
+
+            List<dynamic> closestFutureRecord = null;
+            TimeSpan smallestFutureDiff = TimeSpan.MaxValue; // минимальная положительная разница (инициализируем максимальным значением)
+
+            foreach (List<dynamic> record in Data)
             {
-                if (Data[i][0] == date)
+                // Проверяем наличие даты и правильный тип первого элемента
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                // Интересуют только даты после целевой (в будущем относительно targetDate)
+                if (recordDate <= targetDate)
+                    continue;
+
+                TimeSpan diff = recordDate - targetDate;
+                if (diff < smallestFutureDiff)
                 {
-                    return Data[i];
+                    smallestFutureDiff = diff;
+                    closestFutureRecord = record;
                 }
+                // Если diff == smallestFutureDiff, оставляем уже найденный, т.к. он наступит не позже другого
             }
-            return [];
+
+            return closestFutureRecord;
         }
     }
     public class Region4
     {
         List<List<dynamic>> Data = new List<List<dynamic>>() { };
+        public async Task UpdateWeekForecastAsync()
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            string url = "https://rp5.ru/%D0%9F%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0_%D0%B2_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B5_(%D0%92%D0%94%D0%9D%D0%A5)";
 
+            string html;
+            try
+            {
+                html = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                return;
+            }
+
+            var tableMatch = Regex.Match(html, "<table[^>]*class=\\\".*?forecast.*?\\\"[^>]*>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (!tableMatch.Success)
+                return;
+
+            var rowMatches = Regex.Matches(tableMatch.Groups[1].Value, "<tr[^>]*>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            List<string> lines = new List<string>();
+
+            foreach (Match row in rowMatches)
+            {
+                var cellMatches = Regex.Matches(row.Groups[1].Value, "<t[dh][^>]*>(.*?)</t[dh]>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                List<string> cells = new List<string>();
+                foreach (Match cell in cellMatches)
+                {
+                    string text = Regex.Replace(cell.Groups[1].Value, "<[^>]+>", "");
+                    text = WebUtility.HtmlDecode(text).Trim();
+                    cells.Add(text);
+                }
+                if (cells.Count > 0)
+                {
+                    lines.Add(string.Join("\t", cells) + "\tКонец строки");
+
+                    List<dynamic> rowData = new List<dynamic>();
+                    DateTime dt;
+                    if (DateTime.TryParseExact(cells[0], "dd.MM.yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        rowData.Add(dt);
+                        rowData.AddRange(cells.Skip(1));
+                    }
+                    else
+                    {
+                        foreach (var c in cells)
+                            rowData.Add(c);
+                    }
+                    rowData.Add("Конец строки");
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                bool isFind = false;
+                int latestIndex = 0;
+                List<List<string>> FindIndexData = new List<List<string>>();
+                int indexofWeather = 0;
+                int indexofPrecipitation = 0;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    List<string> datasplit = lines[i].Split('\t').ToList<string>();
+                    if (datasplit[0] == "Температура,  °C °F")
+                    {
+                        indexofWeather = i;
+                    }
+                    if (datasplit[0] == "Влажность, %")
+                    {
+                        indexofPrecipitation = i;
+                    }
+                    FindIndexData.Add(datasplit);
+                }
+                string[] NewTempertureData = lines[indexofWeather].Split('\t');
+                string[] NewPrecipitationData = lines[indexofPrecipitation].Split('\t');
+                if ((DateTime.Now.Hour < 3 || DateTime.Now.Hour >= 21) && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(3), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[4].Split(' ')[0], NewPrecipitationData[4], "Ветер," });
+                    latestIndex = 5;
+                }
+                if (DateTime.Now.Hour < 9 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    latestIndex = 4;
+                }
+                if (DateTime.Now.Hour < 15 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    latestIndex = 3;
+                }
+                if (DateTime.Now.Hour < 21 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Console.WriteLine(DateTime.Today.AddHours(21).ToString() + NewTempertureData[1].Split(' ')[0].ToString() + NewPrecipitationData[1].ToString() + "Ветер,");
+                    latestIndex = 2;
+                }
+                int days = 1;
+                int ltTemp = latestIndex;
+                try
+                {
+                    for (int i = 0; i < NewTempertureData.Length - ltTemp - 1; i++)
+                    {
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(3).AddDays(days), NewTempertureData[latestIndex].Split(' ')[0], NewPrecipitationData[latestIndex], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(9).AddDays(days), NewTempertureData[latestIndex + 1].Split(' ')[0], NewPrecipitationData[latestIndex + 1], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(15).AddDays(days), NewTempertureData[latestIndex + 2].Split(' ')[0], NewPrecipitationData[latestIndex + 2], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(21).AddDays(days), NewTempertureData[latestIndex + 3].Split(' ')[0], NewPrecipitationData[latestIndex + 3], "Ветер," });
+                        days += 1;
+                        latestIndex += 4;
+                    }
+                }
+                catch
+                {
+                    Data.RemoveAt(Data.Count - 1);
+                }
+
+                SaveData(Data);
+            }
+        }
 
         public void SaveData(List<List<dynamic>> data, string path = "CashedRegions/Region4.json")
         {
@@ -510,23 +1102,169 @@ namespace WeatherAPI
             double[] Region = [55.604585, 37.285420];
             return Region;
         }
-        public List<dynamic> GetWeatherByDate(DateTime date)
+        public List<dynamic> GetWeatherByDate(DateTime targetDate)
         {
-            for (int i = 0; i < Data.Count; i++)
+
+            List<dynamic> closestFutureRecord = null;
+            TimeSpan smallestFutureDiff = TimeSpan.MaxValue; // минимальная положительная разница (инициализируем максимальным значением)
+
+            foreach (List<dynamic> record in Data)
             {
-                if (Data[i][0] == date)
+                // Проверяем наличие даты и правильный тип первого элемента
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                // Интересуют только даты после целевой (в будущем относительно targetDate)
+                if (recordDate <= targetDate)
+                    continue;
+
+                TimeSpan diff = recordDate - targetDate;
+                if (diff < smallestFutureDiff)
                 {
-                    return Data[i];
+                    smallestFutureDiff = diff;
+                    closestFutureRecord = record;
                 }
+                // Если diff == smallestFutureDiff, оставляем уже найденный, т.к. он наступит не позже другого
             }
-            return [];
+
+            return closestFutureRecord;
         }
     }
     public class Region5
     {
         List<List<dynamic>> Data = new List<List<dynamic>>() { };
 
+        public async Task UpdateWeekForecastAsync()
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            string url = "https://rp5.ru/%D0%9F%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0_%D0%B2_%D0%A1%D1%82%D1%80%D0%BE%D0%B3%D0%B8%D0%BD%D0%BE,_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0";
 
+            string html;
+            try
+            {
+                html = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                return;
+            }
+
+            var tableMatch = Regex.Match(html, "<table[^>]*class=\\\".*?forecast.*?\\\"[^>]*>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (!tableMatch.Success)
+                return;
+
+            var rowMatches = Regex.Matches(tableMatch.Groups[1].Value, "<tr[^>]*>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            List<string> lines = new List<string>();
+
+            foreach (Match row in rowMatches)
+            {
+                var cellMatches = Regex.Matches(row.Groups[1].Value, "<t[dh][^>]*>(.*?)</t[dh]>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                List<string> cells = new List<string>();
+                foreach (Match cell in cellMatches)
+                {
+                    string text = Regex.Replace(cell.Groups[1].Value, "<[^>]+>", "");
+                    text = WebUtility.HtmlDecode(text).Trim();
+                    cells.Add(text);
+                }
+                if (cells.Count > 0)
+                {
+                    lines.Add(string.Join("\t", cells) + "\tКонец строки");
+
+                    List<dynamic> rowData = new List<dynamic>();
+                    DateTime dt;
+                    if (DateTime.TryParseExact(cells[0], "dd.MM.yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        rowData.Add(dt);
+                        rowData.AddRange(cells.Skip(1));
+                    }
+                    else
+                    {
+                        foreach (var c in cells)
+                            rowData.Add(c);
+                    }
+                    rowData.Add("Конец строки");
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                bool isFind = false;
+                int latestIndex = 0;
+                List<List<string>> FindIndexData = new List<List<string>>();
+                int indexofWeather = 0;
+                int indexofPrecipitation = 0;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    List<string> datasplit = lines[i].Split('\t').ToList<string>();
+                    if (datasplit[0] == "Температура,  °C °F")
+                    {
+                        indexofWeather = i;
+                    }
+                    if (datasplit[0] == "Влажность, %")
+                    {
+                        indexofPrecipitation = i;
+                    }
+                    FindIndexData.Add(datasplit);
+                }
+                string[] NewTempertureData = lines[indexofWeather].Split('\t');
+                string[] NewPrecipitationData = lines[indexofPrecipitation].Split('\t');
+                if ((DateTime.Now.Hour < 3 || DateTime.Now.Hour >= 21) && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(3), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[4].Split(' ')[0], NewPrecipitationData[4], "Ветер," });
+                    latestIndex = 5;
+                }
+                if (DateTime.Now.Hour < 9 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    latestIndex = 4;
+                }
+                if (DateTime.Now.Hour < 15 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    latestIndex = 3;
+                }
+                if (DateTime.Now.Hour < 21 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Console.WriteLine(DateTime.Today.AddHours(21).ToString() + NewTempertureData[1].Split(' ')[0].ToString() + NewPrecipitationData[1].ToString() + "Ветер,");
+                    latestIndex = 2;
+                }
+                int days = 1;
+                int ltTemp = latestIndex;
+                try
+                {
+                    for (int i = 0; i < NewTempertureData.Length - ltTemp - 1; i++)
+                    {
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(3).AddDays(days), NewTempertureData[latestIndex].Split(' ')[0], NewPrecipitationData[latestIndex], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(9).AddDays(days), NewTempertureData[latestIndex + 1].Split(' ')[0], NewPrecipitationData[latestIndex + 1], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(15).AddDays(days), NewTempertureData[latestIndex + 2].Split(' ')[0], NewPrecipitationData[latestIndex + 2], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(21).AddDays(days), NewTempertureData[latestIndex + 3].Split(' ')[0], NewPrecipitationData[latestIndex + 3], "Ветер," });
+                        days += 1;
+                        latestIndex += 4;
+                    }
+                }
+                catch
+                {
+                    Data.RemoveAt(Data.Count - 1);
+                }
+
+                SaveData(Data);
+            }
+        }
         public void SaveData(List<List<dynamic>> data, string path = "CashedRegions/Region5.json")
         {
             string directory = Path.GetDirectoryName(path);
@@ -605,23 +1343,169 @@ namespace WeatherAPI
             double[] Region = [55.605058, 37.286292];
             return Region;
         }
-        public List<dynamic> GetWeatherByDate(DateTime date)
+        public List<dynamic> GetWeatherByDate(DateTime targetDate)
         {
-            for (int i = 0; i < Data.Count; i++)
+
+            List<dynamic> closestFutureRecord = null;
+            TimeSpan smallestFutureDiff = TimeSpan.MaxValue; // минимальная положительная разница (инициализируем максимальным значением)
+
+            foreach (List<dynamic> record in Data)
             {
-                if (Data[i][0] == date)
+                // Проверяем наличие даты и правильный тип первого элемента
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                // Интересуют только даты после целевой (в будущем относительно targetDate)
+                if (recordDate <= targetDate)
+                    continue;
+
+                TimeSpan diff = recordDate - targetDate;
+                if (diff < smallestFutureDiff)
                 {
-                    return Data[i];
+                    smallestFutureDiff = diff;
+                    closestFutureRecord = record;
                 }
+                // Если diff == smallestFutureDiff, оставляем уже найденный, т.к. он наступит не позже другого
             }
-            return [];
+
+            return closestFutureRecord;
         }
     }
     public class Region6
     {
         List<List<dynamic>> Data = new List<List<dynamic>>() { };
 
+        public async Task UpdateWeekForecastAsync()
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            string url = "https://rp5.ru/%D0%9F%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0_%D0%B2_%D0%94%D0%BE%D0%BC%D0%BE%D0%B4%D0%B5%D0%B4%D0%BE%D0%B2%D0%BE";
 
+            string html;
+            try
+            {
+                html = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                return;
+            }
+
+            var tableMatch = Regex.Match(html, "<table[^>]*class=\\\".*?forecast.*?\\\"[^>]*>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (!tableMatch.Success)
+                return;
+
+            var rowMatches = Regex.Matches(tableMatch.Groups[1].Value, "<tr[^>]*>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            List<string> lines = new List<string>();
+
+            foreach (Match row in rowMatches)
+            {
+                var cellMatches = Regex.Matches(row.Groups[1].Value, "<t[dh][^>]*>(.*?)</t[dh]>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                List<string> cells = new List<string>();
+                foreach (Match cell in cellMatches)
+                {
+                    string text = Regex.Replace(cell.Groups[1].Value, "<[^>]+>", "");
+                    text = WebUtility.HtmlDecode(text).Trim();
+                    cells.Add(text);
+                }
+                if (cells.Count > 0)
+                {
+                    lines.Add(string.Join("\t", cells) + "\tКонец строки");
+
+                    List<dynamic> rowData = new List<dynamic>();
+                    DateTime dt;
+                    if (DateTime.TryParseExact(cells[0], "dd.MM.yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        rowData.Add(dt);
+                        rowData.AddRange(cells.Skip(1));
+                    }
+                    else
+                    {
+                        foreach (var c in cells)
+                            rowData.Add(c);
+                    }
+                    rowData.Add("Конец строки");
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                bool isFind = false;
+                int latestIndex = 0;
+                List<List<string>> FindIndexData = new List<List<string>>();
+                int indexofWeather = 0;
+                int indexofPrecipitation = 0;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    List<string> datasplit = lines[i].Split('\t').ToList<string>();
+                    if (datasplit[0] == "Температура,  °C °F")
+                    {
+                        indexofWeather = i;
+                    }
+                    if (datasplit[0] == "Влажность, %")
+                    {
+                        indexofPrecipitation = i;
+                    }
+                    FindIndexData.Add(datasplit);
+                }
+                string[] NewTempertureData = lines[indexofWeather].Split('\t');
+                string[] NewPrecipitationData = lines[indexofPrecipitation].Split('\t');
+                if ((DateTime.Now.Hour < 3 || DateTime.Now.Hour >= 21) && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(3), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[4].Split(' ')[0], NewPrecipitationData[4], "Ветер," });
+                    latestIndex = 5;
+                }
+                if (DateTime.Now.Hour < 9 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    latestIndex = 4;
+                }
+                if (DateTime.Now.Hour < 15 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    latestIndex = 3;
+                }
+                if (DateTime.Now.Hour < 21 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Console.WriteLine(DateTime.Today.AddHours(21).ToString() + NewTempertureData[1].Split(' ')[0].ToString() + NewPrecipitationData[1].ToString() + "Ветер,");
+                    latestIndex = 2;
+                }
+                int days = 1;
+                int ltTemp = latestIndex;
+                try
+                {
+                    for (int i = 0; i < NewTempertureData.Length - ltTemp - 1; i++)
+                    {
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(3).AddDays(days), NewTempertureData[latestIndex].Split(' ')[0], NewPrecipitationData[latestIndex], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(9).AddDays(days), NewTempertureData[latestIndex + 1].Split(' ')[0], NewPrecipitationData[latestIndex + 1], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(15).AddDays(days), NewTempertureData[latestIndex + 2].Split(' ')[0], NewPrecipitationData[latestIndex + 2], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(21).AddDays(days), NewTempertureData[latestIndex + 3].Split(' ')[0], NewPrecipitationData[latestIndex + 3], "Ветер," });
+                        days += 1;
+                        latestIndex += 4;
+                    }
+                }
+                catch
+                {
+                    Data.RemoveAt(Data.Count - 1);
+                }
+
+                SaveData(Data);
+            }
+        }
         public void SaveData(List<List<dynamic>> data, string path = "CashedRegions/Region6.json")
         {
             string directory = Path.GetDirectoryName(path);
@@ -700,22 +1584,168 @@ namespace WeatherAPI
             double[] Region = [55.676748, 37.893328];
             return Region;
         }
-        public List<dynamic> GetWeatherByDate(DateTime date)
+        public List<dynamic> GetWeatherByDate(DateTime targetDate)
         {
-            for (int i = 0; i < Data.Count; i++)
+
+            List<dynamic> closestFutureRecord = null;
+            TimeSpan smallestFutureDiff = TimeSpan.MaxValue; // минимальная положительная разница (инициализируем максимальным значением)
+
+            foreach (List<dynamic> record in Data)
             {
-                if (Data[i][0] == date)
+                // Проверяем наличие даты и правильный тип первого элемента
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                // Интересуют только даты после целевой (в будущем относительно targetDate)
+                if (recordDate <= targetDate)
+                    continue;
+
+                TimeSpan diff = recordDate - targetDate;
+                if (diff < smallestFutureDiff)
                 {
-                    return Data[i];
+                    smallestFutureDiff = diff;
+                    closestFutureRecord = record;
                 }
+                // Если diff == smallestFutureDiff, оставляем уже найденный, т.к. он наступит не позже другого
             }
-            return [];
+
+            return closestFutureRecord;
         }
     }
     public class Region7
     {
         List<List<dynamic>> Data = new List<List<dynamic>>() { };
+        public async Task UpdateWeekForecastAsync()
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            string url = "https://rp5.ru/%D0%9F%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0_%D0%B2_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B5_(%D1%8E%D0%B3)";
 
+            string html;
+            try
+            {
+                html = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                return;
+            }
+
+            var tableMatch = Regex.Match(html, "<table[^>]*class=\\\".*?forecast.*?\\\"[^>]*>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (!tableMatch.Success)
+                return;
+
+            var rowMatches = Regex.Matches(tableMatch.Groups[1].Value, "<tr[^>]*>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            List<string> lines = new List<string>();
+
+            foreach (Match row in rowMatches)
+            {
+                var cellMatches = Regex.Matches(row.Groups[1].Value, "<t[dh][^>]*>(.*?)</t[dh]>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                List<string> cells = new List<string>();
+                foreach (Match cell in cellMatches)
+                {
+                    string text = Regex.Replace(cell.Groups[1].Value, "<[^>]+>", "");
+                    text = WebUtility.HtmlDecode(text).Trim();
+                    cells.Add(text);
+                }
+                if (cells.Count > 0)
+                {
+                    lines.Add(string.Join("\t", cells) + "\tКонец строки");
+
+                    List<dynamic> rowData = new List<dynamic>();
+                    DateTime dt;
+                    if (DateTime.TryParseExact(cells[0], "dd.MM.yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        rowData.Add(dt);
+                        rowData.AddRange(cells.Skip(1));
+                    }
+                    else
+                    {
+                        foreach (var c in cells)
+                            rowData.Add(c);
+                    }
+                    rowData.Add("Конец строки");
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                bool isFind = false;
+                int latestIndex = 0;
+                List<List<string>> FindIndexData = new List<List<string>>();
+                int indexofWeather = 0;
+                int indexofPrecipitation = 0;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    List<string> datasplit = lines[i].Split('\t').ToList<string>();
+                    if (datasplit[0] == "Температура,  °C °F")
+                    {
+                        indexofWeather = i;
+                    }
+                    if (datasplit[0] == "Влажность, %")
+                    {
+                        indexofPrecipitation = i;
+                    }
+                    FindIndexData.Add(datasplit);
+                }
+                string[] NewTempertureData = lines[indexofWeather].Split('\t');
+                string[] NewPrecipitationData = lines[indexofPrecipitation].Split('\t');
+                if ((DateTime.Now.Hour < 3 || DateTime.Now.Hour >= 21) && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(3), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[4].Split(' ')[0], NewPrecipitationData[4], "Ветер," });
+                    latestIndex = 5;
+                }
+                if (DateTime.Now.Hour < 9 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    latestIndex = 4;
+                }
+                if (DateTime.Now.Hour < 15 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    latestIndex = 3;
+                }
+                if (DateTime.Now.Hour < 21 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Console.WriteLine(DateTime.Today.AddHours(21).ToString() + NewTempertureData[1].Split(' ')[0].ToString() + NewPrecipitationData[1].ToString() + "Ветер,");
+                    latestIndex = 2;
+                }
+                int days = 1;
+                int ltTemp = latestIndex;
+                try
+                {
+                    for (int i = 0; i < NewTempertureData.Length - ltTemp - 1; i++)
+                    {
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(3).AddDays(days), NewTempertureData[latestIndex].Split(' ')[0], NewPrecipitationData[latestIndex], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(9).AddDays(days), NewTempertureData[latestIndex + 1].Split(' ')[0], NewPrecipitationData[latestIndex + 1], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(15).AddDays(days), NewTempertureData[latestIndex + 2].Split(' ')[0], NewPrecipitationData[latestIndex + 2], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(21).AddDays(days), NewTempertureData[latestIndex + 3].Split(' ')[0], NewPrecipitationData[latestIndex + 3], "Ветер," });
+                        days += 1;
+                        latestIndex += 4;
+                    }
+                }
+                catch
+                {
+                    Data.RemoveAt(Data.Count - 1);
+                }
+
+                SaveData(Data);
+            }
+        }
 
         public void SaveData(List<List<dynamic>> data, string path = "CashedRegions/Region7.json")
         {
@@ -795,23 +1825,169 @@ namespace WeatherAPI
             double[] Region = [55.723060, 37.364715];
             return Region;
         }
-        public List<dynamic> GetWeatherByDate(DateTime date)
+        public List<dynamic> GetWeatherByDate(DateTime targetDate)
         {
-            for (int i = 0; i < Data.Count; i++)
+
+            List<dynamic> closestFutureRecord = null;
+            TimeSpan smallestFutureDiff = TimeSpan.MaxValue; // минимальная положительная разница (инициализируем максимальным значением)
+
+            foreach (List<dynamic> record in Data)
             {
-                if (Data[i][0] == date)
+                // Проверяем наличие даты и правильный тип первого элемента
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                // Интересуют только даты после целевой (в будущем относительно targetDate)
+                if (recordDate <= targetDate)
+                    continue;
+
+                TimeSpan diff = recordDate - targetDate;
+                if (diff < smallestFutureDiff)
                 {
-                    return Data[i];
+                    smallestFutureDiff = diff;
+                    closestFutureRecord = record;
                 }
+                // Если diff == smallestFutureDiff, оставляем уже найденный, т.к. он наступит не позже другого
             }
-            return [];
+
+            return closestFutureRecord;
         }
     }
     public class Region8
     {
         List<List<dynamic>> Data = new List<List<dynamic>>() { };
 
+        public async Task UpdateWeekForecastAsync()
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            string url = "https://rp5.ru/%D0%9F%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0_%D0%B2_%D0%9D%D0%BE%D0%B2%D0%BE%D0%B1%D1%80%D0%B0%D1%82%D1%86%D0%B5%D0%B2%D1%81%D0%BA%D0%BE%D0%BC";
 
+            string html;
+            try
+            {
+                html = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                return;
+            }
+
+            var tableMatch = Regex.Match(html, "<table[^>]*class=\\\".*?forecast.*?\\\"[^>]*>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (!tableMatch.Success)
+                return;
+
+            var rowMatches = Regex.Matches(tableMatch.Groups[1].Value, "<tr[^>]*>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            List<string> lines = new List<string>();
+
+            foreach (Match row in rowMatches)
+            {
+                var cellMatches = Regex.Matches(row.Groups[1].Value, "<t[dh][^>]*>(.*?)</t[dh]>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                List<string> cells = new List<string>();
+                foreach (Match cell in cellMatches)
+                {
+                    string text = Regex.Replace(cell.Groups[1].Value, "<[^>]+>", "");
+                    text = WebUtility.HtmlDecode(text).Trim();
+                    cells.Add(text);
+                }
+                if (cells.Count > 0)
+                {
+                    lines.Add(string.Join("\t", cells) + "\tКонец строки");
+
+                    List<dynamic> rowData = new List<dynamic>();
+                    DateTime dt;
+                    if (DateTime.TryParseExact(cells[0], "dd.MM.yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        rowData.Add(dt);
+                        rowData.AddRange(cells.Skip(1));
+                    }
+                    else
+                    {
+                        foreach (var c in cells)
+                            rowData.Add(c);
+                    }
+                    rowData.Add("Конец строки");
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                bool isFind = false;
+                int latestIndex = 0;
+                List<List<string>> FindIndexData = new List<List<string>>();
+                int indexofWeather = 0;
+                int indexofPrecipitation = 0;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    List<string> datasplit = lines[i].Split('\t').ToList<string>();
+                    if (datasplit[0] == "Температура,  °C °F")
+                    {
+                        indexofWeather = i;
+                    }
+                    if (datasplit[0] == "Влажность, %")
+                    {
+                        indexofPrecipitation = i;
+                    }
+                    FindIndexData.Add(datasplit);
+                }
+                string[] NewTempertureData = lines[indexofWeather].Split('\t');
+                string[] NewPrecipitationData = lines[indexofPrecipitation].Split('\t');
+                if ((DateTime.Now.Hour < 3 || DateTime.Now.Hour >= 21) && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(3), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[4].Split(' ')[0], NewPrecipitationData[4], "Ветер," });
+                    latestIndex = 5;
+                }
+                if (DateTime.Now.Hour < 9 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    latestIndex = 4;
+                }
+                if (DateTime.Now.Hour < 15 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    latestIndex = 3;
+                }
+                if (DateTime.Now.Hour < 21 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Console.WriteLine(DateTime.Today.AddHours(21).ToString() + NewTempertureData[1].Split(' ')[0].ToString() + NewPrecipitationData[1].ToString() + "Ветер,");
+                    latestIndex = 2;
+                }
+                int days = 1;
+                int ltTemp = latestIndex;
+                try
+                {
+                    for (int i = 0; i < NewTempertureData.Length - ltTemp - 1; i++)
+                    {
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(3).AddDays(days), NewTempertureData[latestIndex].Split(' ')[0], NewPrecipitationData[latestIndex], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(9).AddDays(days), NewTempertureData[latestIndex + 1].Split(' ')[0], NewPrecipitationData[latestIndex + 1], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(15).AddDays(days), NewTempertureData[latestIndex + 2].Split(' ')[0], NewPrecipitationData[latestIndex + 2], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(21).AddDays(days), NewTempertureData[latestIndex + 3].Split(' ')[0], NewPrecipitationData[latestIndex + 3], "Ветер," });
+                        days += 1;
+                        latestIndex += 4;
+                    }
+                }
+                catch
+                {
+                    Data.RemoveAt(Data.Count - 1);
+                }
+
+                SaveData(Data);
+            }
+        }
         public void SaveData(List<List<dynamic>> data, string path = "CashedRegions/Region8.json")
         {
             string directory = Path.GetDirectoryName(path);
@@ -890,22 +2066,168 @@ namespace WeatherAPI
             double[] Region = [55.746687, 37.626768];
             return Region;
         }
-        public List<dynamic> GetWeatherByDate(DateTime date)
+        public List<dynamic> GetWeatherByDate(DateTime targetDate)
         {
-            for (int i = 0; i < Data.Count; i++)
+
+            List<dynamic> closestFutureRecord = null;
+            TimeSpan smallestFutureDiff = TimeSpan.MaxValue; // минимальная положительная разница (инициализируем максимальным значением)
+
+            foreach (List<dynamic> record in Data)
             {
-                if (Data[i][0] == date)
+                // Проверяем наличие даты и правильный тип первого элемента
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                // Интересуют только даты после целевой (в будущем относительно targetDate)
+                if (recordDate <= targetDate)
+                    continue;
+
+                TimeSpan diff = recordDate - targetDate;
+                if (diff < smallestFutureDiff)
                 {
-                    return Data[i];
+                    smallestFutureDiff = diff;
+                    closestFutureRecord = record;
                 }
+                // Если diff == smallestFutureDiff, оставляем уже найденный, т.к. он наступит не позже другого
             }
-            return [];
+
+            return closestFutureRecord;
         }
     }
     public class Region9
     {
         List<List<dynamic>> Data = new List<List<dynamic>>() { };
+        public async Task UpdateWeekForecastAsync()
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            string url = "https://rp5.ru/%D0%9F%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0_%D0%B2_%D0%9B%D1%8E%D0%B1%D0%BB%D0%B8%D0%BD%D0%BE,_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0";
 
+            string html;
+            try
+            {
+                html = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                return;
+            }
+
+            var tableMatch = Regex.Match(html, "<table[^>]*class=\\\".*?forecast.*?\\\"[^>]*>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (!tableMatch.Success)
+                return;
+
+            var rowMatches = Regex.Matches(tableMatch.Groups[1].Value, "<tr[^>]*>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            List<string> lines = new List<string>();
+
+            foreach (Match row in rowMatches)
+            {
+                var cellMatches = Regex.Matches(row.Groups[1].Value, "<t[dh][^>]*>(.*?)</t[dh]>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                List<string> cells = new List<string>();
+                foreach (Match cell in cellMatches)
+                {
+                    string text = Regex.Replace(cell.Groups[1].Value, "<[^>]+>", "");
+                    text = WebUtility.HtmlDecode(text).Trim();
+                    cells.Add(text);
+                }
+                if (cells.Count > 0)
+                {
+                    lines.Add(string.Join("\t", cells) + "\tКонец строки");
+
+                    List<dynamic> rowData = new List<dynamic>();
+                    DateTime dt;
+                    if (DateTime.TryParseExact(cells[0], "dd.MM.yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        rowData.Add(dt);
+                        rowData.AddRange(cells.Skip(1));
+                    }
+                    else
+                    {
+                        foreach (var c in cells)
+                            rowData.Add(c);
+                    }
+                    rowData.Add("Конец строки");
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                bool isFind = false;
+                int latestIndex = 0;
+                List<List<string>> FindIndexData = new List<List<string>>();
+                int indexofWeather = 0;
+                int indexofPrecipitation = 0;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    List<string> datasplit = lines[i].Split('\t').ToList<string>();
+                    if (datasplit[0] == "Температура,  °C °F")
+                    {
+                        indexofWeather = i;
+                    }
+                    if (datasplit[0] == "Влажность, %")
+                    {
+                        indexofPrecipitation = i;
+                    }
+                    FindIndexData.Add(datasplit);
+                }
+                string[] NewTempertureData = lines[indexofWeather].Split('\t');
+                string[] NewPrecipitationData = lines[indexofPrecipitation].Split('\t');
+                if ((DateTime.Now.Hour < 3 || DateTime.Now.Hour >= 21) && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(3), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[4].Split(' ')[0], NewPrecipitationData[4], "Ветер," });
+                    latestIndex = 5;
+                }
+                if (DateTime.Now.Hour < 9 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    latestIndex = 4;
+                }
+                if (DateTime.Now.Hour < 15 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    latestIndex = 3;
+                }
+                if (DateTime.Now.Hour < 21 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Console.WriteLine(DateTime.Today.AddHours(21).ToString() + NewTempertureData[1].Split(' ')[0].ToString() + NewPrecipitationData[1].ToString() + "Ветер,");
+                    latestIndex = 2;
+                }
+                int days = 1;
+                int ltTemp = latestIndex;
+                try
+                {
+                    for (int i = 0; i < NewTempertureData.Length - ltTemp - 1; i++)
+                    {
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(3).AddDays(days), NewTempertureData[latestIndex].Split(' ')[0], NewPrecipitationData[latestIndex], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(9).AddDays(days), NewTempertureData[latestIndex + 1].Split(' ')[0], NewPrecipitationData[latestIndex + 1], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(15).AddDays(days), NewTempertureData[latestIndex + 2].Split(' ')[0], NewPrecipitationData[latestIndex + 2], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(21).AddDays(days), NewTempertureData[latestIndex + 3].Split(' ')[0], NewPrecipitationData[latestIndex + 3], "Ветер," });
+                        days += 1;
+                        latestIndex += 4;
+                    }
+                }
+                catch
+                {
+                    Data.RemoveAt(Data.Count - 1);
+                }
+
+                SaveData(Data);
+            }
+        }
 
         public void SaveData(List<List<dynamic>> data, string path = "CashedRegions/Region9.json")
         {
@@ -985,22 +2307,168 @@ namespace WeatherAPI
             double[] Region = [55.804719, 37.399596];
             return Region;
         }
-        public List<dynamic> GetWeatherByDate(DateTime date)
+        public List<dynamic> GetWeatherByDate(DateTime targetDate)
         {
-            for (int i = 0; i < Data.Count; i++)
+
+            List<dynamic> closestFutureRecord = null;
+            TimeSpan smallestFutureDiff = TimeSpan.MaxValue; // минимальная положительная разница (инициализируем максимальным значением)
+
+            foreach (List<dynamic> record in Data)
             {
-                if (Data[i][0] == date)
+                // Проверяем наличие даты и правильный тип первого элемента
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                // Интересуют только даты после целевой (в будущем относительно targetDate)
+                if (recordDate <= targetDate)
+                    continue;
+
+                TimeSpan diff = recordDate - targetDate;
+                if (diff < smallestFutureDiff)
                 {
-                    return Data[i];
+                    smallestFutureDiff = diff;
+                    closestFutureRecord = record;
                 }
+                // Если diff == smallestFutureDiff, оставляем уже найденный, т.к. он наступит не позже другого
             }
-            return [];
+
+            return closestFutureRecord;
         }
     }
     public class Region10
     {
         List<List<dynamic>> Data = new List<List<dynamic>>() { };
+        public async Task UpdateWeekForecastAsync()
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            string url = "https://rp5.ru/%D0%9F%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0_%D0%B2_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B5_(%D1%81%D0%B5%D0%B2%D0%B5%D1%80)";
 
+            string html;
+            try
+            {
+                html = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                return;
+            }
+
+            var tableMatch = Regex.Match(html, "<table[^>]*class=\\\".*?forecast.*?\\\"[^>]*>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (!tableMatch.Success)
+                return;
+
+            var rowMatches = Regex.Matches(tableMatch.Groups[1].Value, "<tr[^>]*>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            List<string> lines = new List<string>();
+
+            foreach (Match row in rowMatches)
+            {
+                var cellMatches = Regex.Matches(row.Groups[1].Value, "<t[dh][^>]*>(.*?)</t[dh]>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                List<string> cells = new List<string>();
+                foreach (Match cell in cellMatches)
+                {
+                    string text = Regex.Replace(cell.Groups[1].Value, "<[^>]+>", "");
+                    text = WebUtility.HtmlDecode(text).Trim();
+                    cells.Add(text);
+                }
+                if (cells.Count > 0)
+                {
+                    lines.Add(string.Join("\t", cells) + "\tКонец строки");
+
+                    List<dynamic> rowData = new List<dynamic>();
+                    DateTime dt;
+                    if (DateTime.TryParseExact(cells[0], "dd.MM.yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        rowData.Add(dt);
+                        rowData.AddRange(cells.Skip(1));
+                    }
+                    else
+                    {
+                        foreach (var c in cells)
+                            rowData.Add(c);
+                    }
+                    rowData.Add("Конец строки");
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                bool isFind = false;
+                int latestIndex = 0;
+                List<List<string>> FindIndexData = new List<List<string>>();
+                int indexofWeather = 0;
+                int indexofPrecipitation = 0;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    List<string> datasplit = lines[i].Split('\t').ToList<string>();
+                    if (datasplit[0] == "Температура,  °C °F")
+                    {
+                        indexofWeather = i;
+                    }
+                    if (datasplit[0] == "Влажность, %")
+                    {
+                        indexofPrecipitation = i;
+                    }
+                    FindIndexData.Add(datasplit);
+                }
+                string[] NewTempertureData = lines[indexofWeather].Split('\t');
+                string[] NewPrecipitationData = lines[indexofPrecipitation].Split('\t');
+                if ((DateTime.Now.Hour < 3 || DateTime.Now.Hour >= 21) && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(3), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[4].Split(' ')[0], NewPrecipitationData[4], "Ветер," });
+                    latestIndex = 5;
+                }
+                if (DateTime.Now.Hour < 9 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    latestIndex = 4;
+                }
+                if (DateTime.Now.Hour < 15 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    latestIndex = 3;
+                }
+                if (DateTime.Now.Hour < 21 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Console.WriteLine(DateTime.Today.AddHours(21).ToString() + NewTempertureData[1].Split(' ')[0].ToString() + NewPrecipitationData[1].ToString() + "Ветер,");
+                    latestIndex = 2;
+                }
+                int days = 1;
+                int ltTemp = latestIndex;
+                try
+                {
+                    for (int i = 0; i < NewTempertureData.Length - ltTemp - 1; i++)
+                    {
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(3).AddDays(days), NewTempertureData[latestIndex].Split(' ')[0], NewPrecipitationData[latestIndex], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(9).AddDays(days), NewTempertureData[latestIndex + 1].Split(' ')[0], NewPrecipitationData[latestIndex + 1], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(15).AddDays(days), NewTempertureData[latestIndex + 2].Split(' ')[0], NewPrecipitationData[latestIndex + 2], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(21).AddDays(days), NewTempertureData[latestIndex + 3].Split(' ')[0], NewPrecipitationData[latestIndex + 3], "Ветер," });
+                        days += 1;
+                        latestIndex += 4;
+                    }
+                }
+                catch
+                {
+                    Data.RemoveAt(Data.Count - 1);
+                }
+
+                SaveData(Data);
+            }
+        }
 
         public void SaveData(List<List<dynamic>> data, string path = "CashedRegions/Region10.json")
         {
@@ -1080,23 +2548,169 @@ namespace WeatherAPI
             double[] Region = [55.821097, 37.641045];
             return Region;
         }
-        public List<dynamic> GetWeatherByDate(DateTime date)
+        public List<dynamic> GetWeatherByDate(DateTime targetDate)
         {
-            for (int i = 0; i < Data.Count; i++)
+
+            List<dynamic> closestFutureRecord = null;
+            TimeSpan smallestFutureDiff = TimeSpan.MaxValue; // минимальная положительная разница (инициализируем максимальным значением)
+
+            foreach (List<dynamic> record in Data)
             {
-                if (Data[i][0] == date)
+                // Проверяем наличие даты и правильный тип первого элемента
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                // Интересуют только даты после целевой (в будущем относительно targetDate)
+                if (recordDate <= targetDate)
+                    continue;
+
+                TimeSpan diff = recordDate - targetDate;
+                if (diff < smallestFutureDiff)
                 {
-                    return Data[i];
+                    smallestFutureDiff = diff;
+                    closestFutureRecord = record;
                 }
+                // Если diff == smallestFutureDiff, оставляем уже найденный, т.к. он наступит не позже другого
             }
-            return [];
+
+            return closestFutureRecord;
         }
     }
     public class Region11
     {
         List<List<dynamic>> Data = new List<List<dynamic>>() { };
 
+        public async Task UpdateWeekForecastAsync()
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            string url = "https://rp5.ru/%D0%9F%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0_%D0%B2_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B5_(%D0%B2%D0%BE%D1%81%D1%82%D0%BE%D0%BA,_%D0%9F%D0%B5%D1%80%D0%BE%D0%B2%D0%BE)";
 
+            string html;
+            try
+            {
+                html = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                return;
+            }
+
+            var tableMatch = Regex.Match(html, "<table[^>]*class=\\\".*?forecast.*?\\\"[^>]*>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (!tableMatch.Success)
+                return;
+
+            var rowMatches = Regex.Matches(tableMatch.Groups[1].Value, "<tr[^>]*>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            List<string> lines = new List<string>();
+
+            foreach (Match row in rowMatches)
+            {
+                var cellMatches = Regex.Matches(row.Groups[1].Value, "<t[dh][^>]*>(.*?)</t[dh]>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                List<string> cells = new List<string>();
+                foreach (Match cell in cellMatches)
+                {
+                    string text = Regex.Replace(cell.Groups[1].Value, "<[^>]+>", "");
+                    text = WebUtility.HtmlDecode(text).Trim();
+                    cells.Add(text);
+                }
+                if (cells.Count > 0)
+                {
+                    lines.Add(string.Join("\t", cells) + "\tКонец строки");
+
+                    List<dynamic> rowData = new List<dynamic>();
+                    DateTime dt;
+                    if (DateTime.TryParseExact(cells[0], "dd.MM.yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        rowData.Add(dt);
+                        rowData.AddRange(cells.Skip(1));
+                    }
+                    else
+                    {
+                        foreach (var c in cells)
+                            rowData.Add(c);
+                    }
+                    rowData.Add("Конец строки");
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                bool isFind = false;
+                int latestIndex = 0;
+                List<List<string>> FindIndexData = new List<List<string>>();
+                int indexofWeather = 0;
+                int indexofPrecipitation = 0;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    List<string> datasplit = lines[i].Split('\t').ToList<string>();
+                    if (datasplit[0] == "Температура,  °C °F")
+                    {
+                        indexofWeather = i;
+                    }
+                    if (datasplit[0] == "Влажность, %")
+                    {
+                        indexofPrecipitation = i;
+                    }
+                    FindIndexData.Add(datasplit);
+                }
+                string[] NewTempertureData = lines[indexofWeather].Split('\t');
+                string[] NewPrecipitationData = lines[indexofPrecipitation].Split('\t');
+                if ((DateTime.Now.Hour < 3 || DateTime.Now.Hour >= 21) && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(3), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[4].Split(' ')[0], NewPrecipitationData[4], "Ветер," });
+                    latestIndex = 5;
+                }
+                if (DateTime.Now.Hour < 9 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    latestIndex = 4;
+                }
+                if (DateTime.Now.Hour < 15 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    latestIndex = 3;
+                }
+                if (DateTime.Now.Hour < 21 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Console.WriteLine(DateTime.Today.AddHours(21).ToString() + NewTempertureData[1].Split(' ')[0].ToString() + NewPrecipitationData[1].ToString() + "Ветер,");
+                    latestIndex = 2;
+                }
+                int days = 1;
+                int ltTemp = latestIndex;
+                try
+                {
+                    for (int i = 0; i < NewTempertureData.Length - ltTemp - 1; i++)
+                    {
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(3).AddDays(days), NewTempertureData[latestIndex].Split(' ')[0], NewPrecipitationData[latestIndex], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(9).AddDays(days), NewTempertureData[latestIndex + 1].Split(' ')[0], NewPrecipitationData[latestIndex + 1], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(15).AddDays(days), NewTempertureData[latestIndex + 2].Split(' ')[0], NewPrecipitationData[latestIndex + 2], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(21).AddDays(days), NewTempertureData[latestIndex + 3].Split(' ')[0], NewPrecipitationData[latestIndex + 3], "Ветер," });
+                        days += 1;
+                        latestIndex += 4;
+                    }
+                }
+                catch
+                {
+                    Data.RemoveAt(Data.Count - 1);
+                }
+
+                SaveData(Data);
+            }
+        }
         public void SaveData(List<List<dynamic>> data, string path = "CashedRegions/Region11.json")
         {
             string directory = Path.GetDirectoryName(path);
@@ -1175,23 +2789,169 @@ namespace WeatherAPI
             double[] Region = [55.858382, 37.431441];
             return Region;
         }
-        public List<dynamic> GetWeatherByDate(DateTime date)
+        public List<dynamic> GetWeatherByDate(DateTime targetDate)
         {
-            for (int i = 0; i < Data.Count; i++)
+
+            List<dynamic> closestFutureRecord = null;
+            TimeSpan smallestFutureDiff = TimeSpan.MaxValue; // минимальная положительная разница (инициализируем максимальным значением)
+
+            foreach (List<dynamic> record in Data)
             {
-                if (Data[i][0] == date)
+                // Проверяем наличие даты и правильный тип первого элемента
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                // Интересуют только даты после целевой (в будущем относительно targetDate)
+                if (recordDate <= targetDate)
+                    continue;
+
+                TimeSpan diff = recordDate - targetDate;
+                if (diff < smallestFutureDiff)
                 {
-                    return Data[i];
+                    smallestFutureDiff = diff;
+                    closestFutureRecord = record;
                 }
+                // Если diff == smallestFutureDiff, оставляем уже найденный, т.к. он наступит не позже другого
             }
-            return [];
+
+            return closestFutureRecord;
         }
     }
     public class Region12
     {
         List<List<dynamic>> Data = new List<List<dynamic>>() { };
 
+        public async Task UpdateWeekForecastAsync()
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            string url = "https://rp5.ru/%D0%9F%D0%BE%D0%B3%D0%BE%D0%B4%D0%B0_%D0%B2_%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B5_(%D0%B7%D0%B0%D0%BF%D0%B0%D0%B4)";
 
+            string html;
+            try
+            {
+                html = await client.GetStringAsync(url);
+            }
+            catch
+            {
+                return;
+            }
+
+            var tableMatch = Regex.Match(html, "<table[^>]*class=\\\".*?forecast.*?\\\"[^>]*>(.*?)</table>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (!tableMatch.Success)
+                return;
+
+            var rowMatches = Regex.Matches(tableMatch.Groups[1].Value, "<tr[^>]*>(.*?)</tr>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+            List<string> lines = new List<string>();
+
+            foreach (Match row in rowMatches)
+            {
+                var cellMatches = Regex.Matches(row.Groups[1].Value, "<t[dh][^>]*>(.*?)</t[dh]>", RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                List<string> cells = new List<string>();
+                foreach (Match cell in cellMatches)
+                {
+                    string text = Regex.Replace(cell.Groups[1].Value, "<[^>]+>", "");
+                    text = WebUtility.HtmlDecode(text).Trim();
+                    cells.Add(text);
+                }
+                if (cells.Count > 0)
+                {
+                    lines.Add(string.Join("\t", cells) + "\tКонец строки");
+
+                    List<dynamic> rowData = new List<dynamic>();
+                    DateTime dt;
+                    if (DateTime.TryParseExact(cells[0], "dd.MM.yyyy HH:mm", null, System.Globalization.DateTimeStyles.None, out dt))
+                    {
+                        rowData.Add(dt);
+                        rowData.AddRange(cells.Skip(1));
+                    }
+                    else
+                    {
+                        foreach (var c in cells)
+                            rowData.Add(c);
+                    }
+                    rowData.Add("Конец строки");
+                }
+            }
+
+            if (lines.Count > 0)
+            {
+                bool isFind = false;
+                int latestIndex = 0;
+                List<List<string>> FindIndexData = new List<List<string>>();
+                int indexofWeather = 0;
+                int indexofPrecipitation = 0;
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    List<string> datasplit = lines[i].Split('\t').ToList<string>();
+                    if (datasplit[0] == "Температура,  °C °F")
+                    {
+                        indexofWeather = i;
+                    }
+                    if (datasplit[0] == "Влажность, %")
+                    {
+                        indexofPrecipitation = i;
+                    }
+                    FindIndexData.Add(datasplit);
+                }
+                string[] NewTempertureData = lines[indexofWeather].Split('\t');
+                string[] NewPrecipitationData = lines[indexofPrecipitation].Split('\t');
+                if ((DateTime.Now.Hour < 3 || DateTime.Now.Hour >= 21) && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(3), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[4].Split(' ')[0], NewPrecipitationData[4], "Ветер," });
+                    latestIndex = 5;
+                }
+                if (DateTime.Now.Hour < 9 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(9), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[3].Split(' ')[0], NewPrecipitationData[3], "Ветер," });
+                    latestIndex = 4;
+                }
+                if (DateTime.Now.Hour < 15 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(15), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[2].Split(' ')[0], NewPrecipitationData[2], "Ветер," });
+                    latestIndex = 3;
+                }
+                if (DateTime.Now.Hour < 21 && !isFind)
+                {
+                    isFind = true;
+                    Data.Add(new List<dynamic> { DateTime.Today.AddHours(21), NewTempertureData[1].Split(' ')[0], NewPrecipitationData[1], "Ветер," });
+                    Console.WriteLine(DateTime.Today.AddHours(21).ToString() + NewTempertureData[1].Split(' ')[0].ToString() + NewPrecipitationData[1].ToString() + "Ветер,");
+                    latestIndex = 2;
+                }
+                int days = 1;
+                int ltTemp = latestIndex;
+                try
+                {
+                    for (int i = 0; i < NewTempertureData.Length - ltTemp - 1; i++)
+                    {
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(3).AddDays(days), NewTempertureData[latestIndex].Split(' ')[0], NewPrecipitationData[latestIndex], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(9).AddDays(days), NewTempertureData[latestIndex + 1].Split(' ')[0], NewPrecipitationData[latestIndex + 1], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(15).AddDays(days), NewTempertureData[latestIndex + 2].Split(' ')[0], NewPrecipitationData[latestIndex + 2], "Ветер," });
+                        Data.Add(new List<dynamic> { DateTime.Today.AddHours(21).AddDays(days), NewTempertureData[latestIndex + 3].Split(' ')[0], NewPrecipitationData[latestIndex + 3], "Ветер," });
+                        days += 1;
+                        latestIndex += 4;
+                    }
+                }
+                catch
+                {
+                    Data.RemoveAt(Data.Count - 1);
+                }
+
+                SaveData(Data);
+            }
+        }
         public void SaveData(List<List<dynamic>> data, string path = "CashedRegions/Region12.json")
         {
             string directory = Path.GetDirectoryName(path);
@@ -1270,16 +3030,34 @@ namespace WeatherAPI
             double[] Region = [55.933302, 37.514230];
             return Region;
         }
-        public List<dynamic> GetWeatherByDate(DateTime date)
+        public List<dynamic> GetWeatherByDate(DateTime targetDate)
         {
-            for (int i = 0; i < Data.Count; i++)
+
+            List<dynamic> closestFutureRecord = null;
+            TimeSpan smallestFutureDiff = TimeSpan.MaxValue; // минимальная положительная разница (инициализируем максимальным значением)
+
+            foreach (List<dynamic> record in Data)
             {
-                if (Data[i][0] == date)
+                // Проверяем наличие даты и правильный тип первого элемента
+                if (record.Count == 0 || record[0] == null)
+                    continue;
+                if (!(record[0] is DateTime recordDate))
+                    continue;
+
+                // Интересуют только даты после целевой (в будущем относительно targetDate)
+                if (recordDate <= targetDate)
+                    continue;
+
+                TimeSpan diff = recordDate - targetDate;
+                if (diff < smallestFutureDiff)
                 {
-                    return Data[i];
+                    smallestFutureDiff = diff;
+                    closestFutureRecord = record;
                 }
+                // Если diff == smallestFutureDiff, оставляем уже найденный, т.к. он наступит не позже другого
             }
-            return [];
+
+            return closestFutureRecord;
         }
     }
 
