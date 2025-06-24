@@ -1,303 +1,154 @@
-# TailAdmin React - Free React Tailwind Admin Dashboard Template
+# Tailwind Admin Dashboard — Восстановленная и Реструктурированная Версия
+
+Это репозиторий корпоративной админ-панели, которая прошла полный архитектурный рефакторинг. Изначально проект представлял собой монолит, который был успешно разделен на независимые Frontend и Backend сервисы, стабилизирован и приведен к современным стандартам разработки.
+
+---
+
+## 🚀 Архитектурная Карта Проекта
+
+Для быстрого понимания текущей структуры и ключевых взаимосвязей была создана визуальная карта проекта.
+
+[![Архитектурная карта проекта](docs/architecture-map.png)](docs/architecture.html)
+_Кликните на изображение, чтобы открыть интерактивную HTML-версию_
+
+---
+
+## 🛠️ Технологический Стек
+
+**Frontend:**
+- **Фреймворк:** React
+- **Сборщик:** Vite
+- **Язык:** TypeScript
+- **Стилизация:** Tailwind CSS v4 (c @theme)
+- **Запросы к API:** Axios
+- **Роутинг:** React Router DOM
+
+**Backend:**
+- **Среда выполнения:** Node.js
+- **Фреймворк:** Express
+- **Язык:** TypeScript
+- **Аутентификация и БД:** Supabase (PostgreSQL)
+
+---
+
+## 🏁 Локальный Запуск (Setup)
+
+Проект состоит из двух независимых сервисов. Для полного запуска выполните шаги для каждого из них в отдельных терминалах.
+
+### 1. Запуск Backend
+
+1. Перейдите в директорию бэкенда:
+    ```bash
+    cd backend
+    ```
+2. Создайте `.env` файл по примеру:
+    ```dotenv
+    PORT=3000
+    DB_USER=postgres
+    DB_HOST=db.xxxxxxxx.supabase.co
+    DB_NAME=postgres
+    DB_PASSWORD=your_db_password
+    DB_PORT=5432
+    JWT_SECRET=your-super-secret-jwt-key
+    SUPABASE_URL=https://xxxxxxxx.supabase.co
+    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+    ```
+3. Установите зависимости:
+    ```bash
+    npm install
+    ```
+4. Запустите сервер:
+    ```bash
+    npm run dev
+    ```
+    Сервер будет доступен по адресу http://localhost:3000
 
-TailAdmin is a free and open-source admin dashboard template built on **React and Tailwind CSS**, providing developers
-with everything they need to create a comprehensive, data-driven back-end,
-dashboard, or admin panel solution for upcoming web projects.
+### 2. Запуск Frontend
 
-With TailAdmin, you get access to all the necessary dashboard UI components, elements, and pages required to build a
-feature-rich and complete dashboard or admin panel. Whether you're building dashboard or admin panel for a complex web
-application or a simple website, TailAdmin is the perfect solution to help you get up and running quickly.
+1. Перейдите в директорию фронтенда:
+    ```bash
+    cd frontend
+    ```
+2. Создайте `.env` файл по примеру:
+    ```dotenv
+    VITE_SUPABASE_URL=https://xxxxxxxx.supabase.co
+    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+    ```
+3. Установите зависимости:
+    ```bash
+    npm install
+    ```
+4. Запустите сервер разработки:
+    ```bash
+    npm run dev
+    ```
+    Приложение будет доступно по адресу http://localhost:5173
 
-![TailAdmin React.js Dashboard Preview](./banner.png)
+---
 
-## Overview
+## 🏛️ Структура Проекта
 
-TailAdmin provides essential UI components and layouts for building feature-rich, data-driven admin dashboards and
-control panels. It's built on:
+- **/frontend:** Клиентская часть (React-приложение)
+- **/backend:** Серверная часть (Node.js/Express API)
+- **/database:** Схемы и скрипты для PostgreSQL
+- **/docs:** Документация и Cookbook (см. ниже)
 
-- React 19
-- TypeScript
-- Tailwind CSS
+---
 
-### Quick Links
+## 📚 Cookbook (Практические рецепты)
 
-- [✨ Visit Website](https://tailadmin.com)
-- [📄 Documentation](https://tailadmin.com/docs)
-- [⬇️ Download](https://tailadmin.com/download)
-- [🖌️ Figma Design File (Community Edition)](https://www.figma.com/community/file/1214477970819985778)
-- [⚡ Get PRO Version](https://tailadmin.com/pricing)
+- [Добавить новую страницу](docs/add-new-page.md)
+- [Добавить новую иконку](docs/add-new-icon.md)
+- [API endpoints](docs/api-endpoints.md)
+- [Схема базы данных](docs/database-schema.md)
+- [FAQ / Troubleshooting](docs/faq.md)
 
-### Demos
+---
 
-- [Free Version](https://free-react-demo.tailadmin.com/)
-- [Pro Version](https://react-demo.tailadmin.com)
+## 🖼️ Скриншоты
 
-### Other Versions
+Ниже представлены ключевые экраны приложения:
 
-- [HTML Version](https://github.com/TailAdmin/tailadmin-free-tailwind-dashboard-template)
-- [Next.js Version](https://github.com/TailAdmin/free-nextjs-admin-dashboard)
-- [Vue.js Version](https://github.com/TailAdmin/vue-tailwind-admin-dashboard)
+![Дашборд](docs/screenshots/dashboard.png)
+![Профиль пользователя](docs/screenshots/profile.png)
 
-## Installation
+---
 
-### Prerequisites
+## 🧭 Архитектурный Аудит (Кратко)
 
-To get started with TailAdmin, ensure you have the following prerequisites installed and set up:
+### Точка входа и загрузка
+- Старт: `index.html` с `<div id="root">`
+- Инициализация: `src/main.tsx` монтирует React-приложение в #root
+- Глобальные провайдеры: `<BrowserRouter>`, `<AuthProvider>`
 
-- Node.js 18.x or later (recommended to use Node.js 20.x or later)
+### Система роутинга и защита маршрутов
+- Центр роутинга: `src/App.tsx`
+- Защита: `src/components/auth/ProtectedRoute.tsx` использует AuthContext для проверки авторизации
 
-### Cloning the Repository
+### Аутентификация и API
+- Управление сессией: `src/context/AuthContext.tsx` (Supabase)
+- Взаимодействие с API: `src/services/api.ts` (axios + interceptor для JWT)
 
-Clone the repository using the following command:
+### Tailwind CSS и стилизация
+- Конфиг: `postcss.config.js`, `src/index.css` (директива @theme)
 
-```bash
-git clone https://github.com/TailAdmin/free-react-tailwind-admin-dashboard.git
-```
+### Работа с иконками
+- SVG: `public/images/icons/`
+- Реестр: `src/helpers/icons.ts`
 
-> Windows Users: place the repository near the root of your drive if you face issues while cloning.
+### Потоки данных
+- useEffect для запросов к API, useState для хранения данных
+- Пример: `src/components/ecommerce/MonthlySalesChart.tsx` (график продаж)
 
-1. Install dependencies:
+---
 
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+## 📂 Полезные ссылки
+- [Cookbook: добавление страницы](docs/add-new-page.md)
+- [Cookbook: добавление иконки](docs/add-new-icon.md)
+- [Cookbook: API endpoints](docs/api-endpoints.md)
 
-   > Use the `--legacy-peer-deps` flag, if you face issues while installing.
+---
 
-2. Start the development server:
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
+## 📄 Лицензия
 
-## Components
-
-TailAdmin is a pre-designed starting point for building a web-based dashboard using React.js and Tailwind CSS. The
-template includes:
-
-- Sophisticated and accessible sidebar
-- Data visualization components
-- Prebuilt profile management and 404 page
-- Tables and Charts(Line and Bar)
-- Authentication forms and input elements
-- Alerts, Dropdowns, Modals, Buttons and more
-- Can't forget Dark Mode 🕶️
-
-All components are built with React and styled using Tailwind CSS for easy customization.
-
-## Feature Comparison
-
-### Free Version
-
-- 1 Unique Dashboard
-- 30+ dashboard components
-- 50+ UI elements
-- Basic Figma design files
-- Community support
-
-### Pro Version
-
-- 5 Unique Dashboards: Analytics, Ecommerce, Marketing, CRM, Stocks (more coming soon)
-- 400+ dashboard components and UI elements
-- Complete Figma design file
-- Email support
-
-To learn more about pro version features and pricing, visit our [pricing page](https://tailadmin.com/pricing).
-
-## Changelog
-
-### Version 2.0.2 - [March 25, 2025]
-
-- Upgraded to React 19
-- Included overrides for packages to prevent peer dependency errors.
-- Migrated from react-flatpickr to flatpickr package for React 19 support
-
-### Version 2.0.1 - [February 27, 2025]
-
-#### Update Overview
-
-- Upgraded to Tailwind CSS v4 for better performance and efficiency.
-- Updated class usage to match the latest syntax and features.
-- Replaced deprecated class and optimized styles.
-
-#### Next Steps
-
-- Run npm install or yarn install to update dependencies.
-- Check for any style changes or compatibility issues.
-- Refer to the Tailwind CSS v4 [Migration Guide](https://tailwindcss.com/docs/upgrade-guide) on this release. if needed.
-- This update keeps the project up to date with the latest Tailwind improvements. 🚀
-
-### Version 2.0.0 - [February 2025]
-
-A major update with comprehensive redesign and modern React patterns implementation.
-
-#### Major Improvements
-
-- Complete UI redesign with modern React patterns
-- New features: collapsible sidebar, chat, and calendar
-- Improved performance and accessibility
-- Updated data visualization using ApexCharts
-
-#### Key Features
-
-- Redesigned dashboards (Ecommerce, Analytics, Marketing, CRM)
-- Enhanced navigation with React Router integration
-- Advanced tables with sorting and filtering
-- Calendar with drag-and-drop support
-- New UI components and improved existing ones
-
-#### Breaking Changes
-
-- Updated sidebar component API
-- Migrated charts to ApexCharts
-- Revised authentication system
-
-[Read more](https://tailadmin.com/docs/update-logs/react) on this release.
-
-### Version 1.3.7 - [June 20, 2024]
-
-#### Enhancements
-
-1. Remove Repetition of DefaultLayout in every Pages
-2. Add ClickOutside Component for reduce repeated functionality in Header Message, Notification and User Dropdowns.
-
-### Version 1.3.6 - [Jan 31, 2024]
-
-#### Enhancements
-
-1. Integrate flatpickr in [Date Picker/Form Elements]
-2. Change color after select an option [Select Element/Form Elements].
-3. Make it functional [Multiselect Dropdown/Form Elements].
-4. Make best value editable [Pricing Table One/Pricing Table].
-5. Rearrange Folder structure.
-
-### Version 1.2.0 - [Apr 28, 2023]
-
-- Add Typescript in TailAdmin React.
-
-### Version 1.0.0 - Initial Release - [Mar 13, 2023]
-
-- Initial release of TailAdmin React.
-
-## License
-
-TailAdmin React.js Free Version is released under the MIT License.
-
-## Support
-
-If you find this project helpful, please consider giving it a star on GitHub. Your support helps us continue developing
-and maintaining this template.
-
-# LuckNiteShoots Backend
-
-This is the backend for the LuckNiteShoots application, built with Node.js, Express, and PostgreSQL.
-
-## Prerequisites
-
-- Node.js (v14 or higher)
-- PostgreSQL database
-- Supabase account (for hosting the database)
-
-## Setup
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd luckniteshoots
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Create a `.env` file in the root directory with the following variables:
-```
-# Server Configuration
-PORT=3000
-
-# Database Configuration
-DB_USER=postgres
-DB_HOST=localhost
-DB_NAME=luckniteshoots
-DB_PASSWORD=postgres
-DB_PORT=5432
-
-# JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-JWT_EXPIRES_IN=24h
-
-# Supabase Configuration (if using Supabase)
-SUPABASE_URL=your-supabase-url
-SUPABASE_KEY=your-supabase-key
-```
-
-4. Set up the database:
-   - Create a PostgreSQL database named `luckniteshoots`
-   - Run the SQL script in `database/schema.sql` to create the necessary tables
-
-## Running the Application
-
-### Development Mode
-
-```bash
-npm run dev
-```
-
-### Production Mode
-
-```bash
-npm run build
-npm start
-```
-
-## API Endpoints
-
-### Authentication
-
-- `POST /auth/register` - Register a new user
-- `POST /auth/login` - Login a user
-- `GET /auth/me` - Get the current user's profile
-
-### Monetization
-
-- `GET /api/me/monetization` - Get monetization details for the current user's organization
-- `GET /api/organizations/:organizationId/monetization` - Get monetization details for a specific organization (admin only)
-- `PUT /api/monetization/subscription/:subscriptionId` - Update subscription settings
-- `POST /api/monetization/subscription/:subscriptionId/cancel` - Cancel subscription
-- `GET /api/monetization/savings` - Get savings percentage details
-- `GET /api/monetization/pay-per-use` - Get pay-per-use details
-
-## Database Schema
-
-The database schema includes the following tables:
-
-- `organizations` - Stores information about organizations
-- `users` - Stores user information
-- `monetization_model_types` - Stores different types of monetization models
-- `organization_monetization_agreements` - Stores agreements between organizations and monetization models
-
-## Authentication
-
-The application uses JWT (JSON Web Tokens) for authentication. When a user logs in or registers, they receive a JWT token that they must include in the `Authorization` header of subsequent requests:
-
-```
-Authorization: Bearer <token>
-```
-
-## Error Handling
-
-The API returns appropriate HTTP status codes and error messages in case of errors:
-
-- `400 Bad Request` - Invalid input
-- `401 Unauthorized` - Authentication required
-- `403 Forbidden` - Insufficient permissions
-- `404 Not Found` - Resource not found
-- `500 Internal Server Error` - Server error
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT
