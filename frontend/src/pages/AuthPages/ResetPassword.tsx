@@ -13,8 +13,8 @@ export default function ResetPassword() {
     setError(null);
     setSuccess(null);
     try {
-      const res = await authAPI.requestPasswordReset(email);
-      setSuccess(res.message || "Check your email for the password reset link.");
+      const res = await authAPI.resetPassword(email);
+      setSuccess(res.data.message || "Check your email for the password reset link.");
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || "Ошибка при сбросе пароля");
     }
