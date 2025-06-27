@@ -33,7 +33,10 @@ export default function App() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('EVENT in App.tsx:', event, 'SESSION:', session);
+
       if (event === 'PASSWORD_RECOVERY') {
+        console.log('PASSWORD_RECOVERY detected in App.tsx! Navigating to /update-password...');
         navigate('/update-password');
       }
     });
