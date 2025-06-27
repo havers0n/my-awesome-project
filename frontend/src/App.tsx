@@ -24,8 +24,24 @@ import UpdatePassword from "@/pages/AuthPages/UpdatePassword";
 import AdminCreateUser from "@/pages/AdminCreateUser";
 import ProfilePage from "@/pages/ProfilePage";
 import NewAdminApp from "@/pages/Admin/NewAdminApp";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/services/supabaseClient";
 
 export default function App() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        navigate('/update-password');
+      }
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
   return (
     <>
       <ScrollToTop />
