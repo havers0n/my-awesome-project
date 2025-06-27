@@ -12,7 +12,9 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       res.status(500).json({ error: 'Supabase admin client not initialized' });
       return;
     }
-    const { data, error } = await supabaseAdmin.auth.resetPasswordForEmail(email);
+    const { data, error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+      redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
+    });
     if (error) {
       res.status(400).json({ error: error.message });
       return;
