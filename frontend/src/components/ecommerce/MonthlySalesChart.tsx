@@ -2,7 +2,8 @@ import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { ICONS } from "@/helpers/icons";
+// import { ICONS } from "@/helpers/icons";
+import { Icon } from '../common/Icon';
 import { useState } from "react";
 
 export default function MonthlySalesChart() {
@@ -108,7 +109,7 @@ export default function MonthlySalesChart() {
         </h3>
         <div className="relative inline-block">
           <button className="dropdown-toggle" onClick={toggleDropdown}>
-            <img src={ICONS.MOREDOT} alt="More dot icon" className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 size-6" />
+            <Icon name="MOREDOT" size={6} className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" alt="More dot icon" />
           </button>
           <Dropdown
             isOpen={isOpen}

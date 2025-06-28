@@ -4,6 +4,7 @@ import Label from "../Label";
 import Input from "../input/InputField";
 import Select from "../Select";
 import { ICONS } from "@/helpers/icons";
+import { Icon } from '../../common/Icon';
 import DatePicker from "../date-picker.tsx";
 
 export default function DefaultInputs() {
@@ -48,11 +49,7 @@ export default function DefaultInputs() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
             >
-              {showPassword ? (
-                <img src={ICONS.EYE} className="fill-gray-500 dark:fill-gray-400 size-5" alt="Show password" />
-              ) : (
-                <img src={ICONS.EYE_CLOSE} className="fill-gray-500 dark:fill-gray-400 size-5" alt="Hide password" />
-              )}
+              <Icon name={showPassword ? 'EYE' : 'EYE_CLOSE'} size={5} className="fill-gray-500 dark:fill-gray-400" alt={showPassword ? 'Show password' : 'Hide password'} />
             </button>
           </div>
         </div>
@@ -79,7 +76,7 @@ export default function DefaultInputs() {
               onChange={(e) => console.log(e.target.value)}
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-              <img src={ICONS.TIME} className="size-6" alt="Time icon" />
+              <Icon name="TIME" size={6} alt="Time icon" />
             </span>
           </div>
         </div>

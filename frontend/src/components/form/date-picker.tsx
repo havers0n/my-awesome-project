@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.css";
 import Label from "./Label";
-import { ICONS } from "@/helpers/icons";
+// import { ICONS } from "@/helpers/icons";
+import { Icon } from '../common/Icon';
 import Hook = flatpickr.Options.Hook;
 import DateOption = flatpickr.Options.DateOption;
 
@@ -52,7 +53,7 @@ export default function DatePicker({
         />
 
         <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-          <img src={ICONS.CALENDER_LINE} alt="Calendar icon" className="size-6" />
+          <Icon name="CALENDER_LINE" size={6} alt="Calendar icon" />
         </span>
       </div>
     </div>

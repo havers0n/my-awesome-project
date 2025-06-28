@@ -1,6 +1,7 @@
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Badge from "@/components/ui/badge/Badge";
 import { ICONS } from '@/helpers/icons';
+import { Icon } from '@/components/common/Icon';
 import PageMeta from "@/components/common/PageMeta";
 import ComponentCard from "@/components/common/ComponentCard";
 
@@ -67,75 +68,75 @@ export default function Badges() {
         </ComponentCard>
         <ComponentCard title="Светлый фон с иконкой слева">
           <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
-            <Badge variant="light" color="primary" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="light" color="primary" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Основной
             </Badge>
-            <Badge variant="light" color="success" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="light" color="success" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Успех
             </Badge>{" "}
-            <Badge variant="light" color="error" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="light" color="error" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Ошибка
             </Badge>{" "}
-            <Badge variant="light" color="warning" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="light" color="warning" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Внимание
             </Badge>{" "}
-            <Badge variant="light" color="info" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="light" color="info" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Инфо
             </Badge>
-            <Badge variant="light" color="light" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="light" color="light" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Светлый
             </Badge>
-            <Badge variant="light" color="dark" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="light" color="dark" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Тёмный
             </Badge>
           </div>
         </ComponentCard>
         <ComponentCard title="Сплошной фон с иконкой слева">
           <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
-            <Badge variant="solid" color="primary" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="primary" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Основной
             </Badge>
-            <Badge variant="solid" color="success" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="success" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Успех
             </Badge>{" "}
-            <Badge variant="solid" color="error" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="error" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Ошибка
             </Badge>{" "}
-            <Badge variant="solid" color="warning" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="warning" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Внимание
             </Badge>{" "}
-            <Badge variant="solid" color="info" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="info" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Инфо
             </Badge>
-            <Badge variant="solid" color="light" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="light" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Светлый
             </Badge>
-            <Badge variant="solid" color="dark" startIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="dark" startIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Тёмный
             </Badge>
           </div>
         </ComponentCard>
         <ComponentCard title="Сплошной фон с иконкой справа">
           <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
-            <Badge variant="solid" color="primary" endIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="primary" endIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Основной
             </Badge>
-            <Badge variant="solid" color="success" endIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="success" endIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Успех
             </Badge>{" "}
-            <Badge variant="solid" color="error" endIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="error" endIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Ошибка
             </Badge>{" "}
-            <Badge variant="solid" color="warning" endIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="warning" endIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Внимание
             </Badge>{" "}
-            <Badge variant="solid" color="info" endIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="info" endIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Инфо
             </Badge>
-            <Badge variant="solid" color="light" endIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="light" endIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Светлый
             </Badge>
-            <Badge variant="solid" color="dark" endIcon={<img src={ICONS.PLUS} className="w-4 h-4" alt="Plus icon" />}>
+            <Badge variant="solid" color="dark" endIcon={<Icon name="PLUS" size={4} alt="Plus icon" />}>
               Тёмный
             </Badge>
           </div>

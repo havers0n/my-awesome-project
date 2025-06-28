@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { ICONS } from "@/helpers/icons";
+import { Icon } from '../common/Icon';
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
@@ -51,7 +52,7 @@ export default function SignUpForm() {
           to="/"
           className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
         >
-          <img src={ICONS.CHEVRON_LEFT} alt="Chevron left icon" className="size-5" />
+          <Icon name="CHEVRON_LEFT" size={5} />
           Вернуться на главную
         </Link>
       </div>
@@ -127,11 +128,7 @@ export default function SignUpForm() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
                   >
-                    {showPassword ? (
-                      <img src={ICONS.EYE} alt="Eye icon" className="fill-gray-500 dark:fill-gray-400 size-5" />
-                    ) : (
-                      <img src={ICONS.EYE_CLOSE} alt="Eye close icon" className="fill-gray-500 dark:fill-gray-400 size-5" />
-                    )}
+                    <Icon name={showPassword ? 'EYE' : 'EYE_CLOSE'} size={5} className="fill-gray-500 dark:fill-gray-400" />
                   </span>
                 </div>
               </div>

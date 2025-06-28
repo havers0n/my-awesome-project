@@ -1,4 +1,5 @@
-import { ICONS } from "@/helpers/icons";
+// import { ICONS } from "@/helpers/icons";
+import { Icon } from '../common/Icon';
 import Badge from "../ui/badge/Badge";
 
 export default function EcommerceMetrics() {
@@ -7,7 +8,7 @@ export default function EcommerceMetrics() {
       {/* <!-- Metric Item Start --> */}
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-          <img src={ICONS.GROUP} className="text-gray-800 size-6 dark:text-white/90" alt="Group icon" />
+          <Icon name="GROUP" size={6} className="text-gray-800 dark:text-white/90" alt="Group icon" />
         </div>
 
         <div className="flex items-end justify-between mt-5">
@@ -20,7 +21,7 @@ export default function EcommerceMetrics() {
             </h4>
           </div>
           <Badge color="success">
-            <img src={ICONS.ARROW_UP} className="inline size-4 align-text-bottom" alt="Arrow up icon" />
+            <Icon name="ARROW_UP" size={4} className="inline align-text-bottom" alt="Arrow up icon" />
             11.01%
           </Badge>
         </div>
@@ -30,7 +31,7 @@ export default function EcommerceMetrics() {
       {/* <!-- Metric Item Start --> */}
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
         <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-          <img src={ICONS.BOX_LINE} className="text-gray-800 size-6 dark:text-white/90" alt="Box line icon" />
+          <Icon name="BOX_LINE" size={6} className="text-gray-800 dark:text-white/90" alt="Box line icon" />
         </div>
         <div className="flex items-end justify-between mt-5">
           <div>
@@ -43,7 +44,7 @@ export default function EcommerceMetrics() {
           </div>
 
           <Badge color="error">
-            <img src={ICONS.ARROW_DOWN} className="inline size-4 align-text-bottom" alt="Arrow down icon" />
+            <Icon name="ARROW_DOWN" size={4} className="inline align-text-bottom" alt="Arrow down icon" />
             9.05%
           </Badge>
         </div>
