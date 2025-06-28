@@ -2,7 +2,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
 import Button from "@/components/ui/button/Button";
-import { iconPaths } from '@/helpers/icons';
+import { ICONS } from '@/helpers/icons';
 
 export default function Buttons() {
   return (
@@ -30,14 +30,14 @@ export default function Buttons() {
             <Button
               size="sm"
               variant="primary"
-              startIcon={<img src={iconPaths.box} className="size-5" alt="Box icon" />}
+              startIcon={<img src={ICONS.BOX} className="size-5" alt="Box icon" />}
             >
               Текст кнопки
             </Button>
             <Button
               size="md"
               variant="primary"
-              startIcon={<img src={iconPaths.box} className="size-5" alt="Box icon" />}
+              startIcon={<img src={ICONS.BOX} className="size-5" alt="Box icon" />}
             >
               Текст кнопки
             </Button>
@@ -49,14 +49,14 @@ export default function Buttons() {
             <Button
               size="sm"
               variant="primary"
-              endIcon={<img src={iconPaths.box} className="size-5" alt="Box icon" />}
+              endIcon={<img src={ICONS.BOX} className="size-5" alt="Box icon" />}
             >
               Текст кнопки
             </Button>
             <Button
               size="md"
               variant="primary"
-              endIcon={<img src={iconPaths.box} className="size-5" alt="Box icon" />}
+              endIcon={<img src={ICONS.BOX} className="size-5" alt="Box icon" />}
             >
               Текст кнопки
             </Button>
@@ -80,14 +80,14 @@ export default function Buttons() {
             <Button
               size="sm"
               variant="outline"
-              startIcon={<img src={iconPaths.box} className="size-5" alt="Box icon" />}
+              startIcon={<img src={ICONS.BOX} className="size-5" alt="Box icon" />}
             >
               Текст кнопки
             </Button>
             <Button
               size="md"
               variant="outline"
-              startIcon={<img src={iconPaths.box} className="size-5" alt="Box icon" />}
+              startIcon={<img src={ICONS.BOX} className="size-5" alt="Box icon" />}
             >
               Текст кнопки
             </Button>
@@ -99,14 +99,14 @@ export default function Buttons() {
             <Button
               size="sm"
               variant="outline"
-              endIcon={<img src={iconPaths.box} className="size-5" alt="Box icon" />}
+              endIcon={<img src={ICONS.BOX} className="size-5" alt="Box icon" />}
             >
               Текст кнопки
             </Button>
             <Button
               size="md"
               variant="outline"
-              endIcon={<img src={iconPaths.box} className="size-5" alt="Box icon" />}
+              endIcon={<img src={ICONS.BOX} className="size-5" alt="Box icon" />}
             >
               Текст кнопки
             </Button>

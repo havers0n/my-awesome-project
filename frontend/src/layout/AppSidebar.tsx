@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { iconPaths } from '@/helpers/icons';
+import { ICONS } from '@/helpers/icons';
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
 
@@ -13,40 +13,40 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
-    icon: <img src={iconPaths.grid} alt="Grid icon" className="menu-item-icon-size" />,
+    icon: <img src={ICONS.GRID} alt="Grid icon" className="menu-item-icon-size" />,
     name: "Дашборд",
     subItems: [{ name: "Главная", path: "/", pro: false }],
   },
   {
-    icon: <img src={iconPaths.calenderLine} alt="Calender icon" className="menu-item-icon-size" />,
+    icon: <img src={ICONS.CALENDER_LINE} alt="Calender icon" className="menu-item-icon-size" />,
     name: "Календарь",
     path: "/calendar",
   },
   {
-    icon: <img src={iconPaths.userCircle} alt="User circle icon" className="menu-item-icon-size" />,
+    icon: <img src={ICONS.USER_CIRCLE} alt="User circle icon" className="menu-item-icon-size" />,
     name: "Мой профиль",
     path: "/profile",
   },
   {
     name: "Формы",
-    icon: <img src={iconPaths.list} alt="List icon" className="menu-item-icon-size" />,
+    icon: <img src={ICONS.LIST} alt="List icon" className="menu-item-icon-size" />,
     subItems: [{ name: "Элементы формы", path: "/form-elements", pro: false }],
   },
   {
     name: "Таблицы",
-    icon: <img src={iconPaths.table} alt="Table icon" className="menu-item-icon-size" />,
+    icon: <img src={ICONS.TABLE} alt="Table icon" className="menu-item-icon-size" />,
     subItems: [{ name: "Простые таблицы", path: "/basic-tables", pro: false }],
   },
   {
     name: "Страницы",
-    icon: <img src={iconPaths.page} alt="Page icon" className="menu-item-icon-size" />,
+    icon: <img src={ICONS.PAGE} alt="Page icon" className="menu-item-icon-size" />,
     subItems: [
       { name: "Пустая страница", path: "/blank", pro: false },
       { name: "Ошибка 404", path: "/error-404", pro: false },
     ],
   },
   {
-    icon: <img src={iconPaths.time} alt="Time icon" className="menu-item-icon-size" />,
+    icon: <img src={ICONS.TIME} alt="Time icon" className="menu-item-icon-size" />,
     name: "Учет отсутствия товаров",
     path: "/out-of-stock",
   },
@@ -54,7 +54,7 @@ const navItems: NavItem[] = [
 
 const othersItems: NavItem[] = [
   {
-    icon: <img src={iconPaths.pieChart} alt="Pie chart icon" className="menu-item-icon-size" />,
+    icon: <img src={ICONS.PIE_CHART} alt="Pie chart icon" className="menu-item-icon-size" />,
     name: "Графики",
     subItems: [
       { name: "Линейный график", path: "/line-chart", pro: false },
@@ -62,7 +62,7 @@ const othersItems: NavItem[] = [
     ],
   },
   {
-    icon: <img src={iconPaths.boxCube} alt="Box cube icon" className="menu-item-icon-size" />,
+    icon: <img src={ICONS.BOX_CUBE} alt="Box cube icon" className="menu-item-icon-size" />,
     name: "UI-элементы",
     subItems: [
       { name: "Оповещения", path: "/alerts", pro: false },
@@ -74,7 +74,7 @@ const othersItems: NavItem[] = [
     ],
   },
   {
-    icon: <img src={iconPaths.plugIn} alt="Plug in icon" className="menu-item-icon-size" />,
+    icon: <img src={ICONS.PLUG_IN} alt="Plug in icon" className="menu-item-icon-size" />,
     name: "Аутентификация",
     subItems: [
       { name: "Вход", path: "/signin", pro: false },
@@ -183,7 +183,7 @@ const AppSidebar: React.FC = () => {
               )}
               {(isExpanded || isHovered || isMobileOpen) && (
                 <img
-                  src={iconPaths.chevronDown}
+                  src={ICONS.CHEVRON_DOWN}
                   alt="Chevron down icon"
                   className={`ml-auto w-5 h-5 transition-transform duration-200 ${
                     openSubmenu?.type === menuType &&
@@ -339,7 +339,7 @@ const AppSidebar: React.FC = () => {
                 {isExpanded || isHovered || isMobileOpen ? (
                   "Menu"
                 ) : (
-                  <img src={iconPaths.horizontalDots} alt="HorizontaLDots" className="size-6" />
+                  <img src={ICONS.HORIZONTAL_DOTS} alt="HorizontaLDots" className="size-6" />
                 )}
               </h2>
               {renderMenuItems(navItems, "main")}
@@ -355,7 +355,7 @@ const AppSidebar: React.FC = () => {
                 {isExpanded || isHovered || isMobileOpen ? (
                   "Others"
                 ) : (
-                  <img src={iconPaths.horizontalDots} alt="HorizontaLDots" />
+                  <img src={ICONS.HORIZONTAL_DOTS} alt="HorizontaLDots" />
                 )}
               </h2>
               {renderMenuItems(othersItems, "others")}
