@@ -39,7 +39,7 @@ export default function SignInForm() {
           to="/"
           className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
         >
-          <img src={ICONS.chevronLeft} alt="Chevron left icon" className="size-5" />
+          <img src={ICONS.CHEVRON_LEFT} alt="Chevron left icon" className="size-5" />
           Вернуться на главную
         </Link>
       </div>
@@ -96,9 +96,9 @@ export default function SignInForm() {
                       className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
                     >
                       {showPassword ? (
-                        <img src={ICONS.eye} alt="Eye icon" className="fill-gray-500 dark:fill-gray-400 size-5" />
+                        <img src={ICONS.EYE} alt="Eye icon" className="fill-gray-500 dark:fill-gray-400 size-5" />
                       ) : (
-                        <img src={ICONS.eyeClose} alt="Eye close icon" className="fill-gray-500 dark:fill-gray-400 size-5" />
+                        <img src={ICONS.EYE_CLOSE} alt="Eye close icon" className="fill-gray-500 dark:fill-gray-400 size-5" />
                       )}
                     </span>
                   </div>
