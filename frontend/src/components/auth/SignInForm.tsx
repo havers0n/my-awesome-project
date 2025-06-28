@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { iconPaths } from '@/helpers/icons';
+import { ICONS } from '@/helpers/icons';
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
@@ -39,7 +39,7 @@ export default function SignInForm() {
           to="/"
           className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
         >
-          <img src={iconPaths.chevronLeft} alt="Chevron left icon" className="size-5" />
+          <img src={ICONS.chevronLeft} alt="Chevron left icon" className="size-5" />
           Вернуться на главную
         </Link>
       </div>
@@ -96,9 +96,9 @@ export default function SignInForm() {
                       className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
                     >
                       {showPassword ? (
-                        <img src={iconPaths.eye} alt="Eye icon" className="fill-gray-500 dark:fill-gray-400 size-5" />
+                        <img src={ICONS.eye} alt="Eye icon" className="fill-gray-500 dark:fill-gray-400 size-5" />
                       ) : (
-                        <img src={iconPaths.eyeClose} alt="Eye close icon" className="fill-gray-500 dark:fill-gray-400 size-5" />
+                        <img src={ICONS.eyeClose} alt="Eye close icon" className="fill-gray-500 dark:fill-gray-400 size-5" />
                       )}
                     </span>
                   </div>
