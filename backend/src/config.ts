@@ -20,6 +20,7 @@ export const DB_CONFIG = {
   database: process.env.DB_NAME || 'luckniteshoots',
   password: process.env.DB_PASSWORD || 'postgres',
   port: parseInt(process.env.DB_PORT || '5432'),
+  family: 4, // Force IPv4 to avoid ENETUNREACH errors
 };
 
 // JWT Configuration
