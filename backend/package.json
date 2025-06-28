@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "ts-node --project tsconfig.server.json src/app.ts",
     "build": "tsc --project tsconfig.server.json",
-    "start": "node dist/app.js"
+    "start": "node --dns-result-order=ipv4first dist/app.js"
   },
   "dependencies": {
     "express": "^5.1.0",
