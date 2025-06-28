@@ -3,7 +3,7 @@ import ComponentCard from "../../common/ComponentCard";
 import Label from "../Label";
 import Input from "../input/InputField";
 import Select from "../Select";
-import { iconPaths } from "@/helpers/icons";
+import { ICONS } from "@/helpers/icons";
 import DatePicker from "../date-picker.tsx";
 
 export default function DefaultInputs() {
@@ -49,9 +49,9 @@ export default function DefaultInputs() {
               className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
             >
               {showPassword ? (
-                <img src={iconPaths.eye} className="fill-gray-500 dark:fill-gray-400 size-5" alt="Show password" />
+                <img src={ICONS.EYE} className="fill-gray-500 dark:fill-gray-400 size-5" alt="Show password" />
               ) : (
-                <img src={iconPaths.eyeClose} className="fill-gray-500 dark:fill-gray-400 size-5" alt="Hide password" />
+                <img src={ICONS.EYE_CLOSE} className="fill-gray-500 dark:fill-gray-400 size-5" alt="Hide password" />
               )}
             </button>
           </div>
@@ -79,7 +79,7 @@ export default function DefaultInputs() {
               onChange={(e) => console.log(e.target.value)}
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-              <img src={iconPaths.time} className="size-6" alt="Time icon" />
+              <img src={ICONS.TIME} className="size-6" alt="Time icon" />
             </span>
           </div>
         </div>

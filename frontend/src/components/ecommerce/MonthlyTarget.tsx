@@ -3,7 +3,7 @@ import { ApexOptions } from "apexcharts";
 import { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { iconPaths } from "@/helpers/icons";
+import { ICONS } from "@/helpers/icons";
 
 export default function MonthlyTarget() {
   const series = [75.55];
@@ -77,7 +77,7 @@ export default function MonthlyTarget() {
           </div>
           <div className="relative inline-block">
             <button className="dropdown-toggle" onClick={toggleDropdown}>
-              <img src={iconPaths.moredot} alt="More dots icon" className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 size-6" />
+              <img src={ICONS.MOREDOT} alt="More dots icon" className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 size-6" />
             </button>
             <Dropdown
               isOpen={isOpen}
