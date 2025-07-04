@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
-import { Organization } from '../../types.admin';
-import { EMPTY_ORGANIZATION } from '../../constants';
-import { useData } from '../../context/DataContext';
+import { Organization } from '../types';
+import { EMPTY_ORGANIZATION } from '../constants';
+import { useData } from '../contexts/DataContext';
 import { Save, Briefcase } from 'lucide-react';
 
 interface OrganizationFormModalProps {
@@ -76,20 +77,20 @@ const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({ isOpen, o
         </div>
         <form className="p-6 overflow-y-auto space-y-4">
           <div>
-            <label htmlFor="org_name" className="block text-sm font-medium text-gray-700 mb-1">Название организации *</label>
-            <input id="org_name" type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Название организации *</label>
+            <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
           <div>
-            <label htmlFor="org_inn" className="block text-sm font-medium text-gray-700 mb-1">ИНН/ОГРН *</label>
-            <input id="org_inn" type="text" name="innOrOgrn" value={formData.innOrOgrn} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">ИНН/ОГРН *</label>
+            <input type="text" name="innOrOgrn" value={formData.innOrOgrn} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
           <div>
-            <label htmlFor="org_legal_address" className="block text-sm font-medium text-gray-700 mb-1">Юридический адрес *</label>
-            <textarea id="org_legal_address" name="legalAddress" value={formData.legalAddress} onChange={handleChange} rows={2} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Юридический адрес *</label>
+            <textarea name="legalAddress" value={formData.legalAddress} onChange={handleChange} rows={2} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
           <div>
-            <label htmlFor="org_actual_address" className="block text-sm font-medium text-gray-700 mb-1">Фактический адрес</label>
-            <input id="org_actual_address" type="text" name="actualAddress" value={formData.actualAddress || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Фактический адрес</label>
+            <input type="text" name="actualAddress" value={formData.actualAddress || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

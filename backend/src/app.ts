@@ -24,6 +24,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/authRoutes';
 import monetizationRoutes from './routes/monetizationRoutes';
+import forecastRoutes from './routes/forecastRoutes';
 import { authenticateSupabaseToken } from './middleware/supabaseAuthMiddleware';
 
 const app = express();
@@ -38,6 +39,7 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 // Routes
 app.use('/auth', authRoutes);
 app.use('/monetization', authenticateSupabaseToken, monetizationRoutes);
+app.use(forecastRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

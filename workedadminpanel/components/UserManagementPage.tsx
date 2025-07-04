@@ -1,7 +1,8 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
-import { useData } from '../../context/DataContext';
-import { User, Filters, Location } from '../../types.admin';
-import { ROLES, ALL_OPTION_VALUE } from '../../constants';
+import { useData } from '../contexts/DataContext';
+import { User, Filters, Location } from '../types';
+import { ROLES, ALL_OPTION_VALUE } from '../constants';
 import UserFormModal from './UserFormModal';
 import { Search, Plus, Edit, Eye, EyeOff, Trash2, RotateCcw, User as UserIcon, Mail, Shield, Building, MapPin, Calendar } from 'lucide-react';
 import { useLocation as useReactRouterLocation, useNavigate } from 'react-router-dom';
@@ -137,7 +138,7 @@ const UserManagementPage: React.FC = () => {
             </div>
             <button
               onClick={handleCreateUserClick}
-              className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
+              className="mt-4 sm:mt-0 bg-brand-blue hover:bg-brand-blue-hover text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
             >
               <Plus size={18} />
               Создать пользователя

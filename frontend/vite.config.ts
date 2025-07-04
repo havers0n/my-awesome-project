@@ -7,8 +7,6 @@ export default defineConfig({
   plugins: [
     react(),
     tsconfigPaths(),
-    // viteStaticCopy удалён — Vite сам копирует public/  <-- ЭТОТ КОММЕНТАРИЙ БОЛЬШЕ НЕ АКТУАЛЕН
-    // ШАГ 2: ДОБАВЬТЕ ЭТОТ БЛОК ОБРАТНО
     viteStaticCopy({
       targets: [
         {
@@ -17,5 +15,10 @@ export default defineConfig({
         }
       ]
     })
-  ]
-})
+  ],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000'
+    }
+  }
+});

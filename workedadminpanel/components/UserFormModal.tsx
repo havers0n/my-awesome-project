@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { User, Organization, Location, Role } from '../../types.admin';
-import { ROLES, EMPTY_USER, ALL_OPTION_VALUE } from '../../constants';
-import { useData } from '../../context/DataContext';
+import { User, Organization, Location, Role } from '../types';
+import { ROLES, EMPTY_USER, ALL_OPTION_VALUE } from '../constants';
+import { useData } from '../contexts/DataContext';
 import { Save } from 'lucide-react';
 
 interface UserFormModalProps {
@@ -100,11 +101,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
-
           <div>
-            <label htmlFor="user_email" className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
             <input
-              id="user_email"
               type="email"
               name="email"
               value={formData.email}
@@ -115,13 +114,12 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
             />
             {userToEdit && <p className="text-xs text-gray-500 mt-1">Email нельзя изменить</p>}
           </div>
-
+          
           <div>
-            <label htmlFor="user_password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               {userToEdit ? 'Новый пароль (оставьте пустым, чтобы не менять)' : 'Пароль *'}
             </label>
             <input
-              id="user_password"
               type="password"
               name="password"
               value={formData.password || ''}
@@ -132,9 +130,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
           </div>
 
           <div>
-            <label htmlFor="user_full_name" className="block text-sm font-medium text-gray-700 mb-1">ФИО</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">ФИО</label>
             <input
-              id="user_full_name"
               type="text"
               name="full_name"
               value={formData.full_name}
@@ -144,9 +141,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
           </div>
 
           <div>
-            <label htmlFor="user_role" className="block text-sm font-medium text-gray-700 mb-1">Роль *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Роль *</label>
             <select
-              id="user_role"
               name="role"
               value={formData.role}
               onChange={handleChange}
@@ -159,9 +155,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
           </div>
 
           <div>
-            <label htmlFor="user_organization" className="block text-sm font-medium text-gray-700 mb-1">Организация</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Организация</label>
             <select
-              id="user_organization"
               name="organizationId"
               value={formData.organizationId || ALL_OPTION_VALUE}
               onChange={handleChange}
@@ -175,9 +170,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
           </div>
 
           <div>
-            <label htmlFor="user_location" className="block text-sm font-medium text-gray-700 mb-1">Точка/Локация</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Точка/Локация</label>
             <select
-              id="user_location"
               name="locationId"
               value={formData.locationId || ALL_OPTION_VALUE}
               onChange={handleChange}

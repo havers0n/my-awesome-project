@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation as useReactRouterLocation } from 'react-router-dom';
-import { useData } from '../../context/DataContext';
-import { Organization, Location, LocationType, LocationTypeLabels, LocationStatusLabels, LocationFilters } from '../../types.admin';
-import { ALL_OPTION_VALUE } from '../../constants';
+import { useData } from '../contexts/DataContext';
+import { Organization, Location, LocationType, LocationTypeLabels, LocationStatusLabels, LocationFilters } from '../types';
+import { ALL_OPTION_VALUE } from '../constants';
 import OrganizationFormModal from './OrganizationFormModal';
 import LocationFormModal from './LocationFormModal';
 import UserFormModal from './UserFormModal'; // For "Save and Add User"
@@ -37,8 +38,8 @@ const OrganizationDetailPage: React.FC = () => {
       setOrganization(foundOrg);
       setLocations(getLocationsByOrgId(foundOrg.id));
     } else {
-      // Если организация не найдена, возвращаем пользователя на список организаций в админке
-      navigate('/admin/organizations');
+      // Handle org not found, e.g., navigate to a 404 page or back
+      navigate('/organizations');
     }
   }, [orgId, organizations, getLocationsByOrgId, navigate]);
 

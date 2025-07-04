@@ -27,6 +27,7 @@ import NewAdminApp from "@/pages/Admin/NewAdminApp";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/services/supabaseClient";
+import SalesForecastPage from "@/pages/SalesForecastPage";
 
 export default function App() {
   const navigate = useNavigate();
@@ -65,6 +66,9 @@ export default function App() {
 
           {/* Tables */}
           <Route path="/basic-tables" element={<BasicTables />} />
+
+          {/* Sales Forecast */}
+          <Route path="/sales-forecast" element={<SalesForecastPage />} />
 
           {/* Ui Elements */}
           <Route path="/alerts" element={<Alerts />} />

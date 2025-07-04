@@ -86,16 +86,8 @@ export interface OrganizationFilters {
   status: string; // 'all', 'active', 'inactive'
 }
 
-
 export interface LocationFilters {
   search: string;
   type: string; // 'all' or LocationType
   status: string; // 'all' or Location['status']
 }
-
-// Метрики для sales-forecast
-export type TimeMetric = { date: string; r2: number; mape: number };
-export type SkuMetric = { sku: string; r2: number; mape: number };
-export type StoreMetric = { store: string; r2: number; mape: number };
-export type MetricType = 'r2' | 'mape';
-export type SliceType = 'time' | 'sku' | 'store';

@@ -1,7 +1,8 @@
+
 import React, { useState, useMemo } from 'react';
-import { useData } from "@/context/DataContext";
-import { Organization, OrganizationFilters } from "@/types.admin";
-import { ALL_OPTION_VALUE } from '../../constants';
+import { useData } from '../contexts/DataContext';
+import { Organization, OrganizationFilters } from '../types';
+import { ALL_OPTION_VALUE } from '../constants';
 import OrganizationFormModal from './OrganizationFormModal';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Edit, Trash2, Eye, Building, Calendar, MapPin, Users, Info, ChevronRight } from 'lucide-react';
@@ -84,7 +85,7 @@ const OrganizationListPage: React.FC = () => {
             </div>
             <button
               onClick={handleCreateOrgClick}
-              className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
+              className="mt-4 sm:mt-0 bg-brand-blue hover:bg-brand-blue-hover text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
             >
               <Plus size={18} />
               Создать организацию
@@ -144,7 +145,7 @@ const OrganizationListPage: React.FC = () => {
                     <tr key={org.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button 
-                          onClick={() => navigate(`/admin/organizations/${org.id}`)}
+                          onClick={() => navigate(`/organizations/${org.id}`)}
                           className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
                           title={`Просмотреть детали организации ${org.name}`}
                         >
@@ -170,7 +171,7 @@ const OrganizationListPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                          <button
-                          onClick={() => navigate(`/admin/users?organizationId=${org.id}`)}
+                          onClick={() => navigate(`/users?organizationId=${org.id}`)}
                           className="flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
                           title="Просмотреть пользователей"
                         >
