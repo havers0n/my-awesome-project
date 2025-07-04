@@ -225,161 +225,177 @@ const SalesForecastPage: React.FC = () => {
       <div className="fixed top-4 right-4 z-50 space-y-2">
         {toast && <Toast message={toast.message} type={toast.type} />}
       </div>
-      {/* Header */}
-      <header className="bg-white shadow-sm">
+      {/* Header + Sticky Mode Switcher */}
+      <header className="bg-white shadow-sm sticky top-0 z-40 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Прогноз продаж</h1>
             <p className="text-gray-600">Прогнозирование продаж вашей выпечки</p>
           </div>
-          {/* Переключатель режимов */}
-          <div className="flex gap-2 mt-4 md:mt-0">
+          {/* Переключатель режимов с иконками, выпуклостью, анимацией */}
+          <div className="flex gap-2 mt-4 md:mt-0 bg-gray-100 rounded-full p-1 shadow-inner sticky-switcher">
             <button
-              className={`px-4 py-2 rounded font-medium transition-colors ${mode === 'trend' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
+                ${mode === 'trend' ? 'bg-blue-600 text-white scale-105 shadow-lg' : 'bg-white text-gray-800 hover:bg-blue-50'}`}
               onClick={() => setMode('trend')}
+              aria-pressed={mode === 'trend'}
             >
-              Тренд продаж
+              <i className="fas fa-chart-line" aria-hidden="true"></i>
+              <span>Тренд продаж</span>
             </button>
             <button
-              className={`px-4 py-2 rounded font-medium transition-colors ${mode === 'metrics' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
+                ${mode === 'metrics' ? 'bg-blue-600 text-white scale-105 shadow-lg' : 'bg-white text-gray-800 hover:bg-blue-50'}`}
               onClick={() => setMode('metrics')}
+              aria-pressed={mode === 'metrics'}
             >
-              Метрики качества
+              <i className="fas fa-trophy" aria-hidden="true"></i>
+              <span>Метрики качества</span>
             </button>
           </div>
         </div>
       </header>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {mode === 'trend' ? (
-          loading ? (
-            <Skeleton />
-          ) : (
-            <div id="contentContainer">
-              {/* Forecast Trend Section */}
-              <section className="bg-white p-6 rounded-lg shadow mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-800">Тренд продаж</h2>
-                  <div className="flex space-x-2">
-                    <select
-                      className="border border-gray-300 rounded px-3 py-1 text-sm"
-                      value={days}
-                      onChange={handleDaysChange}
-                    >
-                      <option value={7}>7 дней</option>
-                      <option value={14}>14 дней</option>
-                      <option value={30}>30 дней</option>
-                    </select>
+        {/* Анимация fade/slide между режимами */}
+        <div className="relative min-h-[400px]">
+          <div
+            className={`absolute inset-0 transition-all duration-500 ease-in-out ${mode === 'trend' ? 'opacity-100 translate-x-0 z-10 pointer-events-auto' : 'opacity-0 -translate-x-8 z-0 pointer-events-none'}`}
+            style={{ willChange: 'opacity, transform' }}
+          >
+            {mode === 'trend' && (loading ? (
+              <Skeleton />
+            ) : (
+              <div id="contentContainer">
+                {/* Forecast Trend Section */}
+                <section className="bg-white p-6 rounded-lg shadow mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold text-gray-800">Тренд продаж</h2>
+                    <div className="flex space-x-2">
+                      <select
+                        className="border border-gray-300 rounded px-3 py-1 text-sm"
+                        value={days}
+                        onChange={handleDaysChange}
+                      >
+                        <option value={7}>7 дней</option>
+                        <option value={14}>14 дней</option>
+                        <option value={30}>30 дней</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
-                <div className="chart-container">
-                  <canvas ref={chartRef} />
-                  <div ref={tooltipRef} className="tooltip hidden" />
-                </div>
-              </section>
-              {/* Top Products Section */}
-              <section className="bg-white p-6 rounded-lg shadow mb-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">Топ продуктов</h2>
-                <div className="space-y-4">
-                  {topProducts.length === 0 ? (
-                    <div className="text-gray-400">Нет данных</div>
-                  ) : (
-                    topProducts.map((item, idx) => (
-                      <div className="top-product-item" key={item.name}>
-                        <div className="flex justify-between mb-1">
-                          <span className="font-medium">{item.name}</span>
-                          <span className="font-semibold text-indigo-600">{item.amount} шт</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2.5">
-                          <div
-                            className={`h-2.5 rounded-full progress-bar ${item.colorClass}`}
-                            style={{ width: item.barWidth }}
-                          />
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </section>
-              {/* Forecast History Section */}
-              <section className="bg-white p-6 rounded-lg shadow">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-800">История прогнозов</h2>
-                  <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      placeholder="Поиск..."
-                      className="border border-gray-300 rounded px-3 py-1 text-sm"
-                      value={search}
-                      onChange={e => { setSearch(e.target.value); setPage(1); }}
-                    />
-                    <select
-                      className="border border-gray-300 rounded px-3 py-1 text-sm"
-                      value={category}
-                      onChange={e => { setCategory(e.target.value); setPage(1); }}
-                    >
-                      <option value="">Все категории</option>
-                      <option value="Хлеб">Хлеб</option>
-                      <option value="Выпечка">Выпечка</option>
-                      <option value="Десерты">Десерты</option>
-                    </select>
+                  <div className="chart-container">
+                    <canvas ref={chartRef} />
+                    <div ref={tooltipRef} className="tooltip hidden" />
                   </div>
-                </div>
-                <div className="overflow-x-auto">
-                  {loadingHistory ? (
-                    <div className="skeleton h-64 w-full rounded" />
-                  ) : history.length === 0 ? (
-                    <div className="text-gray-400 p-8 text-center">Нет данных</div>
-                  ) : (
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Товар</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Категория</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Прогноз (шт.)</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Точность</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {history.map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.date}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.product}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.forecast}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${accuracyColor[item.accuracy]}`}>{item.accuracy}</span>
-                            </td>
+                </section>
+                {/* Top Products Section */}
+                <section className="bg-white p-6 rounded-lg shadow mb-6">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Топ продуктов</h2>
+                  <div className="space-y-4">
+                    {topProducts.length === 0 ? (
+                      <div className="text-gray-400">Нет данных</div>
+                    ) : (
+                      topProducts.map((item, idx) => (
+                        <div className="top-product-item" key={item.name}>
+                          <div className="flex justify-between mb-1">
+                            <span className="font-medium">{item.name}</span>
+                            <span className="font-semibold text-indigo-600">{item.amount} шт</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div
+                              className={`h-2.5 rounded-full progress-bar ${item.colorClass}`}
+                              style={{ width: item.barWidth }}
+                            />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </section>
+                {/* Forecast History Section */}
+                <section className="bg-white p-6 rounded-lg shadow">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold text-gray-800">История прогнозов</h2>
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        placeholder="Поиск..."
+                        className="border border-gray-300 rounded px-3 py-1 text-sm"
+                        value={search}
+                        onChange={e => { setSearch(e.target.value); setPage(1); }}
+                      />
+                      <select
+                        className="border border-gray-300 rounded px-3 py-1 text-sm"
+                        value={category}
+                        onChange={e => { setCategory(e.target.value); setPage(1); }}
+                      >
+                        <option value="">Все категории</option>
+                        <option value="Хлеб">Хлеб</option>
+                        <option value="Выпечка">Выпечка</option>
+                        <option value="Десерты">Десерты</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    {loadingHistory ? (
+                      <div className="skeleton h-64 w-full rounded" />
+                    ) : history.length === 0 ? (
+                      <div className="text-gray-400 p-8 text-center">Нет данных</div>
+                    ) : (
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Товар</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Категория</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Прогноз (шт.)</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Точность</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-                <div className="mt-4 flex justify-between items-center">
-                  <div className="text-sm text-gray-500">
-                    Показано <span>{history.length}</span> из <span>{historyTotal}</span> записей
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {history.map((item, idx) => (
+                            <tr key={idx}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.date}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.product}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.forecast}</td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${accuracyColor[item.accuracy]}`}>{item.accuracy}</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
                   </div>
-                  <div className="flex space-x-2">
-                    <button
-                      className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50"
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={page === 1 || loadingHistory}
-                    >Назад</button>
-                    <span className="px-2 py-1 text-sm text-gray-600">{page}</span>
-                    <button
-                      className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50"
-                      onClick={() => setPage((p) => p + 1)}
-                      disabled={page * limit >= historyTotal || loadingHistory}
-                    >Вперед</button>
+                  <div className="mt-4 flex justify-between items-center">
+                    <div className="text-sm text-gray-500">
+                      Показано <span>{history.length}</span> из <span>{historyTotal}</span> записей
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page === 1 || loadingHistory}
+                      >Назад</button>
+                      <span className="px-2 py-1 text-sm text-gray-600">{page}</span>
+                      <button
+                        className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50"
+                        onClick={() => setPage((p) => p + 1)}
+                        disabled={page * limit >= historyTotal || loadingHistory}
+                      >Вперед</button>
+                    </div>
                   </div>
-                </div>
-              </section>
-            </div>
-          )
-        ) : (
-          <QualityMetricsDashboard />
-        )}
+                </section>
+              </div>
+            ))}
+          </div>
+          <div
+            className={`absolute inset-0 transition-all duration-500 ease-in-out ${mode === 'metrics' ? 'opacity-100 translate-x-0 z-10 pointer-events-auto' : 'opacity-0 translate-x-8 z-0 pointer-events-none'}`}
+            style={{ willChange: 'opacity, transform' }}
+          >
+            {mode === 'metrics' && <QualityMetricsDashboard />}
+          </div>
+        </div>
       </main>
     </div>
   );
