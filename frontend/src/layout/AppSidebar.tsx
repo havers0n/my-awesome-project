@@ -50,6 +50,11 @@ const navItems: NavItem[] = [
     name: "Учет отсутствия товаров",
     path: "/out-of-stock",
   },
+  {
+    icon: <img src={ICONS.BOX_CUBE} alt="Box cube icon" className="menu-item-icon-size" />,
+    name: "Доступность на полке",
+    path: "/shelf-availability",
+  },
 ];
 
 const othersItems: NavItem[] = [

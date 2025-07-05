@@ -30,10 +30,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (isInitialized) {
       localStorage.setItem("theme", theme);
+      const root = document.documentElement;
       if (theme === "dark") {
-        document.documentElement.classList.add("dark");
+        root.dataset.theme = "dark";
+        root.classList.add("dark");
       } else {
-        document.documentElement.classList.remove("dark");
+        root.dataset.theme = "light";
+        root.classList.remove("dark");
       }
     }
   }, [theme, isInitialized]);

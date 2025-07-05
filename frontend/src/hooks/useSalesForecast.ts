@@ -18,12 +18,13 @@ const mockStoreMetrics: StoreMetric[] = [
   { store: 'Store3', r2: 0.8, mape: 14.7 },
 ];
 
-export function useSalesForecast(slice: SliceType, period: number) {
-  // slice: 'time' | 'sku' | 'store', period: 7/30/90
-  // Здесь можно добавить загрузку с API
+// period: number | { startDate: Date; endDate: Date }
+export function useSalesForecast(slice: SliceType, period: number | { startDate: Date; endDate: Date }) {
   const [loading] = useState(false);
   const [error] = useState<string | null>(null);
 
+  // Здесь можно добавить загрузку с API, используя period
+  // Пока что моки не фильтруются по датам
   let data: TimeMetric[] | SkuMetric[] | StoreMetric[] = [];
   if (slice === 'time') data = mockTimeMetrics;
   if (slice === 'sku') data = mockSkuMetrics;

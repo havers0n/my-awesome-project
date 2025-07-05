@@ -14,6 +14,8 @@ console.log('DB_NAME directly after dotenv.config attempt:', process.env.DB_NAME
 console.log('DB_USER directly after dotenv.env attempt:', process.env.DB_USER);
 console.log('DB_PASSWORD exists directly after dotenv.config attempt?:', !!process.env.DB_PASSWORD);
 console.log('JWT_SECRET exists directly after dotenv.config attempt?:', !!process.env.JWT_SECRET);
+console.log('SUPABASE_URL:', process.env.SUPABASE_URL);
+console.log('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY);
 // --- КОНЕЦ БЛОКА ДЛЯ ЯВНОЙ ЗАГРУЗКИ .ENV И ОТЛАДКИ ---
 
 // --- Далее ваши обычные импорты ---
@@ -25,6 +27,7 @@ import rateLimit from 'express-rate-limit';
 import authRoutes from './routes/authRoutes';
 import monetizationRoutes from './routes/monetizationRoutes';
 import forecastRoutes from './routes/forecastRoutes';
+import adminRoutes from './routes/adminRoutes';
 import { authenticateSupabaseToken } from './middleware/supabaseAuthMiddleware';
 
 const app = express();
@@ -39,7 +42,8 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 // Routes
 app.use('/auth', authRoutes);
 app.use('/monetization', authenticateSupabaseToken, monetizationRoutes);
-app.use(forecastRoutes);
+app.use('/admin', adminRoutes);
+app.use('/api/predictions', forecastRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

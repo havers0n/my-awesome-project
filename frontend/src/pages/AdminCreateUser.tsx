@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+  const navigate = useNavigate();
 import { FaUserShield, FaUserPlus, FaCheckCircle, FaSpinner } from "react-icons/fa";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
@@ -19,6 +21,8 @@ export default function AdminCreateUser() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailChecking, setEmailChecking] = useState(false);
+  const [emailUnique, setEmailUnique] = useState<boolean | null>(null);
 
   // Организации для select
   const organizations = [
@@ -46,6 +50,10 @@ export default function AdminCreateUser() {
     e.preventDefault();
     setError(null);
     setSuccess(false);
+    if (navigator.onLine === false) {
+      setError("Нет соединения с интернетом. Проверьте подключение.");
+      return;
+    }
 
     // Валидация
     if (!email || !firstName || !password || !confirmPassword || !role) {
@@ -54,6 +62,36 @@ export default function AdminCreateUser() {
     }
     if (password !== confirmPassword) {
       setError("Пароли не совпадают.");
+      return;
+    }
+    // Валидация телефона (минимум 10 цифр)
+    const phoneDigits = phone.replace(/\D/g, "");
+    if (phone && phoneDigits.length < 10) {
+      setError("Введите корректный рабочий телефон (не менее 10 цифр)");
+      return;
+    }
+    // Валидация должности (если указана, минимум 2 символа)
+    if (position && position.trim().length < 2) {
+      setError("Должность должна содержать минимум 2 символа");
+      return;
+    }
+
+    // Проверка уникальности email
+    setLoading(true);
+    let isUnique = emailUnique;
+    if (isUnique === null) {
+      // если пользователь не выходил из поля email, проверим здесь
+      try {
+        isUnique = await authAPI.checkEmailUnique(email);
+      } catch (e) {
+        setError("Ошибка проверки email. Попробуйте позже.");
+        setLoading(false);
+        return;
+      }
+    }
+    if (!isUnique) {
+      setError("Пользователь с таким email уже существует.");
+      setLoading(false);
       return;
     }
 
@@ -65,7 +103,9 @@ export default function AdminCreateUser() {
         password,
         full_name: `${firstName} ${lastName}`.trim(),
         organization_id: organization ? Number(organization) : undefined,
-        role: role || undefined
+        role: role || undefined,
+        phone: phone || undefined,
+        position: position || undefined
       });
       setSuccess(true);
       setEmail("");
@@ -77,9 +117,18 @@ export default function AdminCreateUser() {
       setOrganization("");
       setPhone("");
       setPosition("");
-      setTimeout(() => setSuccess(false), 5000);
+      setTimeout(() => {
+        setSuccess(false);
+        navigate("/admin/users");
+      }, 1500); // редирект через 1.5 сек после успеха
     } catch (err: any) {
-      setError(err?.response?.data?.error || err.message || "Ошибка запроса");
+      if (err?.response?.status === 0 || err?.message?.includes('Network')) {
+        setError("Ошибка сети. Проверьте подключение к интернету.");
+      } else if (err?.response?.data?.error) {
+        setError(err.response.data.error);
+      } else {
+        setError(err.message || "Ошибка запроса");
+      }
     }
     setLoading(false);
   };
@@ -105,9 +154,24 @@ export default function AdminCreateUser() {
                 type="email"
                 id="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={async e => {
+                  setEmail(e.target.value);
+                  setEmailUnique(null);
+                  setError(null);
+                }}
+                onBlur={async () => {
+                  if (!email) return;
+                  setEmailChecking(true);
+                  const unique = await authAPI.checkEmailUnique(email);
+                  setEmailUnique(unique);
+                  if (!unique) setError("Пользователь с таким email уже существует.");
+                  setEmailChecking(false);
+                }}
                 placeholder="Введите email"
               />
+              {emailChecking && <div className="text-xs text-gray-500 mt-1">Проверка email...</div>}
+              {emailUnique === false && <div className="text-xs text-red-500 mt-1">Email уже занят</div>}
+              {emailUnique === true && <div className="text-xs text-green-600 mt-1">Email свободен</div>}
             </div>
             <div>
               <Label htmlFor="firstName">Имя<span className="text-error-500">*</span></Label>

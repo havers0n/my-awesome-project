@@ -1,7 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import Chart from 'chart.js/auto';
-import '@fortawesome/fontawesome-free/css/all.min.css';
 import { fetchForecastData, postForecast, fetchForecastHistory } from '../api/forecast';
+import { TrendingUp, Calendar, Search, RefreshCw } from 'lucide-react';
+
+// Dynamic Chart.js import for better code splitting
+const loadChart = async () => {
+  const { default: Chart } = await import('chart.js/auto');
+  return Chart;
+};
 import {
   TopProduct,
   TrendPoint,
@@ -62,13 +67,17 @@ const SalesForecastPage: React.FC = () => {
       .finally(() => setLoadingHistory(false));
   }, [page, limit, search, category]);
 
-  // Chart.js init/update
+  // Chart.js init/update with dynamic loading
   useEffect(() => {
     if (!chartRef.current) return;
-    if (chartInstance.current) {
-      chartInstance.current.destroy();
-    }
-    chartInstance.current = new Chart(chartRef.current, {
+    
+    const initChart = async () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+      
+      const Chart = await loadChart();
+      chartInstance.current = new Chart(chartRef.current!, {
       type: 'line',
       data: {
         labels: trendLabels,
@@ -94,7 +103,7 @@ const SalesForecastPage: React.FC = () => {
           legend: { display: false },
           tooltip: {
             enabled: false,
-            external: (context: any) => {
+            external: (context: { tooltip: any; chart: any }) => {
               if (!tooltipRef.current) return;
               const tooltip = tooltipRef.current;
               if (context.tooltip.opacity === 0) {
@@ -130,6 +139,9 @@ const SalesForecastPage: React.FC = () => {
         },
       },
     });
+    };
+    
+    initChart();
     // eslint-disable-next-line
   }, [trendLabels, trendData]);
 
@@ -240,7 +252,7 @@ const SalesForecastPage: React.FC = () => {
               onClick={() => setMode('trend')}
               aria-pressed={mode === 'trend'}
             >
-              <i className="fas fa-chart-line" aria-hidden="true"></i>
+              <TrendingUp className="w-4 h-4" aria-hidden="true" />
               <span>Тренд продаж</span>
             </button>
             <button
@@ -249,7 +261,7 @@ const SalesForecastPage: React.FC = () => {
               onClick={() => setMode('metrics')}
               aria-pressed={mode === 'metrics'}
             >
-              <i className="fas fa-trophy" aria-hidden="true"></i>
+              <Search className="w-4 h-4" aria-hidden="true" />
               <span>Метрики качества</span>
             </button>
           </div>

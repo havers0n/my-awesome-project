@@ -49,9 +49,31 @@ api.interceptors.request.use(
 
 // 3. Реализуем объект authAPI
 export const authAPI = {
+  // Проверка уникальности email (true — если email свободен, false — если занят)
+  checkEmailUnique: async (email: string) => {
+    try {
+      const res = await api.get(`/admin/users/check-email?email=${encodeURIComponent(email)}`);
+      return res.data?.unique === true;
+    } catch {
+      return false; // если ошибка — считаем, что email занят
+    }
+  },
   // Получение профиля текущего пользователя
   getProfile: () => {
     return api.get('/auth/me'); // Запрос на эндпоинт бэкенда GET /auth/me
+  },
+
+  // Регистрация нового пользователя (админом)
+  register: (userData: {
+    email: string;
+    password: string;
+    full_name?: string;
+    organization_id?: number;
+    role?: string;
+    phone?: string;
+    position?: string;
+  }) => {
+    return api.post('/admin/users', userData); // POST /admin/users — примерный эндпоинт, скорректируйте при необходимости
   },
 
   // Обновление профиля пользователя

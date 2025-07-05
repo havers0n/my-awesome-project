@@ -8,17 +8,20 @@ import { AppWrapper } from "./components/common/PageMeta.tsx";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
 import { AuthProvider } from "./context/AuthContext";
 import { BrowserRouter } from 'react-router-dom';
+import ErrorBoundary from "./components/ErrorBoundary";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
-      <ThemeProvider>
-        <AuthProvider>
-          <AppWrapper>
-            <App />
-          </AppWrapper>
-        </AuthProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppWrapper>
+              <App />
+            </AppWrapper>
+          </AuthProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 );

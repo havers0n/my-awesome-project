@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { supabase } from '@/services/supabaseClient';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User, AuthResponse } from '@supabase/supabase-js';
 
 interface UserProfile {
   id: string;
@@ -12,15 +12,30 @@ interface UserProfile {
   organization_id: number | null;
 }
 
+interface AuthError {
+  message: string;
+  code?: string;
+}
+
+interface ResetPasswordResponse {
+  message: string;
+  success: boolean;
+}
+
+interface UpdateUserResponse {
+  user: User;
+  success: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<any>;
-  signIn: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string) => Promise<AuthResponse>;
+  signIn: (email: string, password: string) => Promise<AuthResponse>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<any>;
-  updateUser: (data: { password?: string; email?: string }) => Promise<any>;
+  resetPassword: (email: string) => Promise<ResetPasswordResponse>;
+  updateUser: (data: { password?: string; email?: string }) => Promise<UpdateUserResponse>;
   refreshProfile: () => Promise<void>;
 }
 

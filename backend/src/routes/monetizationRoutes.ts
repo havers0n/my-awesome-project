@@ -10,11 +10,14 @@ import {
 
 const router = express.Router();
 
+
+import { rbacMiddleware } from '../middleware/rbacMiddleware';
+
 // Get monetization details for the current user's organization
-router.get('/me/monetization', getUserMonetization);
+router.get('/me/monetization', rbacMiddleware(['admin', 'owner', 'employee']), getUserMonetization);
 
 // Get monetization details for a specific organization (admin only)
-router.get('/organizations/:organizationId/monetization', getOrganizationMonetization);
+router.get('/organizations/:organizationId/monetization', rbacMiddleware(['admin', 'superadmin']), getOrganizationMonetization);
 
 // Update subscription settings
 router.put('/monetization/subscription/:subscriptionId', updateSubscriptionSettings);
