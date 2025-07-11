@@ -13,78 +13,92 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
-    icon: <img src={ICONS.GRID} alt="Grid icon" className="menu-item-icon-size" />,
-    name: "Дашборд",
-    subItems: [{ name: "Главная", path: "/", pro: false }],
-  },
-  {
-    icon: <img src={ICONS.CALENDER_LINE} alt="Calender icon" className="menu-item-icon-size" />,
-    name: "Календарь",
-    path: "/calendar",
-  },
-  {
-    icon: <img src={ICONS.USER_CIRCLE} alt="User circle icon" className="menu-item-icon-size" />,
-    name: "Мой профиль",
-    path: "/profile",
-  },
-  {
-    name: "Формы",
-    icon: <img src={ICONS.LIST} alt="List icon" className="menu-item-icon-size" />,
-    subItems: [{ name: "Элементы формы", path: "/form-elements", pro: false }],
-  },
-  {
-    name: "Таблицы",
-    icon: <img src={ICONS.TABLE} alt="Table icon" className="menu-item-icon-size" />,
-    subItems: [{ name: "Простые таблицы", path: "/basic-tables", pro: false }],
-  },
-  {
-    name: "Страницы",
-    icon: <img src={ICONS.PAGE} alt="Page icon" className="menu-item-icon-size" />,
+    icon: <img src={ICONS.GRID} alt="Dashboard icon" className="menu-item-icon-size" />,
+    name: "Dashboard",
     subItems: [
-      { name: "Пустая страница", path: "/blank", pro: false },
-      { name: "Ошибка 404", path: "/error-404", pro: false },
+      { name: "Общий обзор", path: "/dashboard/overview", pro: false },
+      { name: "Настройка виджетов", path: "/dashboard/widgets", pro: false },
     ],
   },
   {
-    icon: <img src={ICONS.TIME} alt="Time icon" className="menu-item-icon-size" />,
-    name: "Учет отсутствия товаров",
-    path: "/out-of-stock",
+    icon: <img src={ICONS.PIE_CHART} alt="Sales Forecast icon" className="menu-item-icon-size" />,
+    name: "Прогнозирование продаж",
+    path: "/sales-forecast",
   },
   {
-    icon: <img src={ICONS.BOX_CUBE} alt="Box cube icon" className="menu-item-icon-size" />,
-    name: "Доступность на полке",
-    path: "/shelf-availability",
+    icon: <img src={ICONS.TASK_ICON} alt="Test API icon" className="menu-item-icon-size" />,
+    name: "Тест API прогноза",
+    path: "/test-forecast-api",
+  },
+  {
+    icon: <img src={ICONS.BOX} alt="Shelf Availability icon" className="menu-item-icon-size" />,
+    name: "Доступность товаров на полке",
+    path: "/inventory/shelf-availability",
+  },
+  {
+    icon: <img src={ICONS.FILE} alt="Reports icon" className="menu-item-icon-size" />,
+    name: "Отчеты",
+    subItems: [
+      { name: "По продажам", path: "/reports/sales", pro: false },
+      { name: "По товарам", path: "/reports/products", pro: false },
+      { name: "По локациям", path: "/reports/locations", pro: false },
+    ],
+  },
+  {
+    icon: <img src={ICONS.BOX} alt="Products icon" className="menu-item-icon-size" />,
+    name: "Товары",
+    subItems: [
+      { name: "Управление товарами", path: "/products", pro: false },
+      { name: "Категории", path: "/product-categories", pro: false },
+      { name: "Группы", path: "/product-groups", pro: false },
+      { name: "Виды", path: "/product-kinds", pro: false },
+      { name: "Производители", path: "/manufacturers", pro: false },
+    ],
+  },
+  {
+    icon: <img src={ICONS.FOLDER} alt="Organizations icon" className="menu-item-icon-size" />,
+    name: "Организации / Точки",
+    subItems: [
+      { name: "Управление организациями", path: "/organizations", pro: false },
+      { name: "Управление точками", path: "/locations", pro: false },
+      { name: "Поставщики", path: "/suppliers", pro: false },
+    ],
+  },
+  {
+    icon: <img src={ICONS.USER_CIRCLE} alt="Admin icon" className="menu-item-icon-size" />,
+    name: "Административная панель",
+    subItems: [
+      { name: "Управление пользователями", path: "/admin/users", pro: false },
+      { name: "Управление организациями", path: "/admin/organizations", pro: false },
+      { name: "Управление ролями", path: "/admin/roles", pro: false },
+      { name: "Управление поставщиками", path: "/admin/suppliers", pro: false },
+    ],
+  },
+  {
+    icon: <img src={ICONS.TASK_ICON} alt="Settings icon" className="menu-item-icon-size" />,
+    name: "Настройки",
+    subItems: [
+      { name: "Настройки организации", path: "/settings/organization", pro: false },
+      { name: "Настройки системы", path: "/settings/system", pro: false },
+    ],
   },
 ];
 
 const othersItems: NavItem[] = [
   {
-    icon: <img src={ICONS.PIE_CHART} alt="Pie chart icon" className="menu-item-icon-size" />,
-    name: "Графики",
+    icon: <img src={ICONS.PLUG_IN} alt="Integrations icon" className="menu-item-icon-size" />,
+    name: "Интеграции",
     subItems: [
-      { name: "Линейный график", path: "/line-chart", pro: false },
-      { name: "Столбчатый график", path: "/bar-chart", pro: false },
+      { name: "API подключения", path: "/integrations/api", pro: false },
+      { name: "Импорт/экспорт данных", path: "/integrations/import-export", pro: false },
     ],
   },
   {
-    icon: <img src={ICONS.BOX_CUBE} alt="Box cube icon" className="menu-item-icon-size" />,
-    name: "UI-элементы",
+    icon: <img src={ICONS.INFO} alt="Help icon" className="menu-item-icon-size" />,
+    name: "Помощь",
     subItems: [
-      { name: "Оповещения", path: "/alerts", pro: false },
-      { name: "Аватар", path: "/avatars", pro: false },
-      { name: "Бейдж", path: "/badge", pro: false },
-      { name: "Кнопки", path: "/buttons", pro: false },
-      { name: "Изображения", path: "/images", pro: false },
-      { name: "Видео", path: "/videos", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.PLUG_IN} alt="Plug in icon" className="menu-item-icon-size" />,
-    name: "Аутентификация",
-    subItems: [
-      { name: "Вход", path: "/signin", pro: false },
-      // { name: "Регистрация", path: "/signup", pro: false },
-      { name: "Создать пользователя (админ)", path: "/admin/create-user", pro: true },
+      { name: "Документация", path: "/help/documentation", pro: false },
+      { name: "Поддержка", path: "/help/support", pro: false },
     ],
   },
 ];
@@ -342,7 +356,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Menu"
+                  "Основное меню"
                 ) : (
                   <img src={ICONS.HORIZONTAL_DOTS} alt="HorizontaLDots" className="size-6" />
                 )}
@@ -358,7 +372,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Others"
+                  "Дополнительно"
                 ) : (
                   <img src={ICONS.HORIZONTAL_DOTS} alt="HorizontaLDots" />
                 )}

@@ -1,3 +1,10 @@
+/**
+ * @deprecated This component will be deprecated. Use /modules/inventory/components instead.
+ * Legacy component maintained for backward compatibility only.
+ */
+/**
+ * @deprecated
+ */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Badge from '@/components/ui/badge/Badge';

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { fetchForecastData, postForecast, fetchForecastHistory } from '../api/forecast';
-import { TrendingUp, Calendar, Search, RefreshCw } from 'lucide-react';
+import { fetchForecastData, postForecast, fetchForecastHistory, startNewForecast } from '../api/forecast';
+import { TrendingUp, Search, RefreshCw } from 'lucide-react';
 
 // Dynamic Chart.js import for better code splitting
 const loadChart = async () => {
@@ -10,10 +10,12 @@ const loadChart = async () => {
 import {
   TopProduct,
   TrendPoint,
-  ForecastHistoryItem,
-  ForecastApiResponse
+  ForecastHistoryItem
 } from './types';
 import QualityMetricsDashboard from '../components/QualityMetricsDashboard';
+import { useWebSocket } from '../hooks/useWebSocket';
+import Tooltip, { TooltipIcon } from '../components/common/Tooltip';
+import { useWelcomeModal } from '../components/common/WelcomeModal';
 
 const accuracyColor = {
   'Высокая': 'bg-green-100 text-green-800',
@@ -22,12 +24,15 @@ const accuracyColor = {
 };
 
 const SalesForecastPage: React.FC = () => {
+  // --- Welcome Modal Logic ---
+  const { WelcomeModal, welcomeModalOpen, closeWelcomeModal } = useWelcomeModal();
   // Стейт для переключения режимов
   const [mode, setMode] = useState<'trend' | 'metrics'>('trend');
   // ...existing code...
   const [trendData, setTrendData] = useState<TrendPoint[]>([]);
   const [trendLabels, setTrendLabels] = useState<string[]>([]);
   const [days, setDays] = useState<number>(14);
+  const [predictionDays, setPredictionDays] = useState<number>(7); // For new prediction input
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [history, setHistory] = useState<ForecastHistoryItem[]>([]);
   const [historyTotal, setHistoryTotal] = useState<number>(0);
@@ -37,7 +42,9 @@ const SalesForecastPage: React.FC = () => {
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [predictionLoading, setPredictionLoading] = useState(false); // For new prediction loading
   const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
+  const { status, isConnected, error: wsError, reconnect } = useWebSocket('wss://your.websocket.url');
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstance = useRef<Chart | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
@@ -103,20 +110,18 @@ const SalesForecastPage: React.FC = () => {
           legend: { display: false },
           tooltip: {
             enabled: false,
-            external: (context: { tooltip: any; chart: any }) => {
+            external: (context: { tooltip: { opacity: number; dataPoints: { raw: number; label: string; element: { x: number; y: number } }[] }; chart: { canvas: HTMLCanvasElement } }) => {
               if (!tooltipRef.current) return;
               const tooltip = tooltipRef.current;
               if (context.tooltip.opacity === 0) {
                 tooltip.classList.add('hidden');
                 return;
               }
-              const dataIndex = context.tooltip.dataPoints[0].dataIndex;
               const value = context.tooltip.dataPoints[0].raw;
               tooltip.innerHTML = `
                 <div class="font-bold">${value} шт</div>
                 <div>${context.tooltip.dataPoints[0].label}</div>
               `;
-              const chartRect = context.chart.canvas.getBoundingClientRect();
               const pointX = context.tooltip.dataPoints[0].element.x;
               const pointY = context.tooltip.dataPoints[0].element.y;
               tooltip.style.left = pointX + 'px';
@@ -142,7 +147,6 @@ const SalesForecastPage: React.FC = () => {
     };
     
     initChart();
-    // eslint-disable-next-line
   }, [trendLabels, trendData]);
 
   // Toast auto-hide
@@ -180,9 +184,36 @@ const SalesForecastPage: React.FC = () => {
     }
   };
 
-  // Skeletons
+  const handleStartNewForecast = async () => {
+    setPredictionLoading(true);
+    try {
+      // Step 1: Initiate the forecast prediction process
+      await startNewForecast(predictionDays);
+      setToast({ message: 'Прогноз запущен успешно', type: 'success' });
+      
+      // Step 2: Fetch the updated forecast data for the dashboard
+      const data = await postForecast();
+      setTrendData(data.trend.points);
+      setTopProducts(data.topProducts);
+      setTrendLabels(data.trend.points.map((p) => p.date));
+      setToast({ message: `Новый прогноз на ${predictionDays} дней создан успешно`, type: 'success' });
+      
+      // Step 3: Refresh history to show the new prediction
+      fetchForecastHistory(page, limit, search, category).then((data) => {
+        setHistory(data.items);
+        setHistoryTotal(data.total);
+      });
+    } catch (error) {
+      console.error('Failed to start new forecast:', error);
+      setToast({ message: 'Ошибка при создании нового прогноза', type: 'error' });
+    } finally {
+      setPredictionLoading(false);
+    }
+  };
+
+  // Enhanced Skeleton Loader
   const Skeleton = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       <div className="bg-white p-6 rounded-lg shadow">
         <div className="skeleton h-8 w-48 mb-4 rounded" />
         <div className="skeleton h-64 w-full rounded" />
@@ -190,10 +221,10 @@ const SalesForecastPage: React.FC = () => {
       <div className="bg-white p-6 rounded-lg shadow">
         <div className="skeleton h-8 w-48 mb-4 rounded" />
         <div className="space-y-4">
-          <div className="skeleton h-6 w-full rounded" />
-          <div className="skeleton h-6 w-3/4 rounded" />
-          <div className="skeleton h-6 w-5/6 rounded" />
-          <div className="skeleton h-6 w-2/3 rounded" />
+          <div className="skeleton h-6 w-full rounded" style={{ animationDelay: '0.1s' }} />
+          <div className="skeleton h-6 w-3/4 rounded" style={{ animationDelay: '0.2s' }} />
+          <div className="skeleton h-6 w-5/6 rounded" style={{ animationDelay: '0.3s' }} />
+          <div className="skeleton h-6 w-2/3 rounded" style={{ animationDelay: '0.4s' }} />
         </div>
       </div>
       <div className="bg-white p-6 rounded-lg shadow overflow-x-auto">
@@ -214,27 +245,125 @@ const SalesForecastPage: React.FC = () => {
     );
   };
 
-  // Custom styles for skeleton, toast, etc.
+  // Enhanced custom styles for skeleton, toast, and animations
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
       .chart-container { position: relative; height: 300px; width: 100%; }
       .progress-bar { transition: width 0.5s ease-in-out; }
-      .toast { animation: slideIn 0.5s forwards, fadeOut 0.5s 2.5s forwards; }
-      @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-      @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-      .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
-      @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-      .tooltip { position: absolute; padding: 8px; background: rgba(0,0,0,0.8); color: white; border-radius: 4px; pointer-events: none; font-size: 12px; z-index: 100; transform: translate(-50%, -100%); }
+      
+      /* Toast animations */
+      .toast { 
+        animation: slideIn 0.5s forwards, fadeOut 0.5s 2.5s forwards; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+      
+      /* Enhanced skeleton loader */
+      .skeleton { 
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); 
+        background-size: 200% 100%; 
+        animation: shimmer 1.5s infinite; 
+      }
+      
+      /* Smooth fade-in animations */
+      .animate-fadeIn {
+        animation: fadeIn 0.6s ease-out forwards;
+      }
+      
+      .animate-slideUp {
+        animation: slideUp 0.4s ease-out forwards;
+      }
+      
+      .animate-scaleIn {
+        animation: scaleIn 0.3s ease-out forwards;
+      }
+      
+      /* Staggered animations */
+      .stagger-1 { animation-delay: 0.1s; }
+      .stagger-2 { animation-delay: 0.2s; }
+      .stagger-3 { animation-delay: 0.3s; }
+      .stagger-4 { animation-delay: 0.4s; }
+      
+      /* Keyframe definitions */
+      @keyframes slideIn { 
+        from { transform: translateX(100%); opacity: 0; } 
+        to { transform: translateX(0); opacity: 1; } 
+      }
+      
+      @keyframes fadeOut { 
+        from { opacity: 1; } 
+        to { opacity: 0; } 
+      }
+      
+      @keyframes shimmer { 
+        0% { background-position: 200% 0; } 
+        100% { background-position: -200% 0; } 
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      
+      /* Tooltip styling */
+      .tooltip { 
+        position: absolute; 
+        padding: 8px; 
+        background: rgba(0,0,0,0.8); 
+        color: white; 
+        border-radius: 4px; 
+        pointer-events: none; 
+        font-size: 12px; 
+        z-index: 100; 
+        transform: translate(-50%, -100%);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+      
+      /* Hover effects */
+      .hover-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+      }
+      
+      /* Button pulse animation */
+      .pulse-on-hover:hover {
+        animation: pulse 0.6s ease-in-out;
+      }
+      
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
     `;
     document.head.appendChild(style);
     return () => { document.head.removeChild(style); };
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      {/* Toast Notification */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
+    <>
+      <WelcomeModal open={welcomeModalOpen} onClose={closeWelcomeModal} />
+      <div className="min-h-screen bg-gray-50 font-sans">
+        {/* Toast Notification */}
+        <div className="fixed top-4 right-4 z-50 space-y-2">
+        {/* WebSocket статус */}
+        {wsError !== null && <div className="toast bg-red-600 text-white px-4 py-2 rounded shadow-lg">
+          Ошибка WebSocket соединения: {wsError}, пытаемся переподключиться
+        </div>}
+        {!isConnected && !wsError && <div className="toast bg-orange-600 text-white px-4 py-2 rounded shadow-lg">
+          Ожидаем подключения...
+        </div>}
         {toast && <Toast message={toast.message} type={toast.type} />}
       </div>
       {/* Header + Sticky Mode Switcher */}
@@ -274,17 +403,54 @@ const SalesForecastPage: React.FC = () => {
             className={`absolute inset-0 transition-all duration-500 ease-in-out ${mode === 'trend' ? 'opacity-100 translate-x-0 z-10 pointer-events-auto' : 'opacity-0 -translate-x-8 z-0 pointer-events-none'}`}
             style={{ willChange: 'opacity, transform' }}
           >
-            {mode === 'trend' && (loading ? (
+            {loading ? (
               <Skeleton />
             ) : (
               <div id="contentContainer">
+                {/* New Prediction Section */}
+                <section className="bg-white p-6 rounded-lg shadow mb-6 hover-lift animate-slideUp border-l-4 border-l-green-500">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold text-gray-800">Создать новый прогноз</h2>
+                    <div className="flex items-center space-x-3">
+                      <label className="text-sm font-medium text-gray-700">Дней для прогноза:</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="90"
+                        value={predictionDays}
+                        onChange={(e) => setPredictionDays(parseInt(e.target.value) || 7)}
+                        className="border border-gray-300 rounded px-3 py-1 text-sm w-20 hover:border-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      />
+                      <button
+                        onClick={handleStartNewForecast}
+                        disabled={predictionLoading}
+                        className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm disabled:opacity-50 pulse-on-hover transition-all duration-200 font-medium"
+                        title="Создать новый прогноз (займет 5-10 сек)"
+                        aria-label="Создать новый прогноз (займет 5-10 сек)"
+                      >
+                        <span role="img" aria-label="Прогноз">📊</span>
+                        <TrendingUp className={`w-4 h-4 ${predictionLoading ? 'animate-spin' : ''}`} />
+                        <span>{predictionLoading ? 'Создаю прогноз...' : 'Предсказать'}</span>
+                      </button>
+                    </div>
+                  </div>
+                  {predictionLoading && (
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center space-x-2 text-blue-700">
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span className="text-sm font-medium">Обрабатываю данные и создаю прогноз...</span>
+                      </div>
+                    </div>
+                  )}
+                </section>
+                
                 {/* Forecast Trend Section */}
-                <section className="bg-white p-6 rounded-lg shadow mb-6">
+                <section className="bg-white p-6 rounded-lg shadow mb-6 hover-lift animate-slideUp">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold text-gray-800">Тренд продаж</h2>
                     <div className="flex space-x-2">
                       <select
-                        className="border border-gray-300 rounded px-3 py-1 text-sm"
+                        className="border border-gray-300 rounded px-3 py-1 text-sm hover:border-blue-400 transition-colors"
                         value={days}
                         onChange={handleDaysChange}
                       >
@@ -292,6 +458,17 @@ const SalesForecastPage: React.FC = () => {
                         <option value={14}>14 дней</option>
                         <option value={30}>30 дней</option>
                       </select>
+                      <button
+                        onClick={handleFetchForecast}
+                        disabled={loading}
+                        className="flex items-center space-x-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50 pulse-on-hover transition-all duration-200"
+                        title="Обновить график с текущими данными"
+                        aria-label="Обновить график с текущими данными"
+                      >
+                        <span role="img" aria-label="Обновить">🔄</span>
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        <span>Запросить прогноз продаж</span>
+                      </button>
                     </div>
                   </div>
                   <div className="chart-container">
@@ -300,14 +477,14 @@ const SalesForecastPage: React.FC = () => {
                   </div>
                 </section>
                 {/* Top Products Section */}
-                <section className="bg-white p-6 rounded-lg shadow mb-6">
+                <section className="bg-white p-6 rounded-lg shadow mb-6 hover-lift animate-slideUp stagger-1">
                   <h2 className="text-xl font-semibold text-gray-800 mb-4">Топ продуктов</h2>
                   <div className="space-y-4">
                     {topProducts.length === 0 ? (
                       <div className="text-gray-400">Нет данных</div>
                     ) : (
                       topProducts.map((item, idx) => (
-                        <div className="top-product-item" key={item.name}>
+                        <div className={`top-product-item animate-fadeIn hover:bg-gray-50 p-2 rounded transition-all duration-200 stagger-${idx + 1}`} key={item.name}>
                           <div className="flex justify-between mb-1">
                             <span className="font-medium">{item.name}</span>
                             <span className="font-semibold text-indigo-600">{item.amount} шт</span>
@@ -327,6 +504,14 @@ const SalesForecastPage: React.FC = () => {
                 <section className="bg-white p-6 rounded-lg shadow">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold text-gray-800">История прогнозов</h2>
+                    <TooltipIcon data={{
+                      title: 'История прогнозов',
+                      description: 'Здесь вы можете увидеть предыдущие прогнозы продаж и сравнить их точность.',
+                      examples: ['Прогноз на 2025-07-01: 45 шт.', 'Прогноз на 2025-07-02: 50 шт.'],
+                      links: [
+                        { text: 'Узнать больше о прогнозах', url: 'https://example.com/forecast-info' },
+                      ],
+                    }} />
                     <div className="flex space-x-2">
                       <input
                         type="text"
@@ -399,7 +584,7 @@ const SalesForecastPage: React.FC = () => {
                   </div>
                 </section>
               </div>
-            ))}
+            )}
           </div>
           <div
             className={`absolute inset-0 transition-all duration-500 ease-in-out ${mode === 'metrics' ? 'opacity-100 translate-x-0 z-10 pointer-events-auto' : 'opacity-0 translate-x-8 z-0 pointer-events-none'}`}
@@ -407,9 +592,10 @@ const SalesForecastPage: React.FC = () => {
           >
             {mode === 'metrics' && <QualityMetricsDashboard />}
           </div>
-        </div>
-      </main>
-    </div>
+          </div>
+        </main>
+      </div>
+    </>
   );
 };
 

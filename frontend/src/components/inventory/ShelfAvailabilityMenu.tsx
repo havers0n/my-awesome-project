@@ -1,4 +1,11 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * @deprecated This component will be deprecated. Use /modules/inventory/components instead.
+ * Legacy component maintained for backward compatibility only.
+ */
+/**
+ * @deprecated
+ */
+import React, { useState, useMemo, useEffect } from 'react';
 import { supabase } from '@/services/supabaseClient';
 import { outOfStockService } from '@/services/outOfStockService';
 import Button from '@/components/ui/button/Button';

@@ -69,7 +69,25 @@ const QualityMetricsDashboard: React.FC = () => {
   if (period.preset) periodParam = period.preset;
   else if (period.custom) periodParam = period.custom;
 
-  const { data, loading, error, avgR2, avgMape } = useSalesForecast(slice, periodParam);
+  const { data, loading, error, avgR2, avgMape, avgMae, avgRmse } = useSalesForecast(slice, periodParam);
+
+  // Debug logging for integration testing
+  React.useEffect(() => {
+    console.log('🧪 QualityMetricsDashboard Integration Test:', {
+      slice,
+      periodParam,
+      loading,
+      error,
+      dataLength: data?.length || 0,
+      avgR2: avgR2?.toFixed(3) || 'N/A',
+      avgMape: avgMape?.toFixed(3) || 'N/A',
+      avgMae: avgMae?.toFixed(3) || 'N/A',
+      avgRmse: avgRmse?.toFixed(3) || 'N/A',
+      sampleData: data[0] || null,
+      isUsingMockData: !!error,
+      status: error ? 'Using mock data (API failure)' : 'Using API data'
+    });
+  }, [slice, periodParam, loading, error, data, avgR2, avgMape, avgMae, avgRmse]);
 
   return (
     <div>
@@ -85,8 +103,18 @@ const QualityMetricsDashboard: React.FC = () => {
         <span className="font-semibold text-gray-700">{getPeriodLabel(period)}</span>
         <span className="ml-2 cursor-help" title="Для коротких периодов точность прогноза ниже, чем для длинных — это нормально для любых моделей.">ℹ️</span>
       </div>
-      {loading && <div>Загрузка...</div>}
-      {error && <div className="text-red-500">Ошибка: {error}</div>}
+      {loading && <div className="text-blue-500">Загрузка...</div>}
+      {error && (
+        <div className="text-yellow-600 bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
+          <div className="flex items-center gap-2">
+            <span>⚠️</span>
+            <span className="font-medium">Внимание:</span>
+          </div>
+          <div className="mt-1 text-sm">
+            API недоступен, показаны демо-данные. {error}
+          </div>
+        </div>
+      )}
       {!loading && !error && data.length === 0 && <Placeholder />}
       {!loading && !error && data.length > 0 && (
         <>

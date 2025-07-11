@@ -1,7 +1,22 @@
 
 export interface Role {
-  value: string;
-  label: string;
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string; // ISO date string
+}
+
+export interface Permission {
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string; // ISO date string
+}
+
+export interface RolePermission {
+  id: string;
+  role_id: string;
+  permission_id: string;
 }
 
 export interface User {
@@ -9,7 +24,7 @@ export interface User {
   email: string;
   password?: string; // Optional, especially for existing users or if managed elsewhere
   full_name: string;
-  role: string; // role value
+  role_id: string; // role id instead of role value
   organizationId: string | null;
   locationId: string | null;
   is_active: boolean;
@@ -90,4 +105,26 @@ export interface LocationFilters {
   search: string;
   type: string; // 'all' or LocationType
   status: string; // 'all' or Location['status']
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  legal_name?: string;
+  inn_or_ogrn?: string;
+  contact_person?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  address?: string;
+  description?: string;
+  organizationId: string; // Organization this supplier belongs to
+  status: 'active' | 'inactive';
+  created_at: string; // ISO date string
+}
+
+export interface SupplierFilters {
+  search: string;
+  organizationId: string; // 'all' or org ID
+  status: string; // 'all', 'active', 'inactive'
 }

@@ -5,7 +5,9 @@ import { DataProvider } from './contexts/DataContext';
 import UserManagementPage from './components/UserManagementPage';
 import OrganizationListPage from './components/OrganizationListPage';
 import OrganizationDetailPage from './components/OrganizationDetailPage';
-import { Users, Briefcase } from 'lucide-react';
+import SupplierListPage from './pages/SupplierListPage';
+import RoleManagementPage from './pages/RoleManagementPage';
+import { Users, Briefcase, Truck, Shield } from 'lucide-react';
 
 const App: React.FC = () => {
   const navLinkClass = ({ isActive }: { isActive: boolean }): string =>
@@ -34,6 +36,14 @@ const App: React.FC = () => {
                     <Briefcase size={18} className="mr-2" />
                     Организации
                   </NavLink>
+                  <NavLink to="/suppliers" className={navLinkClass}>
+                    <Truck size={18} className="mr-2" />
+                    Поставщики
+                  </NavLink>
+                  <NavLink to="/roles" className={navLinkClass}>
+                    <Shield size={18} className="mr-2" />
+                    Роли
+                  </NavLink>
                 </nav>
               </div>
             </div>
@@ -45,6 +55,8 @@ const App: React.FC = () => {
               <Route path="/users" element={<UserManagementPage />} />
               <Route path="/organizations" element={<OrganizationListPage />} />
               <Route path="/organizations/:orgId" element={<OrganizationDetailPage />} />
+              <Route path="/suppliers" element={<SupplierListPage />} />
+              <Route path="/roles" element={<RoleManagementPage />} />
               <Route path="*" element={<Navigate to="/users" replace />} /> {/* Fallback route */}
             </Routes>
           </main>

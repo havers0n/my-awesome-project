@@ -1,7 +1,23 @@
 
 export interface Role {
-  value: string;
-  label: string;
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string; // ISO date string
+}
+
+export interface Permission {
+  id: string;
+  name: string; // Код разрешения, например 'view_users'
+  description?: string;
+  resource: string; // Ресурс, к которому относится разрешение (users, organizations, etc.)
+  created_at: string; // ISO date string
+}
+
+export interface RolePermission {
+  id: string;
+  role_id: string;
+  permission_id: string;
 }
 
 export interface User {
@@ -9,7 +25,8 @@ export interface User {
   email: string;
   password?: string; // Optional, especially for existing users or if managed elsewhere
   full_name: string;
-  role: string; // role value
+  role_id?: string; // ID роли
+  role?: string; // Для обратной совместимости
   organizationId: string | null;
   locationId: string | null;
   is_active: boolean;
@@ -93,9 +110,94 @@ export interface LocationFilters {
   status: string; // 'all' or Location['status']
 }
 
+// Интерфейс для поставщиков
+export interface Supplier {
+  id: string;
+  name: string;
+  legal_name?: string;
+  inn_or_ogrn?: string;
+  contact_person?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  address?: string;
+  description?: string;
+  organizationId: string;
+  status: 'active' | 'inactive';
+  created_at: string; // ISO date string
+}
+
+// Фильтры для поставщиков
+export interface SupplierFilters {
+  search: string;
+  organizationId: string; // 'all' или ID организации
+  status: string; // 'all', 'active', 'inactive'
+}
+
+// Фильтры для ролей
+export interface RoleFilters {
+  search: string;
+}
+
 // Метрики для sales-forecast
-export type TimeMetric = { date: string; r2: number; mape: number };
-export type SkuMetric = { sku: string; r2: number; mape: number };
-export type StoreMetric = { store: string; r2: number; mape: number };
-export type MetricType = 'r2' | 'mape';
+export type TimeMetric = { date: string; r2: number; mape: number; mae: number; rmse: number };
+export type SkuMetric = { sku: string; r2: number; mape: number; mae: number; rmse: number };
+export type StoreMetric = { store: string; r2: number; mape: number; mae: number; rmse: number };
+export type MetricType = 'r2' | 'mape' | 'mae' | 'rmse';
 export type SliceType = 'time' | 'sku' | 'store';
+
+// Quality metrics interfaces
+export interface QualityTimeMetric {
+  date: string;
+  r2: number;
+  mape: number;
+  mae: number;
+  rmse: number;
+}
+
+export interface QualitySkuMetric {
+  sku: string;
+  r2: number;
+  mape: number;
+  mae: number;
+  rmse: number;
+}
+
+export interface QualityStoreMetric {
+  store: string;
+  r2: number;
+  mape: number;
+  mae: number;
+  rmse: number;
+}
+
+export interface QualityMetricsResponse {
+  data: QualityTimeMetric[] | QualitySkuMetric[] | QualityStoreMetric[];
+  avgR2: number;
+  avgMape: number;
+  avgMae: number;
+  avgRmse: number;
+}
+
+// Статусы продуктов
+export enum ProductStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  PENDING = 'pending',
+  OUT_OF_STOCK = 'out_of_stock',
+  DISCONTINUED = 'discontinued'
+}
+
+// Интерфейс продукта
+export interface Product {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  quantity: number;
+  status: ProductStatus;
+  category?: string;
+  sku?: string;
+  created_at: string;
+  updated_at: string;
+}

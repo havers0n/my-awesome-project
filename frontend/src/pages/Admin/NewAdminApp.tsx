@@ -4,7 +4,9 @@ import { DataProvider, useData } from '../../context/DataContext';
 import UserManagementPage from './UserManagementPage';
 import OrganizationListPage from './OrganizationListPage';
 import OrganizationDetailPage from './OrganizationDetailPage';
-import { Users, Briefcase } from 'lucide-react';
+import RoleManagementPage from './RoleManagementPage';
+import SupplierListPage from './SupplierListPage';
+import { Users, Briefcase, Shield, Truck } from 'lucide-react';
 
 
 // Error Boundary for catching render errors
@@ -70,6 +72,14 @@ const NewAdminApp: React.FC = () => {
                     <Briefcase size={18} className="mr-2" />
                     Организации
                   </NavLink>
+                  <NavLink to="/admin/roles" className={navLinkClass}>
+                    <Shield size={18} className="mr-2" />
+                    Роли
+                  </NavLink>
+                  <NavLink to="/admin/suppliers" className={navLinkClass}>
+                    <Truck size={18} className="mr-2" />
+                    Поставщики
+                  </NavLink>
                 </nav>
               </div>
             </div>
@@ -80,6 +90,8 @@ const NewAdminApp: React.FC = () => {
               <Route path="users" element={<UserManagementPage />} />
               <Route path="organizations" element={<OrganizationListPage />} />
               <Route path="organizations/:orgId" element={<OrganizationDetailPage />} />
+              <Route path="roles" element={<RoleManagementPage />} />
+              <Route path="suppliers" element={<SupplierListPage />} />
               <Route path="*" element={<Navigate to="users" replace />} />
             </Routes>
           </main>

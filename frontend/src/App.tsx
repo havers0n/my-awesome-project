@@ -24,6 +24,7 @@ const Buttons = lazy(() => import("@/pages/UiElements/Buttons"));
 const LineChart = lazy(() => import("@/pages/Charts/LineChart"));
 const BarChart = lazy(() => import("@/pages/Charts/BarChart"));
 const SalesForecastPage = lazy(() => import("@/pages/SalesForecastPage"));
+const TestForecastAPI = lazy(() => import("@/pages/TestForecastAPI"));
 
 // Calendar is heavy due to FullCalendar
 const Calendar = lazy(() => import("@/pages/Calendar"));
@@ -34,6 +35,7 @@ const FormElements = lazy(() => import("@/pages/Forms/FormElements"));
 const Blank = lazy(() => import("@/pages/Blank"));
 const OutOfStockTracker = lazy(() => import("@/pages/OtherPage/OutOfStockTracker"));
 const ShelfAvailabilityPage = lazy(() => import("@/pages/Inventory/ShelfAvailabilityPage"));
+const ShelfAvailabilityDashboard = lazy(() => import("@/pages/Inventory/ShelfAvailabilityDashboard"));
 const ResetPassword = lazy(() => import("@/pages/AuthPages/ResetPassword"));
 const UpdatePassword = lazy(() => import("@/pages/AuthPages/UpdatePassword"));
 const AdminCreateUser = lazy(() => import("@/pages/AdminCreateUser"));
@@ -81,6 +83,7 @@ export default function App() {
             <Route path="/blank" element={<Blank />} />
             <Route path="/out-of-stock" element={<OutOfStockTracker />} />
             <Route path="/shelf-availability" element={<ShelfAvailabilityPage />} />
+            <Route path="/inventory/shelf-availability" element={<ShelfAvailabilityDashboard />} />
 
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />
@@ -91,8 +94,10 @@ export default function App() {
             {/* Sales Forecast */}
             <Route path="/sales-forecast" element={<SalesForecastPage />} />
 
-            {/* Ui Elements */}
-            <Route path="/alerts" element={<Alerts />} />
+{/* Test API Page */}
+<Route path="/test-forecast-api" element={<TestForecastAPI />} />
+{/* Ui Elements */}
+<Route path="/alerts" element={<Alerts />} />
             <Route path="/avatars" element={<Avatars />} />
             <Route path="/badge" element={<Badges />} />
             <Route path="/buttons" element={<Buttons />} />

@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.15",
@@ -19,10 +22,12 @@
     "@react-jvectormap/core": "^1.0.4",
     "@react-jvectormap/world": "^1.1.2",
     "@supabase/supabase-js": "^2.50.0",
+    "@tanstack/react-query": "^5.81.5",
     "apexcharts": "^4.1.0",
     "axios": "^1.9.0",
     "chart.js": "^4.4.1",
     "clsx": "^2.1.1",
+    "date-fns": "^2.30.0",
     "flatpickr": "^4.6.13",
     "lucide-react": "^0.518.0",
     "react": "^19.1.0",
@@ -43,6 +48,7 @@
     "@axe-core/cli": "^4.10.2",
     "@axe-core/puppeteer": "^4.10.2",
     "@eslint/js": "^9.19.0",
+    "@playwright/test": "^1.53.2",
     "@tailwindcss/postcss": "^4.0.8",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
