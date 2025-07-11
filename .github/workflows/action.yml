@@ -1,0 +1,20 @@
+name: CI/CD Deploy
+
+on:
+  push:
+    branches:
+      - Daniel_branch
+      - Vlad_branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ 158.160.190.103 }}
+          username: root
+          key: ${{ secrets.DEPLOYKEY }}
+          script: |
+            bash /root/deploy.sh ${{ github.ref_name }}
