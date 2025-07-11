@@ -69,8 +69,8 @@ export const startNewForecast = async (days: number): Promise<void> => {
     const headers = getAuthHeaders();
     const requestBody = { DaysCount: days };
     
-    // Временно используем тестовый маршрут
-    const res = await axios.post('/api/test-predictions/predict', requestBody, {
+    // Используем реальный ML эндпоинт
+    const res = await axios.post('/api/real-ml-predict', requestBody, {
       headers,
       timeout: 120000 // 2 minutes timeout for forecast generation process
     });
@@ -78,6 +78,7 @@ export const startNewForecast = async (days: number): Promise<void> => {
     // Проверяем успешность ответа
     if (res.status === 200 || res.status === 201) {
       console.log('Forecast prediction initiated successfully');
+      console.log('ML Response:', res.data);
       return; // Успешно запущен процесс
     } else {
       throw new Error(`Unexpected response status: ${res.status}`);

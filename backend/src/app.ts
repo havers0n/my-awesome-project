@@ -93,6 +93,70 @@ app.post('/test-direct', (req, res) => {
   res.json({ received: req.body, type: typeof req.body });
 });
 
+// Simple ML test route
+app.post('/api/simple-ml-test', async (req, res) => {
+  try {
+    console.log('SIMPLE ML TEST - Body:', req.body);
+    res.json({ success: true, message: 'Simple ML test endpoint working', body: req.body });
+  } catch (error) {
+    res.status(500).json({ error: 'Simple ML test failed', details: error });
+  }
+});
+
+// Test route without /api/ prefix
+app.post('/real-ml-predict', async (req, res) => {
+  try {
+    console.log('=== REAL ML PREDICT called (no /api/) ===');
+    console.log('Request body:', req.body);
+    
+    const { DaysCount = 7 } = req.body;
+    
+    // Создаем тестовые данные для отправки в ML микросервис
+    const mlRequestData = {
+      DaysCount: DaysCount,
+      events: [
+        {
+          Type: "Sale",
+          Period: "2025-07-11",
+          ItemName: "Test Item",
+          Code: "TEST001",
+          Quantity: 10,
+          Price: 100.0
+        }
+      ]
+    };
+    
+    console.log('Sending to ML service:', JSON.stringify(mlRequestData, null, 2));
+    
+    // Отправляем запрос к реальному ML микросервису
+    const axios = require('axios');
+    const ML_SERVICE_URL = 'http://localhost:8000/predict';
+    
+    const mlResponse = await axios.post(ML_SERVICE_URL, mlRequestData, {
+      timeout: 30000,
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    console.log('ML service response:', JSON.stringify(mlResponse.data, null, 2));
+    
+    // Возвращаем ответ от ML сервиса
+    res.json({
+      success: true,
+      ml_response: mlResponse.data,
+      request_data: mlRequestData
+    });
+    
+  } catch (error) {
+    console.error('Real ML predict error:', error);
+    const message = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ 
+      error: 'Real ML prediction failed', 
+      details: message,
+      ml_service_url: 'http://localhost:8000/predict'
+    });
+  }
+});
+
 // Simple forecast test
 app.post('/api/simple-forecast', authenticateSupabaseToken, async (req, res) => {
   try {
@@ -188,24 +252,119 @@ app.post('/api/test-predictions/predict', async (req, res) => {
     console.log('TEST PREDICT - Body:', req.body);
     const { DaysCount = 7 } = req.body;
     
-    // Имитируем успешный ответ от ML сервиса
-    res.json([
-      {
-        MAPE: 12.5,
-        MAE: 0.8,
-        DaysPredict: DaysCount
-      },
-      {
-        Период: `2025-07-11 - 2025-07-${11 + DaysCount - 1}`,
-        Номенклатура: 'Тестовый товар',
-        Код: 'TEST001',
-        MAPE: '12.5%',
-        MAE: 0.8,
-        Количество: DaysCount * 5
-      }
-    ]);
+    // Try to call the real ML service
+    try {
+      const axios = require('axios');
+      
+      // Создаем тестовые данные для отправки в ML микросервис
+      const mlRequestData = {
+        DaysCount: DaysCount,
+        events: [
+          {
+            Период: "2025-07-11",
+            Номенклатура: "Test Item"
+          }
+        ]
+      };
+      
+      console.log('Calling real ML service:', JSON.stringify(mlRequestData, null, 2));
+      
+      const ML_SERVICE_URL = 'http://localhost:8000/predict';
+      const mlResponse = await axios.post(ML_SERVICE_URL, mlRequestData, {
+        timeout: 30000,
+        headers: { 
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('ML service response:', JSON.stringify(mlResponse.data, null, 2));
+      
+      // Возвращаем ответ от ML сервиса
+      res.json({
+        success: true,
+        source: 'real_ml_service',
+        ml_response: mlResponse.data,
+        request_data: mlRequestData
+      });
+      
+    } catch (mlError) {
+      console.error('ML service error, falling back to mock:', mlError);
+      
+      // Fallback to mock data if ML service fails
+      res.json([
+        {
+          MAPE: 12.5,
+          MAE: 0.8,
+          DaysPredict: DaysCount,
+          source: 'mock_fallback',
+          ml_error: mlError instanceof Error ? mlError.message : String(mlError)
+        },
+        {
+          Период: `2025-07-11 - 2025-07-${11 + DaysCount - 1}`,
+          Номенклатура: 'Тестовый товар',
+          Код: 'TEST001',
+          MAPE: '12.5%',
+          MAE: 0.8,
+          Количество: DaysCount * 5,
+          source: 'mock_fallback'
+        }
+      ]);
+    }
+    
   } catch (error) {
     res.status(500).json({ error: 'Test predict failed', details: error });
+  }
+});
+
+// Real ML prediction endpoint that the frontend is calling
+app.post('/api/real-ml-predict', async (req, res) => {
+  try {
+    console.log('REAL ML PREDICT - Body:', req.body);
+    const { DaysCount = 7 } = req.body;
+    
+    const axios = require('axios');
+    
+    // Создаем данные для отправки в ML микросервис
+    const mlRequestData = {
+      DaysCount: DaysCount,
+      events: [
+        {
+          Период: "2025-07-11",
+          Номенклатура: "Test Item"
+        }
+      ]
+    };
+    
+    console.log('Calling ML service:', JSON.stringify(mlRequestData, null, 2));
+    
+    const ML_SERVICE_URL = 'http://localhost:8000/predict';
+    const mlResponse = await axios.post(ML_SERVICE_URL, mlRequestData, {
+      timeout: 30000,
+      headers: { 
+        'Content-Type': 'application/json; charset=utf-8',
+        'Accept': 'application/json'
+      }
+    });
+    
+    console.log('ML service response:', JSON.stringify(mlResponse.data, null, 2));
+    
+    // Возвращаем ответ от ML сервиса
+    res.json({
+      success: true,
+      source: 'real_ml_service',
+      ml_response: mlResponse.data,
+      request_data: mlRequestData
+    });
+    
+  } catch (error) {
+    console.error('Real ML predict error:', error);
+    const message = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ 
+      error: 'Real ML prediction failed', 
+      details: message,
+      ml_service_url: 'http://localhost:8000/predict'
+    });
   }
 });
 
