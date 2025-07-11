@@ -25,7 +25,8 @@ function getAuthHeaders() {
 export const fetchForecastData = async (days: number): Promise<ForecastApiResponse> => {
   try {
     const headers = getAuthHeaders();
-    const res = await axios.get(`/api/predictions/forecast?days=${days}`, { 
+    // Временно используем тестовый маршрут
+    const res = await axios.get(`/api/test-predictions/forecast?days=${days}`, { 
       headers,
       timeout: 30000 // 30 second timeout
     });
@@ -68,7 +69,8 @@ export const startNewForecast = async (days: number): Promise<void> => {
     const headers = getAuthHeaders();
     const requestBody = { DaysCount: days };
     
-    const res = await axios.post('/api/predictions/predict', requestBody, {
+    // Временно используем тестовый маршрут
+    const res = await axios.post('/api/test-predictions/predict', requestBody, {
       headers,
       timeout: 120000 // 2 minutes timeout for forecast generation process
     });
@@ -103,7 +105,8 @@ export const startNewForecast = async (days: number): Promise<void> => {
 export const postForecast = async (): Promise<ForecastApiResponse> => {
   try {
     const headers = getAuthHeaders();
-    const res = await axios.post(`/api/predictions/predict`, { DaysCount: 14 }, {
+    // Временно используем тестовый маршрут
+    const res = await axios.post(`/api/test-predictions/predict`, { DaysCount: 14 }, {
       headers,
       timeout: 60000 // 60 second timeout for forecast generation
     });
@@ -156,7 +159,8 @@ export const fetchForecastHistory = async (
     params.append('limit', String(limit));
     if (search) params.append('search', search);
     if (category) params.append('category', category);
-    const res = await axios.get(`/api/predictions/history?${params.toString()}`, { headers });
+    // Временно используем тестовый маршрут
+    const res = await axios.get(`/api/test-predictions/history?${params.toString()}`, { headers });
     return res.data;
   } catch (error) {
     console.warn('API истории недоступен, используем моки:', error);

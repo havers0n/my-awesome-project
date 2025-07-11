@@ -104,7 +104,111 @@ app.post('/api/simple-forecast', authenticateSupabaseToken, async (req, res) => 
   }
 });
 
+// Тестовый маршрут для прогнозов без аутентификации
+app.get('/api/test-forecast-no-auth', async (req, res) => {
+  try {
+    console.log('TEST FORECAST NO AUTH - Query:', req.query);
+    res.json({
+      trend: {
+        points: [
+          { date: '2024-05-01', value: 120 },
+          { date: '2024-05-02', value: 123 },
+          { date: '2024-05-03', value: 130 }
+        ]
+      },
+      topProducts: [
+        { name: 'Молоко', amount: 140, colorClass: 'bg-green-500', barWidth: '80%' },
+        { name: 'Хлеб', amount: 90, colorClass: 'bg-yellow-500', barWidth: '60%' },
+        { name: 'Яблоки', amount: 60, colorClass: 'bg-red-500', barWidth: '40%' }
+      ],
+      history: {
+        items: [
+          { date: '2024-05-01 - 2024-05-07', product: 'Молоко', category: 'Общая', forecast: 140, accuracy: 'Высокая' },
+          { date: '2024-05-01 - 2024-05-07', product: 'Хлеб', category: 'Общая', forecast: 90, accuracy: 'Средняя' },
+          { date: '2024-05-01 - 2024-05-07', product: 'Яблоки', category: 'Общая', forecast: 60, accuracy: 'Высокая' }
+        ],
+        total: 3
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Test failed', details: error });
+  }
+});
+
 app.use('/api/predictions', authenticateSupabaseToken, forecastRoutes);
+
+// Временные маршруты без аутентификации для тестирования интеграции
+app.get('/api/test-predictions/forecast', async (req, res) => {
+  try {
+    res.json({
+      trend: {
+        points: [
+          { date: '2025-07-01', value: 120 },
+          { date: '2025-07-02', value: 135 },
+          { date: '2025-07-03', value: 142 },
+          { date: '2025-07-04', value: 138 },
+          { date: '2025-07-05', value: 155 }
+        ]
+      },
+      topProducts: [
+        { name: 'Тестовый товар 1', amount: 45, colorClass: 'bg-green-500', barWidth: '90%' },
+        { name: 'Тестовый товар 2', amount: 32, colorClass: 'bg-yellow-500', barWidth: '65%' },
+        { name: 'Тестовый товар 3', amount: 28, colorClass: 'bg-red-500', barWidth: '55%' }
+      ],
+      history: {
+        items: [
+          { date: '2025-07-01 - 2025-07-07', product: 'Тестовый товар 1', category: 'Общая', forecast: 45, accuracy: 'Высокая' },
+          { date: '2025-07-01 - 2025-07-07', product: 'Тестовый товар 2', category: 'Общая', forecast: 32, accuracy: 'Средняя' }
+        ],
+        total: 2
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Test forecast failed', details: error });
+  }
+});
+
+app.get('/api/test-predictions/history', async (req, res) => {
+  try {
+    res.json({
+      items: [
+        { date: '2025-07-01 - 2025-07-07', product: 'Тестовый товар 1', category: 'Общая', forecast: 45, accuracy: 'Высокая' },
+        { date: '2025-07-02 - 2025-07-08', product: 'Тестовый товар 2', category: 'Общая', forecast: 32, accuracy: 'Средняя' },
+        { date: '2025-07-03 - 2025-07-09', product: 'Тестовый товар 3', category: 'Общая', forecast: 28, accuracy: 'Высокая' }
+      ],
+      total: 3
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Test history failed', details: error });
+  }
+});
+
+app.post('/api/test-predictions/predict', async (req, res) => {
+  try {
+    console.log('TEST PREDICT - Body:', req.body);
+    const { DaysCount = 7 } = req.body;
+    
+    // Имитируем успешный ответ от ML сервиса
+    res.json([
+      {
+        MAPE: 12.5,
+        MAE: 0.8,
+        DaysPredict: DaysCount
+      },
+      {
+        Период: `2025-07-11 - 2025-07-${11 + DaysCount - 1}`,
+        Номенклатура: 'Тестовый товар',
+        Код: 'TEST001',
+        MAPE: '12.5%',
+        MAE: 0.8,
+        Количество: DaysCount * 5
+      }
+    ]);
+  } catch (error) {
+    res.status(500).json({ error: 'Test predict failed', details: error });
+  }
+});
+
 app.use('/api', uploadRoutes); // Upload routes
 
 // Error handling middleware (surface 4xx/5xx)

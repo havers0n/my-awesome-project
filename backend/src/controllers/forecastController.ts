@@ -5,10 +5,10 @@ import { getSupabaseUserClient } from '../supabaseUserClient';
 import { formatPayloadForML } from '../utils/mlPayloadFormatter';
 // import { createMlPayload } from '../services/mlPayloadFormatter'; // больше не используется
 import { forecastInputSchema } from '../schemas/forecastSchema';
-import { retryWithBackoff, classifyError, ConsoleErrorMonitor } from '../utils/errorHandling';
+import { retryWithBackoff, classifyError, ConsoleErrorMonitor, DEFAULT_RETRY_CONFIG } from '../utils/errorHandling';
 import { validateAndCleanMLPayload } from '../utils/dataValidation';
 
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:5678/forecast';
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:8000/predict';
 
 export const predictSales = async (req: Request, res: Response) => {
   const log = (message: string, data?: any) => {
@@ -124,13 +124,28 @@ export const predictSales = async (req: Request, res: Response) => {
       return res.status(500).json({ error: 'Ошибка подготовки операций', details: err instanceof Error ? err.message : String(err) });
     }
 
-    // Формируем ML payload через formatPayloadForML
+    // Формируем ML payload в новом формате для микросервиса
     let mlRequestData;
     try {
-      mlRequestData = formatPayloadForML(operations);
-      log('ML payload created with formatPayloadForML.', {
-        totalItems: mlRequestData.length,
-        sample: mlRequestData.slice(0, 2)
+      // Преобразуем операции в формат событий для нового микросервиса
+      const events = operations.map((op: any) => ({
+        Type: op.type,
+        Период: op.date,
+        Номенклатура: op.productId,
+        Код: op.productId, // Используем productId как код
+        Количество: op.quantity,
+        Цена: op.price || 100.0 // Цена по умолчанию если не указана
+      }));
+
+      mlRequestData = {
+        DaysCount: daysCount,
+        events: events
+      };
+      
+      log('ML payload created in new format.', {
+        daysCount: daysCount,
+        eventsCount: events.length,
+        sample: events.slice(0, 2)
       });
     } catch (err) {
       logError('Failed to format ML payload.', err);
@@ -146,6 +161,7 @@ export const predictSales = async (req: Request, res: Response) => {
         const response = await axios.post(ML_SERVICE_URL, mlRequestData);
         return response.data;
       }, {
+        ...DEFAULT_RETRY_CONFIG,
         onRetry: (attempt, error) => monitor.logRetry(attempt, error)
       });
       log('Successfully received response from ML service.', {
@@ -171,6 +187,7 @@ export const predictSales = async (req: Request, res: Response) => {
             const response = await axios.post(ML_SERVICE_URL, correctedPayload);
             return response.data;
           }, {
+            ...DEFAULT_RETRY_CONFIG,
             onRetry: (attempt, error) => monitor.logRetry(attempt, error)
           });
           log('Successfully received response after auto-correction.', {
@@ -196,7 +213,7 @@ export const predictSales = async (req: Request, res: Response) => {
     const mlMetrics = predictions[0] || {};
     const mlProductPredictions = predictions.slice(1) || [];
     const metrics = {
-      MAPE: mlMetrics.MAPE || 0,
+      MAPE: parseFloat(String(mlMetrics.MAPE || 0).replace('%', '')),
       MAE: mlMetrics.MAE || 0,
       DaysPredict: mlMetrics.DaysPredict || daysCount
     };
@@ -214,13 +231,14 @@ export const predictSales = async (req: Request, res: Response) => {
     const productPredictions = mlProductPredictions.map((mlPred: any) => {
       const product = products?.find(p =>
         p.name === (mlPred.Номенклатура || mlPred.product_name) ||
-        p.code === (mlPred.Код || mlPred.product_code)
+        p.code === (mlPred.Код || mlPred.product_code) ||
+        p.id === mlPred.Номенклатура // Также проверяем по ID, так как мы отправляем productId как Номенклатура
       );
       return {
         period_start: new Date().toISOString().slice(0, 10),
         period_end: new Date(Date.now() + daysCount * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
         product_id: product?.id || null,
-        item_mape: mlPred.MAPE || 0,
+        item_mape: parseFloat(String(mlPred.MAPE || 0).replace('%', '')),
         item_mae: mlPred.MAE || 0,
         predicted_quantity: mlPred.Количество || mlPred.quantity || 0
       };
@@ -283,6 +301,12 @@ export const getForecastData = async (req: Request, res: Response) => {
   console.log('=== getForecastData called ===');
   console.log('Query params:', req.query);
   console.log('USE_MOCK_ML:', process.env.USE_MOCK_ML);
+  
+  // Добавляем отладочную информацию
+  console.log('req.user:', (req as any).user);
+  console.log('req.user exists:', !!(req as any).user);
+  console.log('Authorization header:', req.headers['authorization']);
+  
   // MOCK ML shortcut for frontend QA
   if (process.env.USE_MOCK_ML === 'true') {
     return res.json({
