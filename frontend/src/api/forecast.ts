@@ -66,7 +66,7 @@ export const fetchForecastData = async (days: number): Promise<ForecastApiRespon
 export const startNewForecast = async (days: number): Promise<void> => {
   try {
     const headers = getAuthHeaders();
-    const requestBody = [{ DaysCount: days }];
+    const requestBody = { DaysCount: days };
     
     const res = await axios.post('/api/predictions/predict', requestBody, {
       headers,
@@ -103,7 +103,7 @@ export const startNewForecast = async (days: number): Promise<void> => {
 export const postForecast = async (): Promise<ForecastApiResponse> => {
   try {
     const headers = getAuthHeaders();
-    const res = await axios.post(`/api/predictions/predict`, [{ DaysCount: 14 }], {
+    const res = await axios.post(`/api/predictions/predict`, { DaysCount: 14 }, {
       headers,
       timeout: 60000 // 60 second timeout for forecast generation
     });

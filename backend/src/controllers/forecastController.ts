@@ -5,7 +5,8 @@ import { getSupabaseUserClient } from '../supabaseUserClient';
 import { formatPayloadForML } from '../utils/mlPayloadFormatter';
 // import { createMlPayload } from '../services/mlPayloadFormatter'; // больше не используется
 import { forecastInputSchema } from '../schemas/forecastSchema';
-import { retryMLRequest } from '../utils/mlServiceUtils';
+import { retryWithBackoff, classifyError, ConsoleErrorMonitor } from '../utils/errorHandling';
+import { validateAndCleanMLPayload } from '../utils/dataValidation';
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:5678/forecast';
 
@@ -84,7 +85,18 @@ export const predictSales = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Validation error' });
     }
 
-    const daysCount = parsedInput.DaysCount || 7;
+    // Validate and clean input payload
+    const { valid, errors: validationErrors, cleanedData } = validateAndCleanMLPayload(req.body);
+    if (!valid) {
+      logError('Input payload validation failed', validationErrors);
+      return res.status(400).json({
+        error: 'Invalid input data',
+        details: validationErrors
+      });
+    }
+    
+    const daysCount = cleanedData[0].DaysCount || 7;
+    const cleanedPayload = cleanedData.slice(1);
     log('Days to forecast', { daysCount });
 
     // Получаем операции из базы данных
@@ -128,24 +140,56 @@ export const predictSales = async (req: Request, res: Response) => {
     log('Sending payload to ML service.', { url: ML_SERVICE_URL });
 
     let predictions;
+    const monitor = new ConsoleErrorMonitor();
     try {
-      predictions = await retryMLRequest(ML_SERVICE_URL, mlRequestData);
+      predictions = await retryWithBackoff(async () => {
+        const response = await axios.post(ML_SERVICE_URL, mlRequestData);
+        return response.data;
+      }, {
+        onRetry: (attempt, error) => monitor.logRetry(attempt, error)
+      });
       log('Successfully received response from ML service.', {
         itemCount: Array.isArray(predictions) ? predictions.length : 'N/A',
         metrics: Array.isArray(predictions) && predictions.length > 0 ? predictions[0] : 'N/A',
         firstPrediction: Array.isArray(predictions) && predictions.length > 1 ? predictions[1] : 'N/A'
       });
     } catch (err) {
-      logError('ML service request failed after retries.', err);
-      if (axios.isAxiosError(err) && err.response?.status === 422) {
+      const integrationError = classifyError(err);
+      monitor.logError(integrationError);
+      if (integrationError.type === 'INVALID_PAYLOAD' && integrationError.validationErrors) {
         return res.status(400).json({
-          error: 'Invalid data format for ML service',
-          details: err.response?.data
+          error: 'ML service payload error',
+          details: integrationError.validationErrors
         });
+      }
+      if (integrationError.type === 'UNSEEN_LABEL' && integrationError.correctionStrategy?.action) {
+        log('Attempting auto-correction for unseen labels.');
+        const correctedPayload = integrationError.correctionStrategy.action(integrationError, mlRequestData);
+        // Retry with corrected payload
+        try {
+          predictions = await retryWithBackoff(async () => {
+            const response = await axios.post(ML_SERVICE_URL, correctedPayload);
+            return response.data;
+          }, {
+            onRetry: (attempt, error) => monitor.logRetry(attempt, error)
+          });
+          log('Successfully received response after auto-correction.', {
+            itemCount: Array.isArray(predictions) ? predictions.length : 'N/A',
+            metrics: Array.isArray(predictions) && predictions.length > 0 ? predictions[0] : 'N/A',
+            firstPrediction: Array.isArray(predictions) && predictions.length > 1 ? predictions[1] : 'N/A'
+          });
+        } catch (retryErr) {
+          const retryIntegrationError = classifyError(retryErr);
+          monitor.logError(retryIntegrationError);
+          return res.status(502).json({
+            error: 'ML service unavailable after correction',
+            details: retryIntegrationError.message
+          });
+        }
       }
       return res.status(502).json({
         error: 'ML service unavailable',
-        details: axios.isAxiosError(err) ? err.response?.data : String(err)
+        details: integrationError.message
       });
     }
 
