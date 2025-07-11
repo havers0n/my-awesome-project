@@ -5,6 +5,7 @@ on:
     branches:
       - Daniel_branch
       - Vlad_branch
+      - Alex_branch
 
 jobs:
   deploy:
