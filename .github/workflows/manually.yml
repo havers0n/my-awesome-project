@@ -5,6 +5,7 @@ on:
     branches:
       - Vlad_branch
       - Daniel_branch
+      - Alex_branch
   workflow_dispatch:
     inputs:
       branch:
@@ -15,6 +16,7 @@ on:
         options:
           - Vlad_branch
           - Daniel_branch
+          - Alex_branch
 
 jobs:
   deploy:
