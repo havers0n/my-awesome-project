@@ -123,7 +123,7 @@ export default function App() {
         <Routes>
           {/* Protected Dashboard Layout */}
           <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-            <Route index path="/" element={<Home />} />
+            <Route index path="/" element={<CustomizableDashboard />} />
 
             {/* Dashboard Routes */}
             <Route path="/dashboard/overview" element={<Overview />} />

@@ -188,28 +188,6 @@ export default function DashboardGrid({
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={visibleLayout.map(item => item.i)} strategy={rectSortingStrategy}>
-        {/* Отладочная информация */}
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
-          <h3 className="font-semibold text-yellow-800 mb-2">🔍 Отладочная информация</h3>
-          <div className="text-sm text-yellow-700">
-            <p>Layout items: {layout.length}</p>
-            <p>Widgets: {Object.keys(widgets).length}</p>
-            <p>Visible widgets: {visibleLayout.length}</p>
-            <p>Edit mode: {isEditMode ? 'Yes' : 'No'}</p>
-            <details className="mt-2">
-              <summary className="cursor-pointer">Показать детали</summary>
-              <pre className="mt-2 text-xs bg-white p-2 rounded">{JSON.stringify({
-                layout: layout.map(l => ({ i: l.i, x: l.x, y: l.y, w: l.w, h: l.h })),
-                widgets: Object.keys(widgets).map(key => ({ 
-                  key, 
-                  type: widgets[key].widgetType, 
-                  visible: widgets[key].visible 
-                }))
-              }, null, 2)}</pre>
-            </details>
-          </div>
-        </div>
-        
         <div className="grid grid-cols-12 gap-4 p-4">
           {visibleLayout.map(layoutItem => {
             const widget = widgets[layoutItem.i]; // Используем item.i

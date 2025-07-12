@@ -92,17 +92,6 @@ export default function WidgetWrapper({
         </div>
       )}
 
-      {/* Заголовок виджета (показывается только в режиме редактирования) */}
-      {isEditMode && (
-        <div className="absolute top-2 left-2 z-10">
-          <div className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-sm">
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-              {widgetDefinition.title}
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* Контент виджета */}
       <div className={`
         h-full w-full

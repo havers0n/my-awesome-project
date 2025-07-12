@@ -57,7 +57,7 @@ const NewSidebar: React.FC = () => {
       hasSubmenu: true,
       color: 'text-blue-600',
       subItems: [
-        { name: 'Общий обзор', path: '/dashboard/overview' },
+        { name: 'Общий обзор', path: '/dashboard' },
         { name: 'Настройка виджетов', path: '/dashboard/widgets' },
       ]
     },

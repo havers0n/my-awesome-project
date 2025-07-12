@@ -184,7 +184,7 @@ const AdaptiveNewSidebar: React.FC = () => {
       icon: <Home size={20} />,
       color: 'text-blue-600',
       subItems: [
-        { id: 'overview', title: 'Общий обзор', icon: <BarChart3 size={16} />, path: '/dashboard/overview', color: 'text-blue-400' },
+        { id: 'overview', title: 'Общий обзор', icon: <BarChart3 size={16} />, path: '/dashboard', color: 'text-blue-400' },
         { id: 'widgets', title: 'Настройка виджетов', icon: <Package size={16} />, path: '/dashboard/widgets', color: 'text-blue-400' }
       ]
     },

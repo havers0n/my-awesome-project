@@ -17,7 +17,7 @@ const navItems: NavItem[] = [
     icon: <img src={ICONS.GRID} alt="Dashboard icon" className="menu-item-icon-size" />,
     name: "Dashboard",
     subItems: [
-      { name: "Общий обзор", path: "/dashboard/overview", pro: false },
+      { name: "Общий обзор", path: "/dashboard", pro: false },
       { name: "Настройка виджетов", path: "/dashboard/widgets", pro: false },
     ],
   },
