@@ -109,7 +109,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               required
               disabled={!!userToEdit} // Email non-editable for existing user
             />
@@ -126,7 +126,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
               name="password"
               value={formData.password || ''}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               required={!userToEdit}
             />
           </div>
@@ -139,7 +139,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
               name="full_name"
               value={formData.full_name}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             />
           </div>
 
@@ -150,7 +150,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             >
               {ROLES.map(role => (
                 <option key={role.value} value={role.value}>{role.label}</option>
@@ -165,7 +165,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
               name="organizationId"
               value={formData.organizationId || ALL_OPTION_VALUE}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             >
               <option value={ALL_OPTION_VALUE}>Выберите организацию</option>
               {organizations.map(org => (
@@ -181,7 +181,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
               name="locationId"
               value={formData.locationId || ALL_OPTION_VALUE}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               disabled={!formData.organizationId || formData.organizationId === ALL_OPTION_VALUE || availableLocations.length === 0}
             >
               <option value={ALL_OPTION_VALUE}>Выберите локацию</option>
@@ -201,7 +201,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
               name="is_active"
               checked={formData.is_active}
               onChange={handleChange}
-              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
+              className="h-4 w-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 mr-2"
             />
             <label htmlFor="is_active_form" className="text-sm text-gray-700">Активен</label>
           </div>
@@ -214,7 +214,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
                 name="send_invitation"
                 checked={!!formData.send_invitation}
                 onChange={handleChange}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
+                className="h-4 w-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 mr-2"
               />
               <label htmlFor="send_invitation_form" className="text-sm text-gray-700">Отправить приглашение на email</label>
             </div>
@@ -230,7 +230,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 flex items-center gap-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
             >
               <Save size={16} />
               {userToEdit ? 'Сохранить изменения' : 'Создать пользователя'}

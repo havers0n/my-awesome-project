@@ -26,6 +26,16 @@ const BarChart = lazy(() => import("@/pages/Charts/BarChart"));
 const SalesForecastPage = lazy(() => import("@/pages/SalesForecastPage"));
 const TestForecastAPI = lazy(() => import("@/pages/TestForecastAPI"));
 
+// Admin components
+const UserManagementPage = lazy(() => import("@/pages/Admin/UserManagementPage"));
+const OrganizationListPage = lazy(() => import("@/pages/Admin/OrganizationListPage"));
+const OrganizationDetailPage = lazy(() => import("@/pages/Admin/OrganizationDetailPage"));
+const RoleManagementPage = lazy(() => import("@/pages/Admin/RoleManagementPage"));
+const SupplierListPage = lazy(() => import("@/pages/Admin/SupplierListPage"));
+
+// Admin wrapper
+const AdminPageWrapper = lazy(() => import("@/components/admin/AdminPageWrapper"));
+
 // Calendar is heavy due to FullCalendar
 const Calendar = lazy(() => import("@/pages/Calendar"));
 
@@ -40,7 +50,6 @@ const ResetPassword = lazy(() => import("@/pages/AuthPages/ResetPassword"));
 const UpdatePassword = lazy(() => import("@/pages/AuthPages/UpdatePassword"));
 const AdminCreateUser = lazy(() => import("@/pages/AdminCreateUser"));
 const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
-const NewAdminApp = lazy(() => import("@/pages/Admin/NewAdminApp"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -85,6 +94,12 @@ export default function App() {
             <Route path="/shelf-availability" element={<ShelfAvailabilityPage />} />
             <Route path="/inventory/shelf-availability" element={<ShelfAvailabilityDashboard />} />
 
+            {/* Organizations and Locations - non-admin pages */}
+            <Route path="/organizations" element={<Navigate to="/admin/organizations" replace />} />
+            <Route path="/organizations/:orgId" element={<Navigate to="/admin/organizations" replace />} />
+            <Route path="/locations" element={<Navigate to="/admin/organizations" replace />} />
+            <Route path="/suppliers" element={<Navigate to="/admin/suppliers" replace />} />
+
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />
 
@@ -107,6 +122,34 @@ export default function App() {
             {/* Charts */}
             <Route path="/line-chart" element={<LineChart />} />
             <Route path="/bar-chart" element={<BarChart />} />
+
+            {/* Admin Pages - интегрированы в основной layout */}
+            <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
+            <Route path="/admin/users" element={
+              <AdminPageWrapper>
+                <UserManagementPage />
+              </AdminPageWrapper>
+            } />
+            <Route path="/admin/organizations" element={
+              <AdminPageWrapper>
+                <OrganizationListPage />
+              </AdminPageWrapper>
+            } />
+            <Route path="/admin/organizations/:orgId" element={
+              <AdminPageWrapper>
+                <OrganizationDetailPage />
+              </AdminPageWrapper>
+            } />
+            <Route path="/admin/roles" element={
+              <AdminPageWrapper>
+                <RoleManagementPage />
+              </AdminPageWrapper>
+            } />
+            <Route path="/admin/suppliers" element={
+              <AdminPageWrapper>
+                <SupplierListPage />
+              </AdminPageWrapper>
+            } />
           </Route>
 
           {/* Auth Layout */}
@@ -114,9 +157,6 @@ export default function App() {
           <Route path="/signup" element={<Navigate to="/signin" replace />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/update-password" element={<UpdatePassword />} />
-
-          {/* Admin Layout */}
-          <Route path="/admin/*" element={<NewAdminApp />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />

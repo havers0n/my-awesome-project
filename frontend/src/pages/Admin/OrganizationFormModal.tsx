@@ -77,41 +77,41 @@ const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({ isOpen, o
         <form className="p-6 overflow-y-auto space-y-4">
           <div>
             <label htmlFor="org_name" className="block text-sm font-medium text-gray-700 mb-1">Название организации *</label>
-            <input id="org_name" type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <input id="org_name" type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
           </div>
           <div>
             <label htmlFor="org_inn" className="block text-sm font-medium text-gray-700 mb-1">ИНН/ОГРН *</label>
-            <input id="org_inn" type="text" name="innOrOgrn" value={formData.innOrOgrn} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <input id="org_inn" type="text" name="innOrOgrn" value={formData.innOrOgrn} onChange={handleChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
           </div>
           <div>
             <label htmlFor="org_legal_address" className="block text-sm font-medium text-gray-700 mb-1">Юридический адрес *</label>
-            <textarea id="org_legal_address" name="legalAddress" value={formData.legalAddress} onChange={handleChange} rows={2} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <textarea id="org_legal_address" name="legalAddress" value={formData.legalAddress} onChange={handleChange} rows={2} required className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
           </div>
           <div>
             <label htmlFor="org_actual_address" className="block text-sm font-medium text-gray-700 mb-1">Фактический адрес</label>
-            <input id="org_actual_address" type="text" name="actualAddress" value={formData.actualAddress || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <input id="org_actual_address" type="text" name="actualAddress" value={formData.actualAddress || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
-              <input type="tel" name="phone" value={formData.phone || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+              <input type="tel" name="phone" value={formData.phone || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input type="email" name="email" value={formData.email || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+              <input type="email" name="email" value={formData.email || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Веб-сайт</label>
-            <input type="url" name="website" value={formData.website || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <input type="url" name="website" value={formData.website || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Описание/Примечания</label>
-            <textarea name="description" value={formData.description || ''} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <textarea name="description" value={formData.description || ''} onChange={handleChange} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
           </div>
           {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Логотип (URL)</label>
-            <input type="url" name="logoUrl" value={formData.logoUrl || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <input type="url" name="logoUrl" value={formData.logoUrl || ''} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
           </div> */}
            <div className="flex items-center">
             <input
@@ -120,7 +120,7 @@ const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({ isOpen, o
               name="status"
               checked={formData.status === 'active'}
               onChange={handleCheckboxChange}
-              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
+              className="h-4 w-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500 mr-2"
             />
             <label htmlFor="org_status_form" className="text-sm text-gray-700">Организация активна</label>
           </div>
@@ -146,7 +146,7 @@ const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({ isOpen, o
             <button
               type="submit"
               onClick={(e) => handleSubmit(e, false)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 flex items-center justify-center gap-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
             >
               <Save size={16} />
               {organizationToEdit ? 'Сохранить изменения' : 'Создать организацию'}

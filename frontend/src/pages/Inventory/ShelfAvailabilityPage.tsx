@@ -180,8 +180,8 @@ const ShelfAvailabilityPage = () => {
 
         <div className="grid grid-cols-4 gap-4 p-4 bg-indigo-50">
           <div className="bg-white rounded-lg p-4 flex items-center justify-center gap-3 shadow-sm">
-            <div className="bg-blue-100 rounded-full p-2">
-              <Eye className="w-5 h-5 text-blue-600" />
+            <div className="bg-amber-100 rounded-full p-2">
+              <Eye className="w-5 h-5 text-amber-600" />
             </div>
             <div className="text-center">
               <div className="text-2xl font-semibold text-gray-900">42</div>
@@ -260,17 +260,17 @@ const ShelfAvailabilityPage = () => {
                   Заказать
                 </Button>
               </div>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="text-blue-500">
                     <MessageSquare className="w-4 h-4" />
                   </div>
-                  <span className="text-sm text-blue-800">Требуется инвентаризация полки «Хлебобулочные изделия»</span>
+                  <span className="text-sm text-amber-800">Требуется инвентаризация полки «Хлебобулочные изделия»</span>
                 </div>
                 <Button 
                   variant="text" 
                   size="sm"
-                  className="text-blue-600 hover:text-blue-800"
+                  className="text-amber-600 hover:text-amber-800"
                 >
                   Запланировать
                 </Button>
@@ -365,7 +365,7 @@ const ShelfAvailabilityPage = () => {
             <Button 
               variant="primary" 
               size="md"
-              className="bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2"
+              className="bg-amber-600 hover:bg-amber-700 flex items-center justify-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />
               <span>Обновить данные</span>
@@ -407,8 +407,8 @@ const ShelfAvailabilityPage = () => {
             {/* Заголовок панели */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="bg-blue-100 rounded-full p-2">
-                  <Eye className="w-5 h-5 text-blue-600" />
+                <div className="bg-amber-100 rounded-full p-2">
+                  <Eye className="w-5 h-5 text-amber-600" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800">Справочная информация</h3>
@@ -467,12 +467,12 @@ const ShelfAvailabilityPage = () => {
                     Возможности системы
                   </h4>
                   <div className="space-y-4">
-                    <div className="bg-blue-50 rounded-xl p-4">
-                      <h5 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
+                    <div className="bg-amber-50 rounded-xl p-4">
+                      <h5 className="font-medium text-amber-800 mb-2 flex items-center gap-2">
                         <Search className="w-4 h-4" />
                         Поиск и фильтрация
                       </h5>
-                      <ul className="text-sm text-blue-700 space-y-1">
+                      <ul className="text-sm text-amber-700 space-y-1">
                         <li>• Поиск по названию товара</li>
                         <li>• Поиск по номеру полки (например, A1-01)</li>
                         <li>• Фильтрация по статусу доступности</li>
@@ -556,7 +556,7 @@ const ShelfAvailabilityPage = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => alert('Техническая поддержка')}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-600 transition-colors"
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span className="text-sm">Поддержка</span>

@@ -135,7 +135,7 @@ const TestForecastAPI: React.FC = () => {
             <button
               onClick={testGetForecast}
               disabled={loading}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+              className="bg-amber-600 hover:bg-amber-600 text-white px-4 py-2 rounded disabled:opacity-50"
             >
               Test GET Forecast
             </button>
@@ -164,7 +164,7 @@ const TestForecastAPI: React.FC = () => {
           
           {loading && (
             <div className="flex items-center justify-center py-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
               <span className="ml-2 text-gray-600">Loading...</span>
             </div>
           )}

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '@/context/DataContext';
-import { Supplier, Organization, SupplierFilters } from '@/types';
+import { Supplier, Organization, SupplierFilters } from '@/types.admin';
 import SupplierFormModal from './SupplierFormModal';
-import { ALL_OPTION_VALUE } from '@/constants';
+import { ALL_OPTION_VALUE } from '../../constants';
 
 const SupplierListPage: React.FC = () => {
   const { suppliers, organizations, deleteSupplier, hasPermission } = useData();
   const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
   const [filters, setFilters] = useState<SupplierFilters>({
     search: '',
-    organization_id: ALL_OPTION_VALUE,
+    organizationId: ALL_OPTION_VALUE,
     status: ALL_OPTION_VALUE
   });
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
@@ -28,14 +28,14 @@ const SupplierListPage: React.FC = () => {
       result = result.filter(supplier => 
         supplier.name.toLowerCase().includes(searchLower) ||
         supplier.legal_name.toLowerCase().includes(searchLower) ||
-        (supplier.inn_ogrn && supplier.inn_ogrn.toLowerCase().includes(searchLower)) ||
+        (supplier.inn_or_ogrn && supplier.inn_or_ogrn.toLowerCase().includes(searchLower)) ||
         (supplier.contact_person && supplier.contact_person.toLowerCase().includes(searchLower)) ||
         (supplier.email && supplier.email.toLowerCase().includes(searchLower))
       );
     }
     
-    if (filters.organization_id !== ALL_OPTION_VALUE) {
-      result = result.filter(supplier => supplier.organization_id === filters.organization_id);
+    if (filters.organizationId !== ALL_OPTION_VALUE) {
+      result = result.filter(supplier => supplier.organizationId === filters.organizationId);
     }
     
     if (filters.status !== ALL_OPTION_VALUE) {
@@ -82,8 +82,8 @@ const SupplierListPage: React.FC = () => {
   const handleOrganizationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value === String(ALL_OPTION_VALUE) 
       ? ALL_OPTION_VALUE 
-      : parseInt(e.target.value, 10);
-    setFilters(prev => ({ ...prev, organization_id: value }));
+      : e.target.value;
+    setFilters(prev => ({ ...prev, organizationId: value }));
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -94,7 +94,7 @@ const SupplierListPage: React.FC = () => {
   };
 
   // Получение названия организации по ID
-  const getOrganizationName = (organizationId: number): string => {
+  const getOrganizationName = (organizationId: string): string => {
     const organization = organizations.find(org => org.id === organizationId);
     return organization ? organization.name : 'Неизвестная организация';
   };
@@ -106,7 +106,7 @@ const SupplierListPage: React.FC = () => {
         {hasPermission('suppliers', 'create') && (
           <button
             onClick={handleAddSupplier}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-600"
           >
             Добавить поставщика
           </button>
@@ -127,7 +127,7 @@ const SupplierListPage: React.FC = () => {
           </div>
           <div className="md:w-64">
             <select
-              value={filters.organization_id === ALL_OPTION_VALUE ? String(ALL_OPTION_VALUE) : filters.organization_id}
+              value={filters.organizationId === ALL_OPTION_VALUE ? String(ALL_OPTION_VALUE) : filters.organizationId}
               onChange={handleOrganizationChange}
               className="w-full p-2 border border-gray-300 rounded"
             >
@@ -191,10 +191,10 @@ const SupplierListPage: React.FC = () => {
                       <div className="text-sm text-gray-500">{supplier.legal_name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{supplier.inn_ogrn || '-'}</div>
+                      <div className="text-sm text-gray-500">{supplier.inn_or_ogrn || '-'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{getOrganizationName(supplier.organization_id)}</div>
+                      <div className="text-sm text-gray-500">{getOrganizationName(supplier.organizationId)}</div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-500">
@@ -213,7 +213,7 @@ const SupplierListPage: React.FC = () => {
                         {hasPermission('suppliers', 'update') && (
                           <button
                             onClick={() => handleEditSupplier(supplier)}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-amber-600 hover:text-blue-900"
                           >
                             Изменить
                           </button>
@@ -233,7 +233,7 @@ const SupplierListPage: React.FC = () => {
               ) : (
                 <tr>
                   <td colSpan={7} className="px-6 py-4 text-center text-sm text-gray-500">
-                    {filters.search || filters.organization_id !== ALL_OPTION_VALUE || filters.status !== ALL_OPTION_VALUE
+                    {filters.search || filters.organizationId !== ALL_OPTION_VALUE || filters.status !== ALL_OPTION_VALUE
                       ? 'Поставщики не найдены. Попробуйте изменить параметры фильтрации.'
                       : 'Нет доступных поставщиков. Нажмите "Добавить поставщика", чтобы создать нового.'}
                   </td>

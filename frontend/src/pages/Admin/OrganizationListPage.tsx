@@ -84,7 +84,7 @@ const OrganizationListPage: React.FC = () => {
             </div>
             <button
               onClick={handleCreateOrgClick}
-              className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
+              className="mt-4 sm:mt-0 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
             >
               <Plus size={18} />
               Создать организацию
@@ -105,7 +105,7 @@ const OrganizationListPage: React.FC = () => {
                   placeholder="По названию, адресу, ИНН/ОГРН..."
                   value={filters.search}
                   onChange={handleFilterChange}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
                 />
               </div>
             </div>
@@ -116,7 +116,7 @@ const OrganizationListPage: React.FC = () => {
                 name="status"
                 value={filters.status}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
               >
                 <option value={ALL_OPTION_VALUE}>Все статусы</option>
                 <option value="active">Активные</option>
@@ -145,7 +145,7 @@ const OrganizationListPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button 
                           onClick={() => navigate(`/admin/organizations/${org.id}`)}
-                          className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                          className="flex items-center text-sm font-medium text-amber-600 hover:text-amber-800 hover:underline"
                           title={`Просмотреть детали организации ${org.name}`}
                         >
                           <Building className="h-4 w-4 text-gray-400 mr-2 shrink-0" />
@@ -161,8 +161,8 @@ const OrganizationListPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{org.innOrOgrn}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
-                          onClick={() => navigate(`/organizations/${org.id}`)}
-                          className="flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                          onClick={() => navigate(`/admin/organizations/${org.id}`)}
+                          className="flex items-center text-sm text-amber-600 hover:text-amber-800 hover:underline"
                           title="Просмотреть точки"
                         >
                           <MapPin className="h-4 w-4 mr-1 shrink-0" /> {locationsCount}
@@ -171,7 +171,7 @@ const OrganizationListPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                          <button
                           onClick={() => navigate(`/admin/users?organizationId=${org.id}`)}
-                          className="flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                          className="flex items-center text-sm text-amber-600 hover:text-amber-800 hover:underline"
                           title="Просмотреть пользователей"
                         >
                           <Users className="h-4 w-4 mr-1 shrink-0" /> {usersCount}
@@ -192,7 +192,7 @@ const OrganizationListPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
                           <button
-                            onClick={() => navigate(`/organizations/${org.id}`)}
+                            onClick={() => navigate(`/admin/organizations/${org.id}`)}
                             className="text-gray-600 hover:text-gray-900 p-1 rounded-md transition-colors"
                             title="Просмотр/Управление"
                           >
@@ -200,7 +200,7 @@ const OrganizationListPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleEditOrgClick(org)}
-                            className="text-blue-600 hover:text-blue-800 p-1 rounded-md transition-colors"
+                            className="text-amber-600 hover:text-amber-800 p-1 rounded-md transition-colors"
                             title="Редактировать"
                           >
                             <Edit size={16} />

@@ -127,17 +127,21 @@ const UserManagementPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
+    <div className="min-h-screen p-4 sm:p-6" style={{ backgroundColor: 'var(--admin-background)' }}>
       <div className="max-w-full mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="admin-card mb-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Управление пользователями</h1>
-              <p className="text-sm text-gray-600">Всего пользователей: {users.length} | Активных: {users.filter(u => u.is_active).length}</p>
+              <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--admin-text)' }}>
+                Управление пользователями
+              </h1>
+              <p className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>
+                Всего пользователей: {users.length} | Активных: {users.filter(u => u.is_active).length}
+              </p>
             </div>
             <button
               onClick={handleCreateUserClick}
-              className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
+              className="admin-btn-primary mt-4 sm:mt-0"
             >
               <Plus size={18} />
               Создать пользователя
@@ -145,12 +149,14 @@ const UserManagementPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="admin-card mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
             <div className="xl:col-span-2">
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Поиск</label>
+              <label htmlFor="search" className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
+                Поиск
+              </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--admin-text-muted)' }} />
                 <input
                   id="search"
                   name="search"
@@ -158,19 +164,21 @@ const UserManagementPage: React.FC = () => {
                   placeholder="По email, ФИО..."
                   value={filters.search}
                   onChange={handleFilterChange}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="admin-input pl-10"
                 />
               </div>
             </div>
             
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Роль</label>
+              <label htmlFor="role" className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
+                Роль
+              </label>
               <select
                 id="role"
                 name="role"
                 value={filters.role}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="admin-input"
               >
                 <option value={ALL_OPTION_VALUE}>Все роли</option>
                 {ROLES.map(role => (
@@ -180,13 +188,15 @@ const UserManagementPage: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Статус</label>
+              <label htmlFor="status" className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
+                Статус
+              </label>
               <select
                 id="status"
                 name="status"
                 value={filters.status}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="admin-input"
               >
                 <option value={ALL_OPTION_VALUE}>Все статусы</option>
                 <option value="active">Активные</option>
@@ -195,13 +205,15 @@ const UserManagementPage: React.FC = () => {
             </div>
             
             <div>
-              <label htmlFor="organizationId" className="block text-sm font-medium text-gray-700 mb-1">Организация</label>
+              <label htmlFor="organizationId" className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
+                Организация
+              </label>
               <select
                 id="organizationId"
                 name="organizationId"
                 value={filters.organizationId}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="admin-input"
               >
                 <option value={ALL_OPTION_VALUE}>Все организации</option>
                 {organizations.map(org => (
@@ -211,13 +223,15 @@ const UserManagementPage: React.FC = () => {
             </div>
             
             <div>
-              <label htmlFor="locationId" className="block text-sm font-medium text-gray-700 mb-1">Точка</label>
+              <label htmlFor="locationId" className="block text-sm font-medium mb-1" style={{ color: 'var(--admin-text)' }}>
+                Точка
+              </label>
               <select
                 id="locationId"
                 name="locationId"
                 value={filters.locationId}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="admin-input"
                 disabled={filters.organizationId === ALL_OPTION_VALUE && availableLocationsForFilter.length === 0}
               >
                 <option value={ALL_OPTION_VALUE}>Все точки</option>
@@ -230,7 +244,7 @@ const UserManagementPage: React.FC = () => {
             <div className="xl:col-start-6">
                  <button
                     onClick={resetFilters}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 flex items-center justify-center gap-2 transition-colors"
+                    className="admin-btn-secondary w-full"
                     title="Сбросить все фильтры"
                 >
                     <RotateCcw size={16} />
@@ -240,43 +254,54 @@ const UserManagementPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="admin-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
+            <table className="admin-table">
+              <thead>
                 <tr>
                   {['Email', 'ФИО', 'Роль', 'Организация', 'Точка', 'Статус', 'Регистрация', 'Действия'].map(header => (
-                    <th key={header} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{header}</th>
+                    <th key={header}>{header}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr key={user.id}>
+                    <td>
                       <div className="flex items-center text-sm">
-                        <Mail className="h-4 w-4 text-gray-400 mr-2 shrink-0" />
-                        <span className="text-gray-900 truncate" title={user.email}>{user.email}</span>
+                        <Mail className="h-4 w-4 mr-2 shrink-0" style={{ color: 'var(--admin-text-muted)' }} />
+                        <span className="truncate" title={user.email} style={{ color: 'var(--admin-text)' }}>
+                          {user.email}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td>
                       <div className="flex items-center text-sm">
-                        <UserIcon className="h-4 w-4 text-gray-400 mr-2 shrink-0" />
-                        <span className="text-gray-900 truncate" title={user.full_name}>{user.full_name}</span>
+                        <UserIcon className="h-4 w-4 mr-2 shrink-0" style={{ color: 'var(--admin-text-muted)' }} />
+                        <span className="truncate" title={user.full_name} style={{ color: 'var(--admin-text)' }}>
+                          {user.full_name}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td>
                       <div className="flex items-center text-sm">
-                        <Shield className="h-4 w-4 text-gray-400 mr-2 shrink-0" />
-                        <span className="text-gray-900">{getRoleLabel(user.role)}</span>
+                        <Shield className="h-4 w-4 mr-2 shrink-0" style={{ color: 'var(--admin-text-muted)' }} />
+                        <span style={{ color: 'var(--admin-text)' }}>{getRoleLabel(user.role)}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td>
                         <div className="flex items-center text-sm">
-                            <Building className="h-4 w-4 text-gray-400 mr-2 shrink-0" />
+                            <Building className="h-4 w-4 mr-2 shrink-0" style={{ color: 'var(--admin-text-muted)' }} />
                             <button 
-                                onClick={() => user.organizationId && navigate(`/organizations/${user.organizationId}`)} 
-                                className={`text-sm ${user.organizationId ? 'text-blue-600 hover:text-blue-800 hover:underline' : 'text-gray-900'} truncate`}
+                                onClick={() => user.organizationId && navigate(`/admin/organizations/${user.organizationId}`)} 
+                                className={`text-sm truncate transition-colors ${
+                                  user.organizationId 
+                                    ? 'hover:underline' 
+                                    : ''
+                                }`}
+                                style={{ 
+                                  color: user.organizationId ? 'var(--admin-primary)' : 'var(--admin-text)'
+                                }}
                                 title={getOrganizationName(user.organizationId)}
                                 disabled={!user.organizationId}
                             >
@@ -284,12 +309,19 @@ const UserManagementPage: React.FC = () => {
                             </button>
                         </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td>
                         <div className="flex items-center text-sm">
-                            <MapPin className="h-4 w-4 text-gray-400 mr-2 shrink-0" />
+                            <MapPin className="h-4 w-4 mr-2 shrink-0" style={{ color: 'var(--admin-text-muted)' }} />
                              <button 
-                                onClick={() => user.organizationId && user.locationId && navigate(`/organizations/${user.organizationId}?locationFocus=${user.locationId}`)} 
-                                className={`text-sm ${user.locationId && user.organizationId ? 'text-blue-600 hover:text-blue-800 hover:underline' : 'text-gray-900'} truncate`}
+                                onClick={() => user.organizationId && user.locationId && navigate(`/admin/organizations/${user.organizationId}?locationFocus=${user.locationId}`)} 
+                                className={`text-sm truncate transition-colors ${
+                                  user.locationId && user.organizationId 
+                                    ? 'hover:underline' 
+                                    : ''
+                                }`}
+                                style={{ 
+                                  color: user.locationId && user.organizationId ? 'var(--admin-primary)' : 'var(--admin-text)'
+                                }}
                                 title={getLocationName(user.locationId)}
                                 disabled={!user.locationId || !user.organizationId}
                             >
@@ -297,26 +329,27 @@ const UserManagementPage: React.FC = () => {
                             </button>
                         </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    <td>
+                      <span className={`admin-badge ${
                         user.is_active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
+                          ? 'admin-badge-success'
+                          : 'admin-badge-error'
                       }`}>
                         {user.is_active ? 'Активен' : 'Неактивен'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td>
                       <div className="flex items-center text-sm">
-                        <Calendar className="h-4 w-4 text-gray-400 mr-2 shrink-0" />
-                        <span className="text-gray-900">{formatDate(user.created_at)}</span>
+                        <Calendar className="h-4 w-4 mr-2 shrink-0" style={{ color: 'var(--admin-text-muted)' }} />
+                        <span style={{ color: 'var(--admin-text)' }}>{formatDate(user.created_at)}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td>
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleEditUserClick(user)}
-                          className="text-blue-600 hover:text-blue-800 p-1 rounded-md transition-colors"
+                          className="p-1 rounded-md transition-colors hover:bg-amber-50"
+                          style={{ color: 'var(--admin-primary)' }}
                           title="Редактировать"
                         >
                           <Edit size={16} />
@@ -325,16 +358,20 @@ const UserManagementPage: React.FC = () => {
                           onClick={() => toggleUserStatus(user)}
                           className={`p-1 rounded-md transition-colors ${
                             user.is_active
-                              ? 'text-yellow-600 hover:text-yellow-800'
-                              : 'text-green-600 hover:text-green-800'
+                              ? 'hover:bg-yellow-50'
+                              : 'hover:bg-green-50'
                           }`}
+                          style={{ 
+                            color: user.is_active ? 'var(--admin-warning)' : 'var(--admin-success)'
+                          }}
                           title={user.is_active ? 'Деактивировать' : 'Активировать'}
                         >
                           {user.is_active ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user.id)}
-                          className="text-red-600 hover:text-red-800 p-1 rounded-md transition-colors"
+                          className="p-1 rounded-md transition-colors hover:bg-red-50"
+                          style={{ color: 'var(--admin-error)' }}
                           title="Удалить"
                         >
                           <Trash2 size={16} />
@@ -349,9 +386,13 @@ const UserManagementPage: React.FC = () => {
           
           {filteredUsers.length === 0 && (
             <div className="text-center py-10">
-              <Search size={48} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500 text-lg">Пользователи не найдены</p>
-              <p className="text-gray-400 text-sm mt-1">Попробуйте изменить критерии поиска или сбросить фильтры.</p>
+              <Search size={48} className="mx-auto mb-4" style={{ color: 'var(--admin-text-muted)' }} />
+              <p className="text-lg" style={{ color: 'var(--admin-text-muted)' }}>
+                Пользователи не найдены
+              </p>
+              <p className="text-sm mt-1" style={{ color: 'var(--admin-text-muted)' }}>
+                Попробуйте изменить критерии поиска или сбросить фильтры.
+              </p>
             </div>
           )}
         </div>

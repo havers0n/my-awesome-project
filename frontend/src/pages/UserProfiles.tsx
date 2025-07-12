@@ -68,19 +68,19 @@ export default function UserProfiles() {
             <div className="flex gap-2">
               <button 
                 onClick={() => setUserRole('employee')}
-                className={`px-3 py-1 rounded ${userRole === 'employee' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
+                className={`px-3 py-1 rounded ${userRole === 'employee' ? 'bg-amber-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
               >
                 Сотрудник
               </button>
               <button 
                 onClick={() => setUserRole('franchisee')}
-                className={`px-3 py-1 rounded ${userRole === 'franchisee' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
+                className={`px-3 py-1 rounded ${userRole === 'franchisee' ? 'bg-amber-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
               >
                 Владелец/Управляющий
               </button>
               <button 
                 onClick={() => setUserRole('admin')}
-                className={`px-3 py-1 rounded ${userRole === 'admin' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
+                className={`px-3 py-1 rounded ${userRole === 'admin' ? 'bg-amber-600 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
               >
                 Администратор
               </button>

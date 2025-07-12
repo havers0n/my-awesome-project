@@ -50,9 +50,9 @@ const OrganizationDetailPage: React.FC = () => {
       const element = document.getElementById(`location-${locationFocusId}`);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        element.classList.add('bg-blue-50', 'ring-2', 'ring-blue-500');
+        element.classList.add('bg-amber-50', 'ring-2', 'ring-amber-500');
         setTimeout(() => {
-            element.classList.remove('bg-blue-50', 'ring-2', 'ring-blue-500');
+            element.classList.remove('bg-amber-50', 'ring-2', 'ring-amber-500');
         }, 3000);
       }
     }
@@ -124,7 +124,7 @@ const OrganizationDetailPage: React.FC = () => {
             <p className="text-xl text-gray-700 mb-2">Организация не найдена</p>
             <button
                 onClick={() => navigate('/organizations')}
-                className="text-blue-600 hover:text-blue-800 underline flex items-center gap-1"
+                className="text-amber-600 hover:text-amber-800 underline flex items-center gap-1"
             >
                 <ChevronLeft size={18} /> Вернуться к списку организаций
             </button>
@@ -136,7 +136,7 @@ const OrganizationDetailPage: React.FC = () => {
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6">
       {/* Breadcrumbs and Header */}
       <div className="mb-6">
-        <button onClick={() => navigate('/organizations')} className="text-sm text-blue-600 hover:underline flex items-center mb-2">
+        <button onClick={() => navigate('/organizations')} className="text-sm text-amber-600 hover:underline flex items-center mb-2">
             <ChevronLeft size={16} className="mr-1"/> К списку организаций
         </button>
         <div className="bg-white rounded-lg shadow-md p-6">
@@ -162,7 +162,7 @@ const OrganizationDetailPage: React.FC = () => {
              <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                 {organization.phone && <p className="text-gray-700 flex items-center"><Phone size={14} className="mr-2 text-gray-500"/> {organization.phone}</p>}
                 {organization.email && <p className="text-gray-700 flex items-center"><MailIcon size={14} className="mr-2 text-gray-500"/> {organization.email}</p>}
-                {organization.website && <p className="text-gray-700 flex items-center"><Globe size={14} className="mr-2 text-gray-500"/> <a href={organization.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{organization.website}</a></p>}
+                {organization.website && <p className="text-gray-700 flex items-center"><Globe size={14} className="mr-2 text-gray-500"/> <a href={organization.website} target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">{organization.website}</a></p>}
                 <p className={`text-gray-700 flex items-center`}>
                     <span className={`mr-2 h-2.5 w-2.5 rounded-full ${organization.status === 'active' ? 'bg-green-500' : 'bg-red-500'}`}></span>
                     Статус: {organization.status === 'active' ? 'Активна' : 'Неактивна'}
@@ -202,7 +202,7 @@ const OrganizationDetailPage: React.FC = () => {
                     placeholder="Название, адрес..."
                     value={locationFilters.search}
                     onChange={handleLocationFilterChange}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
                  />
               </div>
            </div>
@@ -213,7 +213,7 @@ const OrganizationDetailPage: React.FC = () => {
                  name="type"
                  value={locationFilters.type}
                  onChange={handleLocationFilterChange}
-                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
               >
                  <option value={ALL_OPTION_VALUE}>Все типы</option>
                  {Object.values(LocationType).map(type => (
@@ -228,7 +228,7 @@ const OrganizationDetailPage: React.FC = () => {
                  name="status"
                  value={locationFilters.status}
                  onChange={handleLocationFilterChange}
-                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
               >
                  <option value={ALL_OPTION_VALUE}>Все статусы</option>
                  {Object.keys(LocationStatusLabels).map(statusKey => (
@@ -263,8 +263,8 @@ const OrganizationDetailPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{LocationTypeLabels[loc.type]}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button 
-                        onClick={() => navigate(`/users?organizationId=${organization.id}&locationId=${loc.id}`)} 
-                        className="flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                        onClick={() => navigate(`/admin/users?organizationId=${organization.id}&locationId=${loc.id}`)} 
+                        className="flex items-center text-sm text-amber-600 hover:text-amber-800 hover:underline"
                         title="Просмотреть пользователей точки"
                       >
                         <Users size={16} className="mr-1" /> {usersCount}
@@ -283,7 +283,7 @@ const OrganizationDetailPage: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleEditLocationClick(loc)}
-                          className="text-blue-600 hover:text-blue-800 p-1 rounded-md transition-colors"
+                          className="text-amber-600 hover:text-amber-800 p-1 rounded-md transition-colors"
                           title="Редактировать точку"
                         >
                           <Edit size={16} />

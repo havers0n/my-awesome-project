@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router";
-import { ICONS } from '@/helpers/icons';
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { ICONS } from "@/helpers/icons";
 import { useSidebar } from "../context/SidebarContext";
-import SidebarWidget from "./SidebarWidget";
 
 type NavItem = {
   name: string;
@@ -114,10 +114,10 @@ const AppSidebar: React.FC = () => {
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
     {}
   );
-  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const subMenuRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
 
   // const isActive = (path: string) => location.pathname === path;
-  const isActive = useCallback(
+  const isActive = React.useCallback(
     (path: string) => location.pathname === path,
     [location.pathname]
   );
@@ -381,7 +381,6 @@ const AppSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
-        {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
       </div>
     </aside>
   );
