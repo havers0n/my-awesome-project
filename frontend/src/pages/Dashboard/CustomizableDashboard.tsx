@@ -28,6 +28,7 @@ export default function CustomizableDashboard() {
   // Хук для управления макетом
   const {
     layout,
+    widgets,
     updateLayout,
     addWidget,
     removeWidget,
@@ -52,9 +53,10 @@ export default function CustomizableDashboard() {
 
   console.log('🎯 [CustomizableDashboard] Layout state:', { 
     layout: layout, 
-    widgets: config.widgets,
+    widgets: widgets,
     layoutLength: layout.length,
-    widgetsCount: Object.keys(config.widgets).length
+    widgetsCount: Object.keys(widgets).length,
+    configWidgetsCount: Object.keys(config.widgets).length
   });
 
   // Проверяем доступность виджетов
@@ -78,7 +80,7 @@ export default function CustomizableDashboard() {
     console.log('🎯 [CustomizableDashboard] Add widget confirmed:', widgetType);
     console.log('🎯 [CustomizableDashboard] Current state before adding:', {
       layout: layout,
-      widgets: config.widgets,
+      widgets: widgets,
       widgetType: widgetType
     });
     
@@ -87,7 +89,7 @@ export default function CustomizableDashboard() {
     setHasUnsavedChanges(true);
     
     console.log('🎯 [CustomizableDashboard] Widget add process completed');
-  }, [addWidget, layout, config.widgets]);
+  }, [addWidget, layout, widgets]);
 
   const handleRemoveWidget = useCallback((widgetId: string) => {
     console.log('🗑️ [CustomizableDashboard] Remove widget:', widgetId);
@@ -180,7 +182,7 @@ export default function CustomizableDashboard() {
           {/* Сетка дашборда */}
           <DashboardGrid
             layout={layout}
-            widgets={config.widgets}
+            widgets={widgets}
             isEditMode={isEditMode}
             onLayoutChange={updateLayout}
             onRemoveWidget={handleRemoveWidget}

@@ -69,6 +69,7 @@ export interface UseDashboardPersistenceReturn {
 
 export interface UseDashboardLayoutReturn {
   layout: DashboardLayoutItem[];
+  widgets: Record<string, DashboardWidget>;
   updateLayout: (newLayout: DashboardLayoutItem[]) => void;
   addWidget: (widgetType: string, position?: { x: number; y: number }) => void;
   removeWidget: (widgetId: string) => void;
