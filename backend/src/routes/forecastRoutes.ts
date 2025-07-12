@@ -3,20 +3,21 @@ import { getSupabaseUserClient } from '../supabaseUserClient';
 import { createMlPayload } from '../services/mlPayloadFormatter';
 import { supabaseAdmin } from '../supabaseAdminClient';
 import { predictSales, getForecastData, getForecastHistory } from '../controllers/forecastController';
+import { dualAuthenticateToken } from '../middleware/dualAuthMiddleware';
 import axios from 'axios';
 
 const router = express.Router();
 
 // POST /predict — предсказание продаж по данным и DaysCount
-router.post('/predict', predictSales as any);
+router.post('/predict', dualAuthenticateToken, predictSales as any);
 
 
 
 // GET /forecast
-router.get('/forecast', getForecastData as any);
+router.get('/forecast', dualAuthenticateToken, getForecastData as any);
 
 // GET /history
-router.get('/history', getForecastHistory as any);
+router.get('/history', dualAuthenticateToken, getForecastHistory as any);
 
 // POST /bulk-upload (bulk upload продаж/поставок)
 router.post('/bulk-upload', async (req, res) => {

@@ -85,18 +85,8 @@ export const predictSales = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Validation error' });
     }
 
-    // Validate and clean input payload
-    const { valid, errors: validationErrors, cleanedData } = validateAndCleanMLPayload(req.body);
-    if (!valid) {
-      logError('Input payload validation failed', validationErrors);
-      return res.status(400).json({
-        error: 'Invalid input data',
-        details: validationErrors
-      });
-    }
-    
-    const daysCount = cleanedData[0].DaysCount || 7;
-    const cleanedPayload = cleanedData.slice(1);
+    // Use daysCount from the validated input
+    const daysCount = parsedInput.DaysCount;
     log('Days to forecast', { daysCount });
 
     // Получаем операции из базы данных

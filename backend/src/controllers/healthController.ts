@@ -108,3 +108,7 @@ export const mlServiceHealthCheck = async (req: Request, res: Response) => {
     });
   }
 };
+
+// Экспорты для обратной совместимости
+export const getHealth = healthCheck;
+export const getReadiness = simpleHealthCheck;

@@ -24,5 +24,8 @@ export function rbacMiddleware(allowedRoles: string[] = [], requiredPermissions:
   };
 }
 
+// Экспорт для обратной совместимости
+export const checkRole = rbacMiddleware;
+
 // Пример использования:
 // router.get('/products', rbacMiddleware(['admin', 'owner'], ['products:read']), handler);

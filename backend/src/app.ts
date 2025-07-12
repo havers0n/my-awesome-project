@@ -80,10 +80,42 @@ app.post('/test-forecast', (req, res) => {
   });
 });
 
-app.use('/', healthRoutes); // Health check routes (no auth required)
-app.use('/auth', authRoutes);
-app.use('/monetization', authenticateSupabaseToken, monetizationRoutes);
-app.use('/admin', adminRoutes);
+// Test JSON endpoint
+app.post('/test-json', (req, res) => {
+  res.json({ received: true });
+});
+
+// Test error endpoint
+app.get('/test-error', (req, res) => {
+  throw new Error('Test error');
+});
+
+// Test routes for each module
+app.get('/api/auth/test', (_req: express.Request, res: express.Response) => {
+  res.json({ route: 'auth' });
+});
+app.get('/api/forecast/test', (_req: express.Request, res: express.Response) => {
+  res.json({ route: 'forecast' });
+});
+app.get('/api/health/test', (_req: express.Request, res: express.Response) => {
+  res.json({ route: 'health' });
+});
+app.get('/api/admin/test', (_req: express.Request, res: express.Response) => {
+  res.json({ route: 'admin' });
+});
+app.get('/api/upload/test', (_req: express.Request, res: express.Response) => {
+  res.json({ route: 'upload' });
+});
+app.get('/api/monetization/test', (_req: express.Request, res: express.Response) => {
+  res.json({ route: 'monetization' });
+});
+
+// Main routes
+app.use('/api/health', healthRoutes); // Health check routes (no auth required)
+app.use('/api/auth', authRoutes);
+app.use('/api/monetization', authenticateSupabaseToken, monetizationRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/forecast', forecastRoutes);
 
 // Temporary test route
 app.post('/test-direct', (req, res) => {
@@ -368,7 +400,10 @@ app.post('/api/real-ml-predict', async (req, res) => {
   }
 });
 
-app.use('/api', uploadRoutes); // Upload routes
+app.use('/api/upload', uploadRoutes); // Upload routes
+
+// Static file serving
+app.use(express.static('public'));
 
 // Error handling middleware (surface 4xx/5xx)
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

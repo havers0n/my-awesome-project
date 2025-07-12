@@ -9,6 +9,7 @@ type NavItem = {
   icon: React.ReactNode;
   path?: string;
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  new?: boolean;
 };
 
 const navItems: NavItem[] = [
@@ -23,7 +24,10 @@ const navItems: NavItem[] = [
   {
     icon: <img src={ICONS.PIE_CHART} alt="Sales Forecast icon" className="menu-item-icon-size" />,
     name: "Прогнозирование продаж",
-    path: "/sales-forecast",
+    subItems: [
+      { name: "Текущий прогноз", path: "/sales-forecast", pro: false },
+      { name: "Новый прогноз", path: "/sales-forecast-new", pro: false, new: true },
+    ],
   },
   {
     icon: <img src={ICONS.TASK_ICON} alt="Test API icon" className="menu-item-icon-size" />,
@@ -31,15 +35,67 @@ const navItems: NavItem[] = [
     path: "/test-forecast-api",
   },
   {
+    icon: <img src={ICONS.BOX} alt="Inventory icon" className="menu-item-icon-size" />,
+    name: "Управление запасами",
+    path: "/inventory/management",
+    new: true,
+  },
+  {
     icon: <img src={ICONS.BOX} alt="Shelf Availability icon" className="menu-item-icon-size" />,
     name: "Доступность товаров на полке",
     path: "/inventory/shelf-availability",
+  },
+  {
+    icon: <img src={ICONS.PIE_CHART} alt="Analytics icon" className="menu-item-icon-size" />,
+    name: "Аналитика склада",
+    path: "/analytics/warehouse",
+  },
+  {
+    icon: <img src={ICONS.BOLT} alt="Monitoring icon" className="menu-item-icon-size" />,
+    name: "Мониторинг системы",
+    subItems: [
+      { name: "Системные события", path: "/monitoring/events", pro: false },
+      { name: "Производительность", path: "/monitoring/performance", pro: false },
+      { name: "Уведомления", path: "/monitoring/notifications", pro: false },
+      { name: "Логи системы", path: "/monitoring/logs", pro: false },
+    ],
+  },
+  {
+    icon: <img src={ICONS.CALENDAR} alt="Planning icon" className="menu-item-icon-size" />,
+    name: "Планирование",
+    subItems: [
+      { name: "Задачи и проекты", path: "/planning/tasks", pro: false },
+      { name: "Календарь событий", path: "/planning/calendar", pro: false },
+      { name: "Планы закупок", path: "/planning/procurement", pro: false },
+      { name: "Бюджетирование", path: "/planning/budget", pro: false },
+    ],
+  },
+  {
+    icon: <img src={ICONS.CHECK_CIRCLE} alt="Quality icon" className="menu-item-icon-size" />,
+    name: "Контроль качества",
+    subItems: [
+      { name: "Проверки качества", path: "/quality/inspections", pro: false },
+      { name: "Сертификаты", path: "/quality/certificates", pro: false },
+      { name: "Жалобы и возвраты", path: "/quality/complaints", pro: false },
+      { name: "Стандарты качества", path: "/quality/standards", pro: false },
+    ],
+  },
+  {
+    icon: <img src={ICONS.DOLLAR_LINE} alt="Finance icon" className="menu-item-icon-size" />,
+    name: "Финансы",
+    subItems: [
+      { name: "Бюджет и планирование", path: "/finance/budget", pro: false },
+      { name: "Расходы и доходы", path: "/finance/expenses", pro: false },
+      { name: "Платежи", path: "/finance/payments", pro: false },
+      { name: "Финансовые отчеты", path: "/finance/reports", pro: false },
+    ],
   },
   {
     icon: <img src={ICONS.FILE} alt="Reports icon" className="menu-item-icon-size" />,
     name: "Отчеты",
     subItems: [
       { name: "По продажам", path: "/reports/sales", pro: false },
+      { name: "История операций", path: "/reports/warehouse", pro: false },
       { name: "По товарам", path: "/reports/products", pro: false },
       { name: "По локациям", path: "/reports/locations", pro: false },
     ],
@@ -86,11 +142,43 @@ const navItems: NavItem[] = [
 
 const othersItems: NavItem[] = [
   {
+    icon: <img src={ICONS.LOCK} alt="Security icon" className="menu-item-icon-size" />,
+    name: "Безопасность",
+    subItems: [
+      { name: "Аудит безопасности", path: "/security/audit", pro: false },
+      { name: "Управление доступом", path: "/security/access", pro: false },
+      { name: "Журнал событий", path: "/security/events", pro: false },
+      { name: "Резервное копирование", path: "/security/backup", pro: false },
+    ],
+  },
+  {
+    icon: <img src={ICONS.SHOOTING_STAR} alt="Automation icon" className="menu-item-icon-size" />,
+    name: "Автоматизация",
+    subItems: [
+      { name: "Рабочие процессы", path: "/automation/workflows", pro: false },
+      { name: "Планировщик задач", path: "/automation/scheduler", pro: false },
+      { name: "Автоматические уведомления", path: "/automation/notifications", pro: false },
+      { name: "Скрипты и макросы", path: "/automation/scripts", pro: false },
+    ],
+  },
+  {
+    icon: <img src={ICONS.CHAT} alt="Communication icon" className="menu-item-icon-size" />,
+    name: "Коммуникации",
+    subItems: [
+      { name: "Внутренние сообщения", path: "/communication/messages", pro: false },
+      { name: "Уведомления команды", path: "/communication/team-notifications", pro: false },
+      { name: "Объявления", path: "/communication/announcements", pro: false },
+      { name: "Чат поддержки", path: "/communication/support-chat", pro: false },
+    ],
+  },
+  {
     icon: <img src={ICONS.PLUG_IN} alt="Integrations icon" className="menu-item-icon-size" />,
     name: "Интеграции",
     subItems: [
       { name: "API подключения", path: "/integrations/api", pro: false },
       { name: "Импорт/экспорт данных", path: "/integrations/import-export", pro: false },
+      { name: "Внешние сервисы", path: "/integrations/external", pro: false, new: true },
+      { name: "Webhook настройки", path: "/integrations/webhooks", pro: false },
     ],
   },
   {
@@ -99,6 +187,8 @@ const othersItems: NavItem[] = [
     subItems: [
       { name: "Документация", path: "/help/documentation", pro: false },
       { name: "Поддержка", path: "/help/support", pro: false },
+      { name: "Обучающие материалы", path: "/help/training", pro: false, new: true },
+      { name: "FAQ", path: "/help/faq", pro: false },
     ],
   },
 ];
@@ -232,6 +322,17 @@ const AppSidebar: React.FC = () => {
                 </span>
                 {(isExpanded || isHovered || isMobileOpen) && (
                   <span className="menu-item-text">{nav.name}</span>
+                )}
+                {(isExpanded || isHovered || isMobileOpen) && nav.new && (
+                  <span
+                    className={`ml-auto ${
+                      isActive(nav.path)
+                        ? "menu-dropdown-badge-active"
+                        : "menu-dropdown-badge-inactive"
+                    } menu-dropdown-badge`}
+                  >
+                    new
+                  </span>
                 )}
               </Link>
             )
