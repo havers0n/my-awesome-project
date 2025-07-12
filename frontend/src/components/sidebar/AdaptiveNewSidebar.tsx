@@ -11,7 +11,9 @@ import {
   ChevronRight,
   Cake,
   Edit3,
-  GripVertical
+  GripVertical,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
 import { Link, useLocation } from 'react-router-dom';
@@ -42,6 +44,7 @@ interface MenuItem {
   path?: string;
   subItems?: MenuItem[];
   color: string;
+  isVisible?: boolean;
 }
 
 interface SortableItemProps {
@@ -51,6 +54,7 @@ interface SortableItemProps {
   onToggle: () => void;
   sidebarOpen: boolean;
   isEditing: boolean;
+  onVisibilityToggle: (id: string) => void;
 }
 
 const SortableItem: React.FC<SortableItemProps> = ({
@@ -60,6 +64,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
   onToggle,
   sidebarOpen,
   isEditing,
+  onVisibilityToggle,
 }) => {
   const {
     attributes,
@@ -73,8 +78,13 @@ const SortableItem: React.FC<SortableItemProps> = ({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : item.isVisible === false ? 0.6 : 1,
   };
+
+  // Don't render hidden items when not in edit mode
+  if (!isEditing && item.isVisible === false) {
+    return null;
+  }
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -83,27 +93,46 @@ const SortableItem: React.FC<SortableItemProps> = ({
           flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200
           ${isActive ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : 'hover:bg-gray-100'}
           ${isDragging ? 'shadow-2xl z-50' : ''}
+          ${item.isVisible === false ? 'bg-gray-50 border-2 border-dashed border-gray-300' : ''}
         `}
       >
         {isEditing && (
-          <div
-            {...attributes}
-            {...listeners}
-            className="mr-2 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
-          >
-            <GripVertical size={16} />
+          <div className="flex items-center mr-2">
+            <div
+              {...attributes}
+              {...listeners}
+              className="mr-2 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+            >
+              <GripVertical size={16} />
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onVisibilityToggle(item.id);
+              }}
+              className={`
+                p-1 rounded hover:bg-gray-200 transition-colors
+                ${item.isVisible === false ? 'text-gray-400' : 'text-gray-600'}
+              `}
+              title={item.isVisible === false ? 'Показать элемент' : 'Скрыть элемент'}
+            >
+              {item.isVisible === false ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
           </div>
         )}
         
         <div className="flex items-center min-w-0 flex-1">
-          <span className={`text-xl ${item.color} flex-shrink-0`}>
+          <span className={`text-xl ${item.color} flex-shrink-0 ${item.isVisible === false ? 'opacity-50' : ''}`}>
             {item.icon}
           </span>
           
           {sidebarOpen && (
             <>
-              <span className="ml-3 font-medium text-sm flex-1 min-w-0">
+              <span className={`ml-3 font-medium text-sm flex-1 min-w-0 ${item.isVisible === false ? 'opacity-50 line-through' : ''}`}>
                 {item.title}
+                {item.isVisible === false && (
+                  <span className="ml-2 text-xs text-gray-400">(скрыт)</span>
+                )}
               </span>
               
               {item.subItems && (
@@ -122,7 +151,10 @@ const SortableItem: React.FC<SortableItemProps> = ({
             <Link
               key={subItem.id}
               to={subItem.path || '#'}
-              className="flex items-center p-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+              className={`
+                flex items-center p-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors
+                ${item.isVisible === false ? 'opacity-50' : ''}
+              `}
             >
               <span className={`mr-3 ${subItem.color}`}>
                 {subItem.icon}
@@ -142,6 +174,7 @@ const AdaptiveNewSidebar: React.FC = () => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [hiddenItems, setHiddenItems] = useState<Set<string>>(new Set());
 
   // Default menu items - restored from original sidebar
   const defaultMenuItems: MenuItem[] = [
@@ -367,9 +400,11 @@ const AdaptiveNewSidebar: React.FC = () => {
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultMenuItems);
 
-  // Load saved order from localStorage
+  // Load saved order and hidden items from localStorage
   useEffect(() => {
     const savedOrder = localStorage.getItem('sidebarOrder');
+    const savedHiddenItems = localStorage.getItem('sidebarHiddenItems');
+    
     if (savedOrder) {
       try {
         const parsedOrder = JSON.parse(savedOrder);
@@ -388,6 +423,15 @@ const AdaptiveNewSidebar: React.FC = () => {
         setMenuItems(defaultMenuItems);
       }
     }
+    
+    if (savedHiddenItems) {
+      try {
+        const parsedHiddenItems = JSON.parse(savedHiddenItems);
+        setHiddenItems(new Set(parsedHiddenItems));
+      } catch (error) {
+        console.error('Error loading hidden items:', error);
+      }
+    }
   }, []);
 
   // Save order to localStorage
@@ -398,6 +442,15 @@ const AdaptiveNewSidebar: React.FC = () => {
       localStorage.setItem('sidebarOrder', JSON.stringify(orderIds));
     } catch (error) {
       console.error('Error saving order:', error);
+    }
+  };
+
+  // Save hidden items to localStorage
+  const saveHiddenItems = (hiddenSet: Set<string>) => {
+    try {
+      localStorage.setItem('sidebarHiddenItems', JSON.stringify(Array.from(hiddenSet)));
+    } catch (error) {
+      console.error('Error saving hidden items:', error);
     }
   };
 
@@ -445,6 +498,19 @@ const AdaptiveNewSidebar: React.FC = () => {
     return false;
   };
 
+  const toggleVisibility = (itemId: string) => {
+    setHiddenItems(prev => {
+      const newHiddenItems = new Set(prev);
+      if (newHiddenItems.has(itemId)) {
+        newHiddenItems.delete(itemId);
+      } else {
+        newHiddenItems.add(itemId);
+      }
+      saveHiddenItems(newHiddenItems);
+      return newHiddenItems;
+    });
+  };
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -482,10 +548,18 @@ const AdaptiveNewSidebar: React.FC = () => {
 
   const resetOrder = () => {
     setMenuItems(defaultMenuItems);
+    setHiddenItems(new Set());
     localStorage.removeItem('sidebarOrder');
+    localStorage.removeItem('sidebarHiddenItems');
     setExpandedItems([]);
     setIsEditing(false);
   };
+
+  // Apply visibility state to menu items
+  const visibleMenuItems = menuItems.map(item => ({
+    ...item,
+    isVisible: !hiddenItems.has(item.id)
+  }));
 
   // Determine if sidebar should show text based on state
   const sidebarOpen = isExpanded || isHovered || isMobileOpen;
@@ -534,9 +608,16 @@ const AdaptiveNewSidebar: React.FC = () => {
           {sidebarOpen && (
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">
-                  {isEditing ? 'Редактирование порядка' : 'Настройка меню'}
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-700">
+                    {isEditing ? 'Редактирование меню' : 'Настройка меню'}
+                  </span>
+                  {hiddenItems.size > 0 && (
+                    <span className="text-xs text-gray-500 mt-1">
+                      Скрыто элементов: {hiddenItems.size}
+                    </span>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setIsEditing(!isEditing)}
@@ -554,12 +635,20 @@ const AdaptiveNewSidebar: React.FC = () => {
                     <button
                       onClick={resetOrder}
                       className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                      title="Сбросить все настройки"
                     >
                       Сброс
                     </button>
                   )}
                 </div>
               </div>
+              {isEditing && (
+                <div className="mt-3 p-2 bg-blue-50 rounded-md">
+                  <p className="text-xs text-blue-700">
+                    💡 <strong>Подсказка:</strong> Используйте <GripVertical size={12} className="inline" /> для перетаскивания и <Eye size={12} className="inline" /> для скрытия элементов
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -570,9 +659,9 @@ const AdaptiveNewSidebar: React.FC = () => {
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
             >
-              <SortableContext items={menuItems.map(item => item.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext items={visibleMenuItems.map(item => item.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-2">
-                  {menuItems.map((item) => (
+                  {visibleMenuItems.map((item) => (
                     <div key={item.id} onClick={() => item.subItems && toggleExpanded(item.id)}>
                       {item.path && !item.subItems ? (
                         <Link to={item.path}>
@@ -583,6 +672,7 @@ const AdaptiveNewSidebar: React.FC = () => {
                             onToggle={() => toggleExpanded(item.id)}
                             sidebarOpen={sidebarOpen}
                             isEditing={isEditing}
+                            onVisibilityToggle={toggleVisibility}
                           />
                         </Link>
                       ) : (
@@ -593,6 +683,7 @@ const AdaptiveNewSidebar: React.FC = () => {
                           onToggle={() => toggleExpanded(item.id)}
                           sidebarOpen={sidebarOpen}
                           isEditing={isEditing}
+                          onVisibilityToggle={toggleVisibility}
                         />
                       )}
                     </div>
