@@ -33,6 +33,7 @@ import forecastRoutes from './routes/forecastRoutes';
 import adminRoutes from './routes/adminRoutes';
 import healthRoutes from './routes/healthRoutes';
 import uploadRoutes from './routes/uploadRoutes';
+import userPreferencesRoutes from './routes/userPreferencesRoutes';
 import { authenticateSupabaseToken } from './middleware/supabaseAuthMiddleware';
 
 const app = express();
@@ -116,6 +117,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/monetization', authenticateSupabaseToken, monetizationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/forecast', forecastRoutes);
+app.use('/api/user-preferences', userPreferencesRoutes);
 
 // Temporary test route
 app.post('/test-direct', (req, res) => {

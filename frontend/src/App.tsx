@@ -23,6 +23,7 @@ const Buttons = lazy(() => import("@/pages/UiElements/Buttons"));
 // Dashboard components
 const Overview = lazy(() => import("@/pages/Dashboard/Overview"));
 const Widgets = lazy(() => import("@/pages/Dashboard/Widgets"));
+const CustomizableDashboard = lazy(() => import("@/pages/Dashboard/CustomizableDashboard"));
 
 // Heavy chart components - lazy load with high priority
 const LineChart = lazy(() => import("@/pages/Charts/LineChart"));
@@ -127,6 +128,7 @@ export default function App() {
             {/* Dashboard Routes */}
             <Route path="/dashboard/overview" element={<Overview />} />
             <Route path="/dashboard/widgets" element={<Widgets />} />
+            <Route path="/dashboard/" element={<CustomizableDashboard />} />
 
             {/* Sales Forecast */}
             <Route path="/sales-forecast" element={<SalesForecastPage />} />

@@ -400,57 +400,113 @@ const AdaptiveNewSidebar: React.FC = () => {
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultMenuItems);
 
-  // Load saved order and hidden items from localStorage
+  // Load saved order and hidden items from server
   useEffect(() => {
-    const savedOrder = localStorage.getItem('sidebarOrder');
-    const savedHiddenItems = localStorage.getItem('sidebarHiddenItems');
-    
-    if (savedOrder) {
+    const loadUserPreferences = async () => {
       try {
-        const parsedOrder = JSON.parse(savedOrder);
-        // Restore the order based on saved IDs
-        const reorderedItems = parsedOrder.map((savedId: string) => 
-          defaultMenuItems.find(item => item.id === savedId)
-        ).filter(Boolean);
+        const { getUserPreferencesAuth } = await import('@/services/userPreferencesService');
+        const preferences = await getUserPreferencesAuth();
         
-        // Add any new items that weren't in the saved order
-        const savedIds = new Set(parsedOrder);
-        const newItems = defaultMenuItems.filter(item => !savedIds.has(item.id));
+        if (preferences.sidebar) {
+          const { order, hiddenItems } = preferences.sidebar;
+          
+          // Restore order if exists
+          if (order && order.length > 0) {
+            const reorderedItems = order.map((savedId: string) => 
+              defaultMenuItems.find(item => item.id === savedId)
+            ).filter((item): item is MenuItem => item !== undefined);
+            
+            // Add any new items that weren't in the saved order
+            const savedIds = new Set(order);
+            const newItems = defaultMenuItems.filter(item => !savedIds.has(item.id));
+            
+            setMenuItems([...reorderedItems, ...newItems]);
+          }
+          
+          // Restore hidden items
+          if (hiddenItems && hiddenItems.length > 0) {
+            setHiddenItems(new Set(hiddenItems));
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user preferences:', error);
+        // Fallback to localStorage for backward compatibility
+        const savedOrder = localStorage.getItem('sidebarOrder');
+        const savedHiddenItems = localStorage.getItem('sidebarHiddenItems');
         
-        setMenuItems([...reorderedItems, ...newItems]);
-      } catch (error) {
-        console.error('Error loading saved order:', error);
-        setMenuItems(defaultMenuItems);
+        if (savedOrder) {
+          try {
+            const parsedOrder = JSON.parse(savedOrder);
+            const reorderedItems = parsedOrder.map((savedId: string) => 
+              defaultMenuItems.find(item => item.id === savedId)
+            ).filter(Boolean);
+            
+            const savedIds = new Set(parsedOrder);
+            const newItems = defaultMenuItems.filter(item => !savedIds.has(item.id));
+            
+            setMenuItems([...reorderedItems, ...newItems]);
+          } catch (error) {
+            console.error('Error loading saved order:', error);
+            setMenuItems(defaultMenuItems);
+          }
+        }
+        
+        if (savedHiddenItems) {
+          try {
+            const parsedHiddenItems = JSON.parse(savedHiddenItems);
+            setHiddenItems(new Set(parsedHiddenItems));
+          } catch (error) {
+            console.error('Error loading hidden items:', error);
+          }
+        }
       }
-    }
-    
-    if (savedHiddenItems) {
-      try {
-        const parsedHiddenItems = JSON.parse(savedHiddenItems);
-        setHiddenItems(new Set(parsedHiddenItems));
-      } catch (error) {
-        console.error('Error loading hidden items:', error);
-      }
-    }
+    };
+
+    loadUserPreferences();
   }, []);
 
-  // Save order to localStorage
-  const saveOrder = (items: MenuItem[]) => {
+  // Save order to server and localStorage as fallback
+  const saveOrder = async (items: MenuItem[]) => {
     try {
-      // Save only the IDs, not the full objects with React components
       const orderIds = items.map(item => item.id);
+      
+      // Save to server
+      const { saveSidebarPreferencesAuth } = await import('@/services/userPreferencesService');
+      await saveSidebarPreferencesAuth(orderIds, Array.from(hiddenItems));
+      
+      // Keep localStorage as fallback
       localStorage.setItem('sidebarOrder', JSON.stringify(orderIds));
     } catch (error) {
       console.error('Error saving order:', error);
+      // Fallback to localStorage only
+      try {
+        const orderIds = items.map(item => item.id);
+        localStorage.setItem('sidebarOrder', JSON.stringify(orderIds));
+      } catch (localError) {
+        console.error('Error saving to localStorage:', localError);
+      }
     }
   };
 
-  // Save hidden items to localStorage
-  const saveHiddenItems = (hiddenSet: Set<string>) => {
+  // Save hidden items to server and localStorage as fallback
+  const saveHiddenItems = async (hiddenSet: Set<string>) => {
     try {
+      const orderIds = menuItems.map(item => item.id);
+      
+      // Save to server
+      const { saveSidebarPreferencesAuth } = await import('@/services/userPreferencesService');
+      await saveSidebarPreferencesAuth(orderIds, Array.from(hiddenSet));
+      
+      // Keep localStorage as fallback
       localStorage.setItem('sidebarHiddenItems', JSON.stringify(Array.from(hiddenSet)));
     } catch (error) {
       console.error('Error saving hidden items:', error);
+      // Fallback to localStorage only
+      try {
+        localStorage.setItem('sidebarHiddenItems', JSON.stringify(Array.from(hiddenSet)));
+      } catch (localError) {
+        console.error('Error saving to localStorage:', localError);
+      }
     }
   };
 
@@ -549,6 +605,18 @@ const AdaptiveNewSidebar: React.FC = () => {
   const resetOrder = () => {
     setMenuItems(defaultMenuItems);
     setHiddenItems(new Set());
+    
+    // Clear both server and localStorage
+    const clearPreferences = async () => {
+      try {
+        const { saveSidebarPreferencesAuth } = await import('@/services/userPreferencesService');
+        await saveSidebarPreferencesAuth([], []);
+      } catch (error) {
+        console.error('Error clearing server preferences:', error);
+      }
+    };
+    
+    clearPreferences();
     localStorage.removeItem('sidebarOrder');
     localStorage.removeItem('sidebarHiddenItems');
     setExpandedItems([]);
