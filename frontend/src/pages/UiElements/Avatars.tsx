@@ -1,118 +1,97 @@
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ComponentCard from "@/components/common/ComponentCard";
-import Avatar from "@/components/ui/avatar/Avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/atoms/Avatar";
 import PageMeta from "@/components/common/PageMeta";
+import { cn } from "@/utils";
+
+const statusColors = {
+  online: 'bg-green-500',
+  offline: 'bg-gray-500',
+  busy: 'bg-red-500',
+};
+
+const AvatarWithStatus = ({
+  src,
+  fallback,
+  alt,
+  status,
+  size = 'md',
+}: {
+  src: string;
+  fallback: string;
+  alt: string;
+  status?: keyof typeof statusColors;
+  size?: 'sm' | 'md' | 'lg';
+}) => (
+  <div className="relative inline-block">
+    <Avatar size={size}>
+      <AvatarImage src={src} alt={alt} />
+      <AvatarFallback>{fallback}</AvatarFallback>
+    </Avatar>
+    {status && (
+      <span
+        className={cn(
+          'absolute bottom-0 right-0 block h-3 w-3 rounded-full border-2 border-white',
+          statusColors[status]
+        )}
+      />
+    )}
+  </div>
+);
 
 export default function Avatars() {
   return (
     <>
       <PageMeta
-        title="React.js Avatars Dashboard | TailAdmin - React.js Admin Dashboard Template"
-        description="This is React.js Avatars Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+        title="Avatars | TailAdmin - React Admin Dashboard"
+        description="Demonstration of the Avatar component in different sizes and states."
       />
       <PageBreadcrumb pageTitle="Avatars" />
       <div className="space-y-5 sm:space-y-6">
         <ComponentCard title="Default Avatar">
-          {/* Default Avatar (No Status) */}
-          <div className="flex flex-col items-center justify-center gap-5 sm:flex-row">
-            <Avatar src="/images/user/user-01.jpg" size="xsmall" />
-            <Avatar src="/images/user/user-01.jpg" size="small" />
-            <Avatar src="/images/user/user-01.jpg" size="medium" />
-            <Avatar src="/images/user/user-01.jpg" size="large" />
-            <Avatar src="/images/user/user-01.jpg" size="xlarge" />
-            <Avatar src="/images/user/user-01.jpg" size="xxlarge" />
+          <div className="flex flex-wrap items-center justify-center gap-5">
+            <Avatar size="sm">
+              <AvatarImage src="/images/user/user-01.jpg" alt="User" />
+              <AvatarFallback>U1</AvatarFallback>
+            </Avatar>
+            <Avatar size="md">
+              <AvatarImage src="/images/user/user-01.jpg" alt="User" />
+              <AvatarFallback>U1</AvatarFallback>
+            </Avatar>
+            <Avatar size="lg">
+              <AvatarImage src="/images/user/user-01.jpg" alt="User" />
+              <AvatarFallback>U1</AvatarFallback>
+            </Avatar>
+             <Avatar size="lg">
+              <AvatarFallback>U2</AvatarFallback>
+            </Avatar>
           </div>
         </ComponentCard>
-        <ComponentCard title="Avatar with online indicator">
-          <div className="flex flex-col items-center justify-center gap-5 sm:flex-row">
-            <Avatar
+        <ComponentCard title="Avatar with Status Indicator">
+          <div className="flex flex-wrap items-center justify-center gap-5">
+            <AvatarWithStatus
               src="/images/user/user-01.jpg"
-              size="xsmall"
+              alt="User"
+              fallback="U1"
+              size="sm"
               status="online"
             />
-            <Avatar
+            <AvatarWithStatus
               src="/images/user/user-01.jpg"
-              size="small"
-              status="online"
-            />
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="medium"
-              status="online"
-            />
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="large"
-              status="online"
-            />
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="xlarge"
-              status="online"
-            />
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="xxlarge"
-              status="online"
-            />
-          </div>
-        </ComponentCard>
-        <ComponentCard title="Avatar with Offline indicator">
-          <div className="flex flex-col items-center justify-center gap-5 sm:flex-row">
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="xsmall"
+              alt="User"
+              fallback="U1"
+              size="md"
               status="offline"
             />
-            <Avatar
+            <AvatarWithStatus
               src="/images/user/user-01.jpg"
-              size="small"
-              status="offline"
-            />
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="medium"
-              status="offline"
-            />
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="large"
-              status="offline"
-            />
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="xlarge"
-              status="offline"
-            />
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="xxlarge"
-              status="offline"
-            />
-          </div>
-        </ComponentCard>{" "}
-        <ComponentCard title="Avatar with busy indicator">
-          <div className="flex flex-col items-center justify-center gap-5 sm:flex-row">
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="xsmall"
-              status="busy"
-            />
-            <Avatar src="/images/user/user-01.jpg" size="small" status="busy" />
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="medium"
-              status="busy"
-            />
-            <Avatar src="/images/user/user-01.jpg" size="large" status="busy" />
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="xlarge"
-              status="busy"
-            />
-            <Avatar
-              src="/images/user/user-01.jpg"
-              size="xxlarge"
+              alt="User"
+              fallback="U1"
+              size="lg"
               status="busy"
             />
           </div>

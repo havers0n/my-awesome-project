@@ -384,7 +384,7 @@ const ShelfAvailabilityPage = () => {
             </Button>
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 };

@@ -1,5 +1,4 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
-import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/atoms/Button";
 import { MLError, ERROR_MESSAGES, MLErrorType } from "../../types/errors";
 
@@ -46,9 +45,13 @@ class ErrorBoundary extends Component<Props, State> {
     }
   };
 
-  isMLError = (error: any): error is MLError => {
-    return error && typeof error.type === 'string' && error.type in ERROR_MESSAGES;
-  };
+  isMLError(error: any): error is MLError {
+    return (
+      error &&
+      typeof error.type === "string" &&
+      Object.keys(ERROR_MESSAGES).includes(error.type as MLErrorType)
+    );
+  }
 
   getErrorInfo = () => {
     const { error } = this.state;
@@ -67,16 +70,21 @@ class ErrorBoundary extends Component<Props, State> {
     };
   };
 
+  RefreshIcon = () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+    </svg>
+  );
+
   render() {
-    const { error, hasError } = this.state;
-    if (hasError && error) {
+    if (this.state.hasError && this.state.error) {
       // Use custom fallback if provided
       if (this.props.fallback) {
-        return this.props.fallback(error, this.retry);
+        return this.props.fallback(this.state.error, this.retry);
       }
 
       const errorInfo = this.getErrorInfo();
-      const isMLError = this.isMLError(error);
+      const isMLError = this.isMLError(this.state.error);
 
       return (
         <div className="min-h-[400px] flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg p-8">
@@ -113,11 +121,13 @@ class ErrorBoundary extends Component<Props, State> {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               {errorInfo.retryable && (
-                <Button 
-                  onClick={this.retry} 
-                  className="flex items-center gap-2"
+                <Button
+                  onClick={this.retry}
+                  variant="primary"
                 >
-                  <RefreshCw className="w-4 h-4" />
+                  <span className="mr-2 flex h-4 w-4 items-center justify-center">
+                    <this.RefreshIcon />
+                  </span>
                   Попробовать снова
                 </Button>
               )}
@@ -131,7 +141,7 @@ class ErrorBoundary extends Component<Props, State> {
             </div>
 
             {/* Development Error Details */}
-            {process.env.NODE_ENV === 'development' && (
+            {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-6 text-left bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-md p-4">
                 <summary className="font-medium text-red-800 dark:text-red-400 cursor-pointer mb-2">
                   Детали ошибки (Development)
@@ -140,28 +150,28 @@ class ErrorBoundary extends Component<Props, State> {
                   <div>
                     <strong className="text-red-700 dark:text-red-300">Тип:</strong>
                     <span className="ml-2 text-red-600 dark:text-red-400">
-                      {isMLError ? error.type : 'JavaScript Error'}
+                      {this.isMLError(this.state.error) ? this.state.error.type : 'JavaScript Error'}
                     </span>
                   </div>
                   <div>
                     <strong className="text-red-700 dark:text-red-300">Сообщение:</strong>
                     <pre className="mt-1 text-sm text-red-600 dark:text-red-400 overflow-auto whitespace-pre-wrap">
-                      {error.message}
+                      {this.state.error.message}
                     </pre>
                   </div>
-                  {error.stack && (
+                  {this.state.error.stack && (
                     <div>
                       <strong className="text-red-700 dark:text-red-300">Stack Trace:</strong>
                       <pre className="mt-1 text-xs text-red-600 dark:text-red-400 overflow-auto max-h-40">
-                        {error.stack}
+                        {this.state.error.stack}
                       </pre>
                     </div>
                   )}
-                  {isMLError && error.details && (
+                  {this.isMLError(this.state.error) && this.state.error.details && (
                     <div>
                       <strong className="text-red-700 dark:text-red-300">Детали:</strong>
                       <pre className="mt-1 text-xs text-red-600 dark:text-red-400 overflow-auto">
-                        {JSON.stringify(error.details, null, 2)}
+                        {JSON.stringify(this.state.error.details, null, 2)}
                       </pre>
                     </div>
                   )}
