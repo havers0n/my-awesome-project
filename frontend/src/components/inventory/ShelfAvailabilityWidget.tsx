@@ -7,8 +7,8 @@
  */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Badge from '@/components/ui/badge/Badge';
-import Button from '@/components/ui/button/Button';
+import { Badge } from '@/components/atoms/Badge';
+import { Button } from '@/components/atoms/Button';
 
 interface ProductSummary {
   name: string;

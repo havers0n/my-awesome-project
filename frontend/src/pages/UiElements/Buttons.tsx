@@ -1,7 +1,7 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
-import Button from "@/components/ui/button/Button";
+import { Button } from "@/components/atoms/Button";
 import { ICONS } from '@/helpers/icons';
 import { Icon } from '@/components/common/Icon';
 
@@ -20,7 +20,7 @@ export default function Buttons() {
             <Button size="sm" variant="primary">
               Текст кнопки
             </Button>
-            <Button size="md" variant="primary">
+            <Button size="default" variant="primary">
               Текст кнопки
             </Button>
           </div>
@@ -31,15 +31,15 @@ export default function Buttons() {
             <Button
               size="sm"
               variant="primary"
-              startIcon={<Icon name="BOX" size={5} alt="Box icon" />}
             >
+              <Icon name="BOX" size={5} alt="Box icon" className="mr-2" />
               Текст кнопки
             </Button>
             <Button
-              size="md"
+              size="default"
               variant="primary"
-              startIcon={<Icon name="BOX" size={5} alt="Box icon" />}
             >
+              <Icon name="BOX" size={5} alt="Box icon" className="mr-2" />
               Текст кнопки
             </Button>
           </div>
@@ -50,16 +50,16 @@ export default function Buttons() {
             <Button
               size="sm"
               variant="primary"
-              endIcon={<Icon name="BOX" size={5} alt="Box icon" />}
             >
               Текст кнопки
+              <Icon name="BOX" size={5} alt="Box icon" className="ml-2" />
             </Button>
             <Button
-              size="md"
+              size="default"
               variant="primary"
-              endIcon={<Icon name="BOX" size={5} alt="Box icon" />}
             >
               Текст кнопки
+              <Icon name="BOX" size={5} alt="Box icon" className="ml-2" />
             </Button>
           </div>
         </ComponentCard>
@@ -70,7 +70,7 @@ export default function Buttons() {
             <Button size="sm" variant="outline">
               Текст кнопки
             </Button>
-            <Button size="md" variant="outline">
+            <Button size="default" variant="outline">
               Текст кнопки
             </Button>
           </div>
@@ -81,15 +81,15 @@ export default function Buttons() {
             <Button
               size="sm"
               variant="outline"
-              startIcon={<Icon name="BOX" size={5} alt="Box icon" />}
             >
+              <Icon name="BOX" size={5} alt="Box icon" className="mr-2" />
               Текст кнопки
             </Button>
             <Button
-              size="md"
+              size="default"
               variant="outline"
-              startIcon={<Icon name="BOX" size={5} alt="Box icon" />}
             >
+              <Icon name="BOX" size={5} alt="Box icon" className="mr-2" />
               Текст кнопки
             </Button>
           </div>
@@ -100,16 +100,16 @@ export default function Buttons() {
             <Button
               size="sm"
               variant="outline"
-              endIcon={<Icon name="BOX" size={5} alt="Box icon" />}
             >
               Текст кнопки
+              <Icon name="BOX" size={5} alt="Box icon" className="ml-2" />
             </Button>
             <Button
-              size="md"
+              size="default"
               variant="outline"
-              endIcon={<Icon name="BOX" size={5} alt="Box icon" />}
             >
               Текст кнопки
+              <Icon name="BOX" size={5} alt="Box icon" className="ml-2" />
             </Button>
           </div>
         </ComponentCard>

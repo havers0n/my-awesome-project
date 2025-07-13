@@ -1,0 +1,518 @@
+{
+  "project": {
+    "name": "Tailwind Admin Dashboard",
+    "version": "1.0.0",
+    "migrationVersion": "1.0.0"
+  },
+  "atomicDesignLayers": {
+    "atoms": {
+      "path": "src/components/atoms",
+      "description": "Basic building blocks of UI",
+      "components": [
+        {
+          "name": "Button",
+          "currentPath": "src/components/atoms/Button/Button.tsx",
+          "targetPath": "src/components/atoms/Button/",
+          "status": "partially_ready",
+          "priority": "high",
+          "dependencies": [],
+          "variants": ["primary", "secondary", "outline", "ghost", "link"],
+          "props": ["variant", "size", "disabled", "loading", "children", "onClick"]
+        },
+        {
+          "name": "Icon",
+          "currentPath": "src/components/atoms/Icon/Icon.tsx",
+          "targetPath": "src/components/atoms/Icon/",
+          "status": "partially_ready",
+          "priority": "high",
+          "dependencies": [],
+          "variants": ["solid", "outline", "mini"],
+          "props": ["name", "size", "color", "className"]
+        },
+        {
+          "name": "Typography",
+          "currentPath": "src/components/atoms/Typography/Typography.tsx",
+          "targetPath": "src/components/atoms/Typography/",
+          "status": "partially_ready",
+          "priority": "high",
+          "dependencies": [],
+          "variants": ["h1", "h2", "h3", "h4", "h5", "h6", "body1", "body2", "caption"],
+          "props": ["variant", "color", "weight", "align", "children"]
+        },
+        {
+          "name": "Badge",
+          "currentPath": "src/components/atoms/Badge/Badge.tsx",
+          "targetPath": "src/components/atoms/Badge/",
+          "status": "partially_ready",
+          "priority": "high",
+          "dependencies": [],
+          "variants": ["default", "primary", "secondary", "success", "warning", "danger"],
+          "props": ["variant", "size", "children"]
+        },
+        {
+          "name": "Input",
+          "currentPath": "src/components/atoms/Input.tsx",
+          "targetPath": "src/components/atoms/Input/",
+          "status": "needs_migration",
+          "priority": "high",
+          "dependencies": [],
+          "variants": ["text", "email", "password", "number", "search", "textarea"],
+          "props": ["type", "placeholder", "value", "onChange", "error", "disabled", "required"]
+        },
+        {
+          "name": "Image",
+          "currentPath": "src/components/atoms/Image/Image.tsx",
+          "targetPath": "src/components/atoms/Image/",
+          "status": "partially_ready",
+          "priority": "medium",
+          "dependencies": [],
+          "variants": ["responsive", "fixed", "cover", "contain"],
+          "props": ["src", "alt", "width", "height", "lazy", "fallback"]
+        },
+        {
+          "name": "Avatar",
+          "currentPath": "src/components/ui/avatar/Avatar.tsx",
+          "targetPath": "src/components/atoms/Avatar/",
+          "status": "needs_migration",
+          "priority": "medium",
+          "dependencies": ["Image"],
+          "variants": ["circle", "square", "rounded"],
+          "props": ["src", "alt", "size", "initials", "fallback"]
+        },
+        {
+          "name": "Checkbox",
+          "currentPath": "src/components/form/input/Checkbox.tsx",
+          "targetPath": "src/components/atoms/Checkbox/",
+          "status": "needs_migration",
+          "priority": "medium",
+          "dependencies": [],
+          "variants": ["default", "indeterminate"],
+          "props": ["checked", "onChange", "disabled", "label", "error"]
+        },
+        {
+          "name": "Radio",
+          "currentPath": "src/components/form/input/Radio.tsx",
+          "targetPath": "src/components/atoms/Radio/",
+          "status": "needs_migration",
+          "priority": "medium",
+          "dependencies": [],
+          "variants": ["default"],
+          "props": ["checked", "onChange", "disabled", "label", "value", "name"]
+        },
+        {
+          "name": "Toggle",
+          "currentPath": "src/components/form/switch/Switch.tsx",
+          "targetPath": "src/components/atoms/Toggle/",
+          "status": "needs_migration",
+          "priority": "medium",
+          "dependencies": [],
+          "variants": ["default", "small", "large"],
+          "props": ["checked", "onChange", "disabled", "label", "size"]
+        },
+        {
+          "name": "Spinner",
+          "currentPath": "not_found",
+          "targetPath": "src/components/atoms/Spinner/",
+          "status": "not_created",
+          "priority": "medium",
+          "dependencies": [],
+          "variants": ["default", "small", "large"],
+          "props": ["size", "color", "speed"]
+        },
+        {
+          "name": "Divider",
+          "currentPath": "src/components/common/Separator.tsx",
+          "targetPath": "src/components/atoms/Divider/",
+          "status": "needs_migration",
+          "priority": "low",
+          "dependencies": [],
+          "variants": ["horizontal", "vertical"],
+          "props": ["orientation", "color", "thickness"]
+        }
+      ]
+    },
+    "molecules": {
+      "path": "src/components/molecules",
+      "description": "Combinations of atoms",
+      "components": [
+        {
+          "name": "ProductCell",
+          "currentPath": "src/components/molecules/ProductCell/ProductCell.tsx",
+          "targetPath": "src/components/molecules/ProductCell/",
+          "status": "ready",
+          "priority": "high",
+          "dependencies": ["Image", "Typography", "Badge"],
+          "props": ["product", "variant", "onClick", "actions"]
+        },
+        {
+          "name": "ActionBar",
+          "currentPath": "src/components/molecules/ActionBar/ActionBar.tsx",
+          "targetPath": "src/components/molecules/ActionBar/",
+          "status": "ready",
+          "priority": "high",
+          "dependencies": ["Button"],
+          "props": ["actions", "variant", "align"]
+        },
+        {
+          "name": "TableRowItem",
+          "currentPath": "src/components/molecules/TableRowItem/TableRowItem.tsx",
+          "targetPath": "src/components/molecules/TableRowItem/",
+          "status": "ready",
+          "priority": "high",
+          "dependencies": ["Typography", "Badge"],
+          "props": ["data", "columns", "onClick", "selected"]
+        },
+        {
+          "name": "FilterButton",
+          "currentPath": "src/components/molecules/FilterButton/FilterButton.tsx",
+          "targetPath": "src/components/molecules/FilterButton/",
+          "status": "ready",
+          "priority": "high",
+          "dependencies": ["Button"],
+          "props": ["label", "active", "onClick", "count"]
+        },
+        {
+          "name": "MetricCard",
+          "currentPath": "src/components/molecules/MetricCard.tsx",
+          "targetPath": "src/components/molecules/MetricCard/",
+          "status": "needs_refactoring",
+          "priority": "high",
+          "dependencies": ["Typography", "Badge", "Icon"],
+          "props": ["title", "value", "change", "icon", "trend"]
+        },
+        {
+          "name": "ChartHeader",
+          "currentPath": "src/components/molecules/ChartHeader.tsx",
+          "targetPath": "src/components/molecules/ChartHeader/",
+          "status": "needs_refactoring",
+          "priority": "medium",
+          "dependencies": ["Typography", "Button"],
+          "props": ["title", "actions", "subtitle", "period"]
+        },
+        {
+          "name": "ProgressIndicator",
+          "currentPath": "src/components/molecules/ProgressIndicator.tsx",
+          "targetPath": "src/components/molecules/ProgressIndicator/",
+          "status": "needs_refactoring",
+          "priority": "medium",
+          "dependencies": ["Typography", "Divider"],
+          "props": ["progress", "label", "variant", "showPercentage"]
+        },
+        {
+          "name": "SearchBar",
+          "currentPath": "not_found",
+          "targetPath": "src/components/molecules/SearchBar/",
+          "status": "not_created",
+          "priority": "medium",
+          "dependencies": ["Input", "Button", "Icon"],
+          "props": ["placeholder", "onSearch", "suggestions", "loading"]
+        },
+        {
+          "name": "Dropdown",
+          "currentPath": "src/components/atoms/Dropdown.tsx",
+          "targetPath": "src/components/molecules/Dropdown/",
+          "status": "needs_migration",
+          "priority": "medium",
+          "dependencies": ["Button", "Icon"],
+          "props": ["options", "value", "onChange", "placeholder", "searchable"]
+        },
+        {
+          "name": "Modal",
+          "currentPath": "src/components/ui/modal/AccessibleModal.tsx",
+          "targetPath": "src/components/molecules/Modal/",
+          "status": "needs_migration",
+          "priority": "medium",
+          "dependencies": ["Button", "Icon"],
+          "props": ["open", "onClose", "title", "size", "children"]
+        },
+        {
+          "name": "Toast",
+          "currentPath": "src/contexts/ToastContext.tsx",
+          "targetPath": "src/components/molecules/Toast/",
+          "status": "not_created",
+          "priority": "low",
+          "dependencies": ["Typography", "Button", "Icon"],
+          "props": ["message", "type", "duration", "onClose", "actions"]
+        }
+      ]
+    },
+    "organisms": {
+      "path": "src/components/organisms",
+      "description": "Complex components made of molecules and atoms",
+      "components": [
+        {
+          "name": "OrdersTable",
+          "currentPath": "src/components/organisms/OrdersTable/OrdersTable.tsx",
+          "targetPath": "src/components/organisms/OrdersTable/",
+          "status": "ready",
+          "priority": "high",
+          "dependencies": ["TableRowItem", "FilterButton"],
+          "props": ["data", "columns", "filters", "sortable", "pagination"]
+        },
+        {
+          "name": "MetricsGrid",
+          "currentPath": "src/components/organisms/MetricsGrid.tsx",
+          "targetPath": "src/components/organisms/MetricsGrid/",
+          "status": "needs_refactoring",
+          "priority": "high",
+          "dependencies": ["MetricCard"],
+          "props": ["metrics", "layout", "responsive"]
+        },
+        {
+          "name": "ChartContainer",
+          "currentPath": "src/components/organisms/ChartContainer.tsx",
+          "targetPath": "src/components/organisms/ChartContainer/",
+          "status": "needs_refactoring",
+          "priority": "medium",
+          "dependencies": ["ChartHeader", "ActionBar"],
+          "props": ["type", "data", "config", "loading", "error"]
+        },
+        {
+          "name": "CountryList",
+          "currentPath": "src/components/organisms/CountryList.tsx",
+          "targetPath": "src/components/organisms/CountryList/",
+          "status": "needs_refactoring",
+          "priority": "medium",
+          "dependencies": ["SearchBar", "ProductCell"],
+          "props": ["countries", "onSelect", "searchable", "virtualized"]
+        },
+        {
+          "name": "ProductTable",
+          "currentPath": "src/components/organisms/ProductTable.tsx",
+          "targetPath": "src/components/organisms/ProductTable/",
+          "status": "needs_refactoring",
+          "priority": "medium",
+          "dependencies": ["ProductCell", "ActionBar"],
+          "props": ["products", "actions", "selectable", "sortable"]
+        },
+        {
+          "name": "TargetDisplay",
+          "currentPath": "src/components/organisms/TargetDisplay.tsx",
+          "targetPath": "src/components/organisms/TargetDisplay/",
+          "status": "needs_refactoring",
+          "priority": "medium",
+          "dependencies": ["MetricCard", "ProgressIndicator"],
+          "props": ["target", "current", "period", "breakdown"]
+        },
+        {
+          "name": "Sidebar",
+          "currentPath": "src/components/sidebar/NewSidebar.tsx",
+          "targetPath": "src/components/organisms/Sidebar/",
+          "status": "needs_migration",
+          "priority": "high",
+          "dependencies": ["Button", "Icon", "Typography"],
+          "props": ["navigation", "collapsed", "onToggle", "user"]
+        },
+        {
+          "name": "Header",
+          "currentPath": "src/components/header/Header.tsx",
+          "targetPath": "src/components/organisms/Header/",
+          "status": "needs_migration",
+          "priority": "high",
+          "dependencies": ["Button", "Icon", "Typography", "Avatar"],
+          "props": ["title", "actions", "user", "notifications"]
+        },
+        {
+          "name": "DashboardGrid",
+          "currentPath": "src/features/dashboard/components/DashboardGrid.tsx",
+          "targetPath": "src/components/organisms/DashboardGrid/",
+          "status": "needs_migration",
+          "priority": "high",
+          "dependencies": ["MetricCard", "ChartContainer"],
+          "props": ["widgets", "layout", "editable", "responsive"]
+        }
+      ]
+    },
+    "templates": {
+      "path": "src/components/templates",
+      "description": "Page layouts without content",
+      "components": [
+        {
+          "name": "DashboardTemplate",
+          "currentPath": "src/components/templates/DashboardTemplate.tsx",
+          "targetPath": "src/components/templates/DashboardTemplate/",
+          "status": "partially_ready",
+          "priority": "medium",
+          "dependencies": ["Header", "Sidebar", "DashboardGrid"],
+          "props": ["title", "sidebar", "header", "children"]
+        },
+        {
+          "name": "AuthTemplate",
+          "currentPath": "src/pages/AuthPages/AuthPageLayout.tsx",
+          "targetPath": "src/components/templates/AuthTemplate/",
+          "status": "needs_migration",
+          "priority": "medium",
+          "dependencies": ["Header", "Modal"],
+          "props": ["title", "subtitle", "children", "footer"]
+        },
+        {
+          "name": "SettingsTemplate",
+          "currentPath": "not_found",
+          "targetPath": "src/components/templates/SettingsTemplate/",
+          "status": "not_created",
+          "priority": "low",
+          "dependencies": ["Header", "Sidebar"],
+          "props": ["title", "navigation", "children"]
+        },
+        {
+          "name": "RecentOrdersWidget",
+          "currentPath": "src/components/templates/RecentOrdersWidget/RecentOrdersWidget.tsx",
+          "targetPath": "src/components/templates/RecentOrdersWidget/",
+          "status": "ready",
+          "priority": "low",
+          "dependencies": ["OrdersTable"],
+          "props": ["orders", "limit", "actions"]
+        },
+        {
+          "name": "AnalyticsTemplate",
+          "currentPath": "not_found",
+          "targetPath": "src/components/templates/AnalyticsTemplate/",
+          "status": "not_created",
+          "priority": "low",
+          "dependencies": ["Header", "MetricsGrid", "ChartContainer"],
+          "props": ["title", "metrics", "charts", "filters"]
+        }
+      ]
+    },
+    "pages": {
+      "path": "src/pages",
+      "description": "Complete pages with content",
+      "components": [
+        {
+          "name": "Home",
+          "currentPath": "src/pages/Dashboard/Home.tsx",
+          "targetPath": "src/pages/Home/",
+          "status": "exists",
+          "priority": "medium",
+          "dependencies": ["DashboardTemplate"],
+          "props": ["data", "config"]
+        },
+        {
+          "name": "Login",
+          "currentPath": "src/pages/AuthPages/SignIn.tsx",
+          "targetPath": "src/pages/Login/",
+          "status": "exists",
+          "priority": "medium",
+          "dependencies": ["AuthTemplate"],
+          "props": ["onLogin", "loading", "error"]
+        },
+        {
+          "name": "Products",
+          "currentPath": "not_found",
+          "targetPath": "src/pages/Products/",
+          "status": "not_created",
+          "priority": "medium",
+          "dependencies": ["ProductTable", "SettingsTemplate"],
+          "props": ["products", "filters", "actions"]
+        },
+        {
+          "name": "Orders",
+          "currentPath": "components_exist",
+          "targetPath": "src/pages/Orders/",
+          "status": "needs_creation",
+          "priority": "medium",
+          "dependencies": ["OrdersTable", "SettingsTemplate"],
+          "props": ["orders", "filters", "actions"]
+        },
+        {
+          "name": "Analytics",
+          "currentPath": "src/pages/Analytics/",
+          "targetPath": "src/pages/Analytics/",
+          "status": "partially_exists",
+          "priority": "medium",
+          "dependencies": ["AnalyticsTemplate"],
+          "props": ["data", "timeRange", "filters"]
+        }
+      ]
+    }
+  },
+  "migrationPhases": [
+    {
+      "phase": 1,
+      "name": "Atoms Foundation",
+      "priority": "high",
+      "estimatedDuration": "2-3 weeks",
+      "components": ["Button", "Icon", "Typography", "Badge", "Input"],
+      "goals": [
+        "Complete all basic atoms",
+        "Standardize API and typing",
+        "Create Storybook stories",
+        "Write comprehensive tests"
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Molecules Integration",
+      "priority": "high",
+      "estimatedDuration": "3-4 weeks",
+      "components": ["ProductCell", "ActionBar", "TableRowItem", "FilterButton", "MetricCard"],
+      "goals": [
+        "Refactor existing molecules",
+        "Create missing molecules",
+        "Integrate with atoms",
+        "Test component interactions"
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Organisms Assembly",
+      "priority": "medium",
+      "estimatedDuration": "4-5 weeks",
+      "components": ["OrdersTable", "MetricsGrid", "ChartContainer", "Sidebar", "Header"],
+      "goals": [
+        "Refactor existing organisms",
+        "Integrate with molecules",
+        "Optimize performance",
+        "Add new functionality"
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Templates Structure",
+      "priority": "medium",
+      "estimatedDuration": "2-3 weeks",
+      "components": ["DashboardTemplate", "AuthTemplate", "SettingsTemplate"],
+      "goals": [
+        "Create missing templates",
+        "Integrate with organisms",
+        "Implement responsive design",
+        "Ensure accessibility"
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "Pages Implementation",
+      "priority": "low",
+      "estimatedDuration": "2-3 weeks",
+      "components": ["Home", "Login", "Products", "Orders", "Analytics"],
+      "goals": [
+        "Refactor existing pages",
+        "Create missing pages",
+        "Integrate with templates",
+        "Add SEO and meta data"
+      ]
+    }
+  ],
+  "qualityMetrics": {
+    "codeReuse": {
+      "target": "70%",
+      "current": "30%"
+    },
+    "testCoverage": {
+      "target": "90%",
+      "current": "45%"
+    },
+    "storybook": {
+      "target": "100%",
+      "current": "25%"
+    },
+    "typescript": {
+      "target": "100%",
+      "current": "85%"
+    },
+    "accessibility": {
+      "target": "WCAG 2.1 AA",
+      "current": "Partial"
+    }
+  }
+}

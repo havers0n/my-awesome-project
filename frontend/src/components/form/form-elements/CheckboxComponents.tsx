@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ComponentCard from "../../common/ComponentCard";
-import Checkbox from "../input/Checkbox";
+import { Checkbox } from "@/components/atoms/Checkbox";
+import { Label } from "@/components/atoms/Label";
 
 export default function CheckboxComponents() {
   const [isChecked, setIsChecked] = useState(false);
@@ -9,26 +10,23 @@ export default function CheckboxComponents() {
   return (
     <ComponentCard title="Checkbox">
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3">
-          <Checkbox checked={isChecked} onChange={setIsChecked} />
-          <span className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+        <div className="flex items-center space-x-2">
+          <Checkbox id="checkbox-demo-1" checked={isChecked} onCheckedChange={setIsChecked} />
+          <Label htmlFor="checkbox-demo-1">
             Default
-          </span>
+          </Label>
         </div>
-        <div className="flex items-center gap-3">
-          <Checkbox
-            checked={isCheckedTwo}
-            onChange={setIsCheckedTwo}
-            label="Checked"
-          />
+        <div className="flex items-center space-x-2">
+          <Checkbox id="checkbox-demo-2" checked={isCheckedTwo} onCheckedChange={setIsCheckedTwo} />
+          <Label htmlFor="checkbox-demo-2">
+            Checked
+          </Label>
         </div>
-        <div className="flex items-center gap-3">
-          <Checkbox
-            checked={isCheckedDisabled}
-            onChange={setIsCheckedDisabled}
-            disabled
-            label="Disabled"
-          />
+        <div className="flex items-center space-x-2">
+          <Checkbox id="checkbox-demo-3" checked={isCheckedDisabled} onCheckedChange={setIsCheckedDisabled} disabled />
+          <Label htmlFor="checkbox-demo-3">
+            Disabled
+          </Label>
         </div>
       </div>
     </ComponentCard>

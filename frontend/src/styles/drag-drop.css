@@ -1,0 +1,308 @@
+/* Drag & Drop UX Styles */
+
+/* Base draggable element styles */
+.draggable {
+  @apply cursor-grab transition-all duration-200 ease-out;
+  @apply hover:shadow-md active:shadow-lg;
+}
+
+.draggable:active {
+  @apply cursor-grabbing;
+}
+
+/* Drag states */
+.draggable--idle {
+  @apply cursor-grab transform-gpu;
+}
+
+.draggable--dragging {
+  @apply cursor-grabbing opacity-80 scale-105 rotate-1;
+  @apply shadow-2xl z-[9999];
+  filter: drop-shadow(0 25px 25px rgba(0, 0, 0, 0.15));
+}
+
+.draggable--not-allowed {
+  @apply cursor-not-allowed opacity-50;
+}
+
+/* Drop zone styles */
+.drop-zone {
+  @apply border-2 border-dashed border-gray-300 dark:border-gray-600;
+  @apply bg-gray-50/50 dark:bg-gray-800/50;
+  @apply transition-all duration-300 ease-in-out;
+  @apply rounded-lg min-h-[120px];
+}
+
+.drop-zone--active {
+  @apply border-blue-500 dark:border-blue-400;
+  @apply bg-blue-50 dark:bg-blue-900/20;
+  @apply shadow-lg;
+  animation: dropZonePulse 2s infinite;
+}
+
+.drop-zone--valid {
+  @apply border-green-500 dark:border-green-400;
+  @apply bg-green-50 dark:bg-green-900/20;
+}
+
+.drop-zone--invalid {
+  @apply border-red-500 dark:border-red-400;
+  @apply bg-red-50 dark:bg-red-900/20;
+}
+
+/* Drop zone indicator */
+.drop-zone__indicator {
+  @apply absolute inset-0 flex items-center justify-center;
+  @apply text-gray-500 dark:text-gray-400;
+  @apply transition-all duration-300;
+  @apply pointer-events-none;
+}
+
+.drop-zone--active .drop-zone__indicator {
+  @apply text-blue-600 dark:text-blue-400;
+  @apply scale-110;
+}
+
+.drop-zone--valid .drop-zone__indicator {
+  @apply text-green-600 dark:text-green-400;
+  @apply scale-110;
+}
+
+.drop-zone--invalid .drop-zone__indicator {
+  @apply text-red-600 dark:text-red-400;
+  @apply scale-110;
+}
+
+/* Drag preview styles */
+.drag-preview {
+  @apply opacity-90 scale-95 rotate-2;
+  @apply shadow-2xl border-2 border-blue-400;
+  @apply bg-white dark:bg-gray-800;
+  @apply rounded-lg overflow-hidden;
+  @apply pointer-events-none;
+  @apply transform-gpu;
+  filter: drop-shadow(0 25px 25px rgba(0, 0, 0, 0.15));
+}
+
+.drag-preview__header {
+  @apply bg-blue-50 dark:bg-blue-900/20 px-3 py-2;
+  @apply border-b border-blue-200 dark:border-blue-700;
+}
+
+.drag-preview__title {
+  @apply text-sm font-medium text-blue-800 dark:text-blue-200;
+  @apply flex items-center gap-2;
+}
+
+.drag-preview__content {
+  @apply p-4 text-sm text-gray-600 dark:text-gray-400;
+}
+
+/* Drag handle styles */
+.drag-handle {
+  @apply cursor-grab active:cursor-grabbing;
+  @apply transition-colors duration-200;
+  @apply hover:bg-gray-100 dark:hover:bg-gray-700;
+  @apply rounded-md p-2;
+}
+
+.drag-handle:hover {
+  @apply bg-gray-100 dark:bg-gray-700;
+}
+
+.drag-handle--active {
+  @apply bg-gray-200 dark:bg-gray-600;
+}
+
+/* Sortable list styles */
+.sortable-list {
+  @apply space-y-2;
+}
+
+.sortable-item {
+  @apply bg-white dark:bg-gray-800;
+  @apply border border-gray-200 dark:border-gray-700;
+  @apply rounded-lg p-4;
+  @apply transition-all duration-200;
+  @apply hover:shadow-md;
+}
+
+.sortable-item--dragging {
+  @apply opacity-50 scale-95;
+}
+
+.sortable-item--over {
+  @apply border-blue-500 dark:border-blue-400;
+  @apply bg-blue-50 dark:bg-blue-900/10;
+}
+
+/* Ghost element styles */
+.drag-ghost {
+  @apply opacity-30 scale-95;
+  @apply border-dashed border-2 border-gray-300 dark:border-gray-600;
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+/* Animations */
+@keyframes dropZonePulse {
+  0%,
+  100% {
+    @apply scale-100 opacity-100;
+  }
+  50% {
+    @apply scale-[1.02] opacity-80;
+  }
+}
+
+@keyframes dragStart {
+  0% {
+    @apply scale-100 rotate-0;
+  }
+  100% {
+    @apply scale-105 rotate-2;
+  }
+}
+
+@keyframes dragEnd {
+  0% {
+    @apply scale-105 rotate-2;
+  }
+  100% {
+    @apply scale-100 rotate-0;
+  }
+}
+
+/* Spring animation for drag elements */
+.drag-spring {
+  animation: dragSpring 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes dragSpring {
+  0% {
+    @apply scale-95 opacity-50;
+  }
+  50% {
+    @apply scale-110 opacity-80;
+  }
+  100% {
+    @apply scale-100 opacity-100;
+  }
+}
+
+/* Drag overlay styles */
+.drag-overlay {
+  @apply fixed inset-0 z-[9999] pointer-events-none;
+}
+
+.drag-overlay__content {
+  @apply transform-gpu;
+  @apply will-change-transform;
+}
+
+/* File upload drag styles */
+.file-drop-zone {
+  @apply border-2 border-dashed border-gray-300 dark:border-gray-600;
+  @apply bg-gray-50 dark:bg-gray-800;
+  @apply rounded-xl p-8;
+  @apply transition-all duration-300;
+  @apply hover:border-brand-400 dark:hover:border-brand-500;
+}
+
+.file-drop-zone--active {
+  @apply border-brand-500 dark:border-brand-400;
+  @apply bg-brand-50 dark:bg-brand-900/20;
+  @apply shadow-lg;
+}
+
+.file-drop-zone--rejected {
+  @apply border-red-500 dark:border-red-400;
+  @apply bg-red-50 dark:bg-red-900/20;
+}
+
+/* Mobile specific styles */
+@media (max-width: 768px) {
+  .draggable {
+    @apply touch-manipulation;
+  }
+
+  .draggable--dragging {
+    @apply scale-110;
+  }
+
+  .drop-zone {
+    @apply min-h-[100px];
+  }
+}
+
+/* Accessibility improvements */
+.draggable:focus {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+}
+
+.drop-zone:focus {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .draggable--dragging {
+    @apply border-2 border-black dark:border-white;
+  }
+
+  .drop-zone--active {
+    @apply border-4 border-blue-600 dark:border-blue-400;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .draggable,
+  .drop-zone,
+  .drag-preview,
+  .sortable-item {
+    @apply transition-none;
+  }
+
+  .drop-zone--active {
+    animation: none;
+  }
+
+  .drag-spring {
+    animation: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .draggable,
+  .drop-zone,
+  .drag-preview,
+  .drag-handle {
+    @apply cursor-default;
+  }
+
+  .draggable--dragging,
+  .drop-zone--active {
+    @apply shadow-none;
+  }
+}
+
+/* Color scheme specific styles */
+@media (prefers-color-scheme: dark) {
+  .drag-preview {
+    filter: drop-shadow(0 25px 25px rgba(0, 0, 0, 0.4));
+  }
+}
+
+/* Visual feedback for touch devices */
+@media (hover: none) {
+  .draggable:hover,
+  .drop-zone:hover,
+  .drag-handle:hover {
+    @apply shadow-none;
+  }
+
+  .draggable:active {
+    @apply scale-95;
+  }
+}

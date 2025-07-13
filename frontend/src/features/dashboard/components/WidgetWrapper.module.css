@@ -1,0 +1,61 @@
+/* Кастомные стили для react-resizable handles */
+.react-resizable-handle {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.react-resizable-handle:hover {
+  opacity: 1;
+}
+
+/* Показываем handles только в режиме редактирования */
+.widget-edit-mode .react-resizable-handle {
+  opacity: 0.6;
+}
+
+.widget-edit-mode .react-resizable-handle:hover {
+  opacity: 1;
+}
+
+/* Кастомизация угловых handles */
+.react-resizable-handle-se {
+  background-color: #3b82f6;
+  border-radius: 50%;
+  right: -5px;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  cursor: se-resize;
+}
+
+.react-resizable-handle-e {
+  background-color: #3b82f6;
+  border-radius: 50%;
+  right: -5px;
+  width: 10px;
+  height: 20px;
+  cursor: e-resize;
+}
+
+.react-resizable-handle-s {
+  background-color: #3b82f6;
+  border-radius: 50%;
+  bottom: -5px;
+  width: 20px;
+  height: 10px;
+  cursor: s-resize;
+}
+
+/* Drag индикатор */
+.widget-dragging {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  transform: rotate(1deg);
+}
+
+.widget-drag-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(59, 130, 246, 0.2);
+  border: 2px dashed #3b82f6;
+  border-radius: 0.5rem;
+}

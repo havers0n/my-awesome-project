@@ -3,8 +3,8 @@ import { outOfStockService } from "@/services/outOfStockService";
 import { supabase } from "@/services/supabaseClient";
 import DatePicker from "@/components/form/date-picker";
 import Input from "@/components/form/input/InputField";
-import Button from "@/components/ui/button/Button";
-import Alert from "@/components/ui/alert/Alert";
+import { Button } from "@/components/atoms/Button";
+import { Alert, AlertTitle, AlertDescription } from "@/components/molecules/Alert";
 import Label from "@/components/form/Label";
 
 export default function OutOfStockTracker() {
@@ -152,12 +152,22 @@ export default function OutOfStockTracker() {
           </div>
         </div>
         <div className="text-xs text-gray-500 mt-1">Например: 1 час 20 минут — введите 1 и 20</div>
-        <Button variant="primary" size="md" disabled={loading}>
+        <Button variant="primary" size="default" disabled={loading}>
           Добавить
         </Button>
       </form>
-      {success && <Alert variant="success" title="Успех" message={success} />}
-      {error && <Alert variant="error" title="Ошибка" message={error} />}
+      {success && (
+        <Alert variant="default" className="text-green-600 border-green-200">
+          <AlertTitle>Успех</AlertTitle>
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>Ошибка</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       <div className="mb-4">
         <table className="w-full border rounded">
           <thead>

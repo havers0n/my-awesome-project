@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { lazy, Suspense, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/services/supabaseClient";
@@ -8,6 +8,8 @@ import AppLayout from "@/layout/AppLayout";
 import { ScrollToTop } from "@/components/common/ScrollToTop";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Home from "@/pages/Dashboard/Home";
+import { useAuth } from './context/AuthContext';
+import { Toaster } from './components/atoms/Toaster';
 
 // Lazy load heavy components to reduce initial bundle
 const SignIn = lazy(() => import("@/pages/AuthPages/SignIn"));
@@ -101,6 +103,7 @@ const PlaceholderPage = ({ title, description }: { title: string; description: s
 
 export default function App() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -285,6 +288,7 @@ export default function App() {
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Toaster />
       </Suspense>
     </>
   );

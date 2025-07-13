@@ -1,0 +1,323 @@
+/* Кастомные стили для react-grid-layout с интеграцией Tailwind CSS */
+
+/* Базовые стили для сетки */
+.react-grid-layout {
+  position: relative;
+  width: 100%;
+}
+
+.react-grid-item {
+  touch-action: none;
+  user-select: none;
+  position: absolute;
+  transition: all 200ms ease;
+}
+
+.react-grid-item.react-grid-item--dragging {
+  z-index: 50;
+  transition: none;
+  transform: scale(1.02);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.react-grid-item.react-grid-item--resizing {
+  z-index: 40;
+  transition: none;
+}
+
+.react-grid-item.react-grid-item--static {
+  cursor: default;
+}
+
+/* Placeholder для drag and drop */
+.react-grid-placeholder {
+  background: rgb(59 130 246 / 0.1);
+  border: 2px dashed rgb(59 130 246 / 0.5);
+  border-radius: 8px;
+  opacity: 0.8;
+  transition: all 150ms ease;
+  z-index: 2;
+}
+
+.dark .react-grid-placeholder {
+  background: rgb(59 130 246 / 0.2);
+  border-color: rgb(59 130 246 / 0.6);
+}
+
+/* Стили для handles изменения размера */
+.react-resizable-handle {
+  position: absolute;
+  background: rgb(59 130 246);
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.react-resizable-handle:hover {
+  opacity: 1;
+}
+
+.react-grid-item:hover .react-resizable-handle {
+  opacity: 0.7;
+}
+
+/* Специфические стили для разных handles */
+.react-resizable-handle-se {
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: se-resize;
+  border-radius: 8px 0 0 0;
+}
+
+.react-resizable-handle-e {
+  right: 0;
+  top: 50%;
+  width: 8px;
+  height: 50px;
+  margin-top: -25px;
+  cursor: e-resize;
+  border-radius: 4px 0 0 4px;
+}
+
+.react-resizable-handle-s {
+  bottom: 0;
+  left: 50%;
+  width: 50px;
+  height: 8px;
+  margin-left: -25px;
+  cursor: s-resize;
+  border-radius: 4px 4px 0 0;
+}
+
+.react-resizable-handle-n {
+  top: 0;
+  left: 50%;
+  width: 50px;
+  height: 8px;
+  margin-left: -25px;
+  cursor: n-resize;
+  border-radius: 0 0 4px 4px;
+}
+
+.react-resizable-handle-w {
+  left: 0;
+  top: 50%;
+  width: 8px;
+  height: 50px;
+  margin-top: -25px;
+  cursor: w-resize;
+  border-radius: 0 4px 4px 0;
+}
+
+.react-resizable-handle-ne {
+  top: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: ne-resize;
+  border-radius: 0 0 0 8px;
+}
+
+.react-resizable-handle-nw {
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nw-resize;
+  border-radius: 0 0 8px 0;
+}
+
+.react-resizable-handle-sw {
+  bottom: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  cursor: sw-resize;
+  border-radius: 0 8px 0 0;
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+  .react-grid-layout {
+    margin: 0 -8px;
+  }
+
+  .react-grid-item {
+    margin: 8px;
+  }
+
+  .react-resizable-handle {
+    display: none;
+  }
+
+  .react-grid-item.react-grid-item--dragging {
+    transform: scale(1.05);
+  }
+}
+
+/* Стили для улучшенной производительности */
+.react-grid-item.react-grid-item--enable-user-select {
+  user-select: auto;
+}
+
+.react-grid-item.react-grid-item--disable-user-select {
+  user-select: none;
+}
+
+/* Кастомные стили для темной темы */
+.dark .react-grid-item {
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.5),
+    0 1px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.dark .react-grid-item.react-grid-item--dragging {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+}
+
+.dark .react-resizable-handle {
+  background: rgb(59 130 246);
+}
+
+/* Анимации для smooth transitions */
+.react-grid-item.react-grid-item--animated {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.react-grid-item.react-grid-item--animated.react-grid-item--dragging {
+  transition: none;
+}
+
+/* Стили для выделения активного элемента */
+.react-grid-item.react-grid-item--active {
+  outline: 2px solid rgb(59 130 246);
+  outline-offset: 2px;
+}
+
+/* Стили для компактного режима */
+.react-grid-layout.compact-vertical .react-grid-item {
+  margin-bottom: 0;
+}
+
+.react-grid-layout.compact-horizontal .react-grid-item {
+  margin-right: 0;
+}
+
+/* Стили для предотвращения коллизий */
+.react-grid-layout.prevent-collision .react-grid-item {
+  z-index: 10;
+}
+
+/* Стили для улучшенного UI */
+.widget-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: all 200ms ease;
+}
+
+.dark .widget-container {
+  background: rgb(31, 41, 55);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.5),
+    0 1px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.widget-container:hover {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dark .widget-container:hover {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.6),
+    0 2px 4px -1px rgba(0, 0, 0, 0.4);
+}
+
+/* Стили для drag handle */
+.drag-handle {
+  cursor: grab;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle:hover {
+  opacity: 0.8;
+}
+
+/* Стили для error состояния */
+.widget-error {
+  border: 2px solid rgb(239, 68, 68);
+  background: rgb(254, 242, 242);
+  border-radius: 8px;
+}
+
+.dark .widget-error {
+  border-color: rgb(185, 28, 28);
+  background: rgb(69, 10, 10);
+}
+
+/* Стили для loading состояния */
+.widget-loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.widget-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border: 2px solid rgb(59 130 246);
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Стили для улучшенной доступности */
+.react-grid-item:focus {
+  outline: 2px solid rgb(59 130 246);
+  outline-offset: 2px;
+}
+
+.react-grid-item:focus-visible {
+  outline: 2px solid rgb(59 130 246);
+  outline-offset: 2px;
+}
+
+/* Стили для печати */
+@media print {
+  .react-grid-layout {
+    position: static !important;
+  }
+
+  .react-grid-item {
+    position: static !important;
+    transform: none !important;
+    page-break-inside: avoid;
+  }
+
+  .react-resizable-handle {
+    display: none !important;
+  }
+}

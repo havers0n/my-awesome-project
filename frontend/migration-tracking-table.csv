@@ -1,0 +1,43 @@
+Component,Layer,Current Location,Target Location,Status,Priority,Estimated Hours,Dependencies,Notes
+Button,Atoms,src/components/atoms/Button/Button.tsx,src/components/atoms/Button/,Partially Ready,High,8,None,Merge all button variants
+Icon,Atoms,src/components/atoms/Icon/Icon.tsx,src/components/atoms/Icon/,Partially Ready,High,12,None,Unify all icon systems
+Typography,Atoms,src/components/atoms/Typography/Typography.tsx,src/components/atoms/Typography/,Partially Ready,High,16,None,Merge all text components
+Badge,Atoms,src/components/atoms/Badge/Badge.tsx,src/components/atoms/Badge/,Partially Ready,High,6,None,Standardize badge variants
+Input,Atoms,src/components/atoms/Input.tsx,src/components/atoms/Input/,Needs Migration,High,20,None,Create unified input component
+Image,Atoms,src/components/atoms/Image/Image.tsx,src/components/atoms/Image/,Partially Ready,Medium,10,None,Add lazy loading and responsive
+Avatar,Atoms,src/components/ui/avatar/Avatar.tsx,src/components/atoms/Avatar/,Needs Migration,Medium,8,Image,Move from UI to atoms
+Checkbox,Atoms,src/components/form/input/Checkbox.tsx,src/components/atoms/Checkbox/,Needs Migration,Medium,6,None,Move from form to atoms
+Radio,Atoms,src/components/form/input/Radio.tsx,src/components/atoms/Radio/,Needs Migration,Medium,6,None,Move from form to atoms
+Toggle,Atoms,src/components/form/switch/Switch.tsx,src/components/atoms/Toggle/,Needs Migration,Medium,8,None,Rename Switch to Toggle
+Spinner,Atoms,Not Found,src/components/atoms/Spinner/,Not Created,Medium,12,None,Create new spinner component
+Divider,Atoms,src/components/common/Separator.tsx,src/components/atoms/Divider/,Needs Migration,Low,4,None,Rename Separator to Divider
+ProductCell,Molecules,src/components/molecules/ProductCell/ProductCell.tsx,src/components/molecules/ProductCell/,Ready,High,12,Image|Text|Badge,Refactor to use atoms
+ActionBar,Molecules,src/components/molecules/ActionBar/ActionBar.tsx,src/components/molecules/ActionBar/,Ready,High,8,Button,Refactor to use atoms
+TableRowItem,Molecules,src/components/molecules/TableRowItem/TableRowItem.tsx,src/components/molecules/TableRowItem/,Ready,High,10,Text|Badge,Refactor to use atoms
+FilterButton,Molecules,src/components/molecules/FilterButton/FilterButton.tsx,src/components/molecules/FilterButton/,Ready,High,6,Button,Refactor to use Button atom
+MetricCard,Molecules,src/components/molecules/MetricCard.tsx,src/components/molecules/MetricCard/,Needs Refactoring,High,14,Text|Badge|Icon,Restructure to folder
+ChartHeader,Molecules,src/components/molecules/ChartHeader.tsx,src/components/molecules/ChartHeader/,Needs Refactoring,Medium,10,Text|Button,Restructure to folder
+ProgressIndicator,Molecules,src/components/molecules/ProgressIndicator.tsx,src/components/molecules/ProgressIndicator/,Needs Refactoring,Medium,12,Text|Divider,Restructure to folder
+SearchBar,Molecules,Not Found,src/components/molecules/SearchBar/,Not Created,Medium,16,Input|Button|Icon,Create new search component
+Dropdown,Molecules,src/components/atoms/Dropdown.tsx,src/components/molecules/Dropdown/,Needs Migration,Medium,18,Button|Icon,Move from atoms to molecules
+Modal,Molecules,src/components/ui/modal/AccessibleModal.tsx,src/components/molecules/Modal/,Needs Migration,Medium,20,Button|Icon,Move from UI to molecules
+Toast,Molecules,src/contexts/ToastContext.tsx,src/components/molecules/Toast/,Not Created,Low,16,Text|Button|Icon,Create component from context
+OrdersTable,Organisms,src/components/organisms/OrdersTable/OrdersTable.tsx,src/components/organisms/OrdersTable/,Ready,High,20,TableRowItem|FilterButton,Refactor to use molecules
+MetricsGrid,Organisms,src/components/organisms/MetricsGrid.tsx,src/components/organisms/MetricsGrid/,Needs Refactoring,High,16,MetricCard,Restructure to folder
+ChartContainer,Organisms,src/components/organisms/ChartContainer.tsx,src/components/organisms/ChartContainer/,Needs Refactoring,Medium,18,ChartHeader|ActionBar,Restructure to folder
+CountryList,Organisms,src/components/organisms/CountryList.tsx,src/components/organisms/CountryList/,Needs Refactoring,Medium,14,SearchBar|ProductCell,Restructure to folder
+ProductTable,Organisms,src/components/organisms/ProductTable.tsx,src/components/organisms/ProductTable/,Needs Refactoring,Medium,22,ProductCell|ActionBar,Restructure to folder
+TargetDisplay,Organisms,src/components/organisms/TargetDisplay.tsx,src/components/organisms/TargetDisplay/,Needs Refactoring,Medium,12,MetricCard|ProgressIndicator,Restructure to folder
+Sidebar,Organisms,src/components/sidebar/NewSidebar.tsx,src/components/organisms/Sidebar/,Needs Migration,High,24,Button|Icon|Text,Move from sidebar to organisms
+Header,Organisms,src/components/header/Header.tsx,src/components/organisms/Header/,Needs Migration,High,20,Button|Icon|Text|Avatar,Move from header to organisms
+DashboardGrid,Organisms,src/features/dashboard/components/DashboardGrid.tsx,src/components/organisms/DashboardGrid/,Needs Migration,High,26,MetricCard|ChartContainer,Move from features to organisms
+DashboardTemplate,Templates,src/components/templates/DashboardTemplate.tsx,src/components/templates/DashboardTemplate/,Partially Ready,Medium,18,Header|Sidebar|DashboardGrid,Refactor to use organisms
+AuthTemplate,Templates,src/pages/AuthPages/AuthPageLayout.tsx,src/components/templates/AuthTemplate/,Needs Migration,Medium,16,Header|Modal,Move from pages to templates
+SettingsTemplate,Templates,Not Found,src/components/templates/SettingsTemplate/,Not Created,Low,20,Header|Sidebar,Create new settings template
+RecentOrdersWidget,Templates,src/components/templates/RecentOrdersWidget/RecentOrdersWidget.tsx,src/components/templates/RecentOrdersWidget/,Ready,Low,12,OrdersTable,Refactor to use organisms
+AnalyticsTemplate,Templates,Not Found,src/components/templates/AnalyticsTemplate/,Not Created,Low,24,Header|MetricsGrid|ChartContainer,Create new analytics template
+Home,Pages,src/pages/Dashboard/Home.tsx,src/pages/Home/,Exists,Medium,14,DashboardTemplate,Refactor to use template
+Login,Pages,src/pages/AuthPages/SignIn.tsx,src/pages/Login/,Exists,Medium,10,AuthTemplate,Refactor to use template
+Products,Pages,Not Found,src/pages/Products/,Not Created,Medium,18,ProductTable|SettingsTemplate,Create new products page
+Orders,Pages,Components exist,src/pages/Orders/,Needs Creation,Medium,16,OrdersTable|SettingsTemplate,Create new orders page
+Analytics,Pages,src/pages/Analytics/,src/pages/Analytics/,Partially Exists,Medium,20,AnalyticsTemplate,Refactor to use template

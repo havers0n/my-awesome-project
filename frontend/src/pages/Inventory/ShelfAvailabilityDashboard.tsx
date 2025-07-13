@@ -10,7 +10,7 @@ import ProductModal from '@/components/dashboard/ProductModal';
 import OutOfStockReporter from '@/components/dashboard/OutOfStockReporter';
 import NotificationsPanel from '@/components/dashboard/NotificationsPanel';
 import QuickActions from '@/components/dashboard/QuickActions';
-import Button from '@/components/ui/button/Button';
+
 import { useModal } from '@/hooks/useModal';
 
 const ShelfAvailabilityDashboard = () => {

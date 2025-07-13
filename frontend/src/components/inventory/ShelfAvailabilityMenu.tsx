@@ -8,8 +8,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { supabase } from '@/services/supabaseClient';
 import { outOfStockService } from '@/services/outOfStockService';
-import Button from '@/components/ui/button/Button';
-import Badge from '@/components/ui/badge/Badge';
+import { Button } from '@/components/atoms/Button';
+import { Badge } from '@/components/atoms/Badge';
 import { ICONS } from '@/helpers/icons';
 
 interface ProductAvailability {
@@ -298,48 +298,32 @@ export default function ShelfAvailabilityMenu({
                 }`}
                 onClick={() => onProductSelect?.(product)}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center">
-                      <span className="text-lg mr-2">{getStatusIcon(product.status)}</span>
-                      <h3 className="text-sm font-medium text-gray-900 truncate">
-                        {product.product_name}
-                      </h3>
-                    </div>
-                    <div className="flex items-center mt-1 text-xs text-gray-500">
-                      <span className="mr-4">📍 {product.shelf_location}</span>
-                      <span className="mr-4">
-                        📦 {product.available_stock}/{product.total_stock}
-                      </span>
-                      {product.reserved_stock > 0 && (
-                        <span className="mr-4">🔒 {product.reserved_stock} зарезервировано</span>
-                      )}
-                    </div>
-                    {product.out_of_stock_hours > 0 && (
-                      <div className="mt-1 text-xs text-red-600">
-                        ⏱️ Отсутствует уже {product.out_of_stock_hours} часов
-                      </div>
-                    )}
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center min-w-0">
+                    <span className="truncate">{product.product_name}</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge
-                      variant="outline"
-                      className={`${getStatusColor(product.status)} text-xs`}
+                  <div className="flex items-center space-x-2 ml-2">
+                    <Badge 
+                      variant={
+                        product.status === 'out_of_stock' ? 'destructive' :
+                        product.status === 'critical' ? 'destructive' :
+                        product.status === 'low_stock' ? 'secondary' : 'default'
+                      } 
+                      className={`text-xs px-2 py-1 ${getStatusColor(product.status)}`}
                     >
                       {getStatusText(product.status)}
                     </Badge>
-                    {onProductSelect && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onProductSelect(product);
-                        }}
-                      >
-                        Выбрать
-                      </Button>
-                    )}
+                    <span className="font-mono text-gray-600 w-16 text-right">
+                      {product.available_stock}/{product.total_stock}
+                    </span>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-xs"
+                      onClick={() => onProductSelect && onProductSelect(product)}
+                    >
+                      Детали
+                    </Button>
                   </div>
                 </div>
               </div>

@@ -1,42 +1,29 @@
 import { useState } from "react";
 import ComponentCard from "../../common/ComponentCard";
-import Radio from "../input/Radio";
+import { RadioGroup } from "@/components/atoms/RadioGroup";
+import { RadioGroupItem } from "@/components/atoms/RadioGroupItem";
+import { Label } from "@/components/atoms/Label";
+
 
 export default function RadioButtons() {
   const [selectedValue, setSelectedValue] = useState<string>("option2");
 
-  const handleRadioChange = (value: string) => {
-    setSelectedValue(value);
-  };
   return (
     <ComponentCard title="Radio Buttons">
-      <div className="flex flex-wrap items-center gap-8">
-        <Radio
-          id="radio1"
-          name="group1"
-          value="option1"
-          checked={selectedValue === "option1"}
-          onChange={handleRadioChange}
-          label="Default"
-        />
-        <Radio
-          id="radio2"
-          name="group1"
-          value="option2"
-          checked={selectedValue === "option2"}
-          onChange={handleRadioChange}
-          label="Selected"
-        />
-        <Radio
-          id="radio3"
-          name="group1"
-          value="option3"
-          checked={selectedValue === "option3"}
-          onChange={handleRadioChange}
-          label="Disabled"
-          disabled={true}
-        />
-      </div>
+      <RadioGroup defaultValue={selectedValue} onValueChange={setSelectedValue} className="flex flex-wrap items-center gap-8">
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="option1" id="radio-demo-1" />
+          <Label htmlFor="radio-demo-1">Default</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="option2" id="radio-demo-2" />
+          <Label htmlFor="radio-demo-2">Selected</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <RadioGroupItem value="option3" id="radio-demo-3" disabled />
+          <Label htmlFor="radio-demo-3">Disabled</Label>
+        </div>
+      </RadioGroup>
     </ComponentCard>
   );
 }

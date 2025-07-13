@@ -1,6 +1,6 @@
 // import { ICONS } from "@/helpers/icons";
 import { Icon } from '../common/Icon';
-import Badge from "../ui/badge/Badge";
+import { Badge } from '@/components/atoms/Badge';
 
 export default function EcommerceMetrics() {
   return (
@@ -20,7 +20,7 @@ export default function EcommerceMetrics() {
               3,782
             </h4>
           </div>
-          <Badge color="success">
+          <Badge variant="default">
             <Icon name="ARROW_UP" size={4} className="inline align-text-bottom" alt="Arrow up icon" />
             11.01%
           </Badge>
@@ -43,7 +43,7 @@ export default function EcommerceMetrics() {
             </h4>
           </div>
 
-          <Badge color="error">
+          <Badge variant="destructive">
             <Icon name="ARROW_DOWN" size={4} className="inline align-text-bottom" alt="Arrow down icon" />
             9.05%
           </Badge>

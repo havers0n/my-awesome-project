@@ -1,0 +1,376 @@
+/**
+ * CSS Variables для дизайн-токенов
+ * 
+ * Эти переменные используются для динамического переключения тем
+ * и обеспечения консистентности дизайна во всем приложении.
+ */
+
+/* ============================================================================
+   ROOT VARIABLES - Основные переменные
+   ============================================================================ */
+
+:root {
+  /* Brand Colors */
+  --color-brand-25: #f2f7ff;
+  --color-brand-50: #ecf3ff;
+  --color-brand-100: #dde9ff;
+  --color-brand-200: #c2d6ff;
+  --color-brand-300: #9cb9ff;
+  --color-brand-400: #7592ff;
+  --color-brand-500: #465fff;
+  --color-brand-600: #3641f5;
+  --color-brand-700: #2a31d8;
+  --color-brand-800: #252dae;
+  --color-brand-900: #262e89;
+  --color-brand-950: #161950;
+
+  /* Neutral Colors */
+  --color-neutral-25: #fcfcfd;
+  --color-neutral-50: #f9fafb;
+  --color-neutral-100: #f2f4f7;
+  --color-neutral-200: #e4e7ec;
+  --color-neutral-300: #d0d5dd;
+  --color-neutral-400: #98a2b3;
+  --color-neutral-500: #667085;
+  --color-neutral-600: #475467;
+  --color-neutral-700: #344054;
+  --color-neutral-800: #1d2939;
+  --color-neutral-900: #101828;
+  --color-neutral-950: #0c111d;
+
+  /* Semantic Colors - Success */
+  --color-success-25: #f6fef9;
+  --color-success-50: #ecfdf3;
+  --color-success-100: #d1fadf;
+  --color-success-200: #a6f4c5;
+  --color-success-300: #6ce9a6;
+  --color-success-400: #32d583;
+  --color-success-500: #12b76a;
+  --color-success-600: #039855;
+  --color-success-700: #027a48;
+  --color-success-800: #05603a;
+  --color-success-900: #054f31;
+  --color-success-950: #053321;
+
+  /* Semantic Colors - Warning */
+  --color-warning-25: #fffcf5;
+  --color-warning-50: #fffaeb;
+  --color-warning-100: #fef0c7;
+  --color-warning-200: #fedf89;
+  --color-warning-300: #fec84b;
+  --color-warning-400: #fdb022;
+  --color-warning-500: #f79009;
+  --color-warning-600: #dc6803;
+  --color-warning-700: #b54708;
+  --color-warning-800: #93370d;
+  --color-warning-900: #7a2e0e;
+  --color-warning-950: #4e1d09;
+
+  /* Semantic Colors - Error */
+  --color-error-25: #fffbfa;
+  --color-error-50: #fef3f2;
+  --color-error-100: #fee4e2;
+  --color-error-200: #fecdca;
+  --color-error-300: #fda29b;
+  --color-error-400: #f97066;
+  --color-error-500: #f04438;
+  --color-error-600: #d92d20;
+  --color-error-700: #b42318;
+  --color-error-800: #912018;
+  --color-error-900: #7a271a;
+  --color-error-950: #55160c;
+
+  /* Semantic Colors - Info */
+  --color-info-25: #f5fbff;
+  --color-info-50: #f0f9ff;
+  --color-info-100: #e0f2fe;
+  --color-info-200: #b9e6fe;
+  --color-info-300: #7cd4fd;
+  --color-info-400: #36bffa;
+  --color-info-500: #0ba5ec;
+  --color-info-600: #0086c9;
+  --color-info-700: #026aa2;
+  --color-info-800: #065986;
+  --color-info-900: #0b4a6f;
+  --color-info-950: #062c41;
+
+  /* Special Colors */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Spacing */
+  --spacing-px: 1px;
+  --spacing-0: 0;
+  --spacing-0-5: 0.125rem;
+  --spacing-1: 0.25rem;
+  --spacing-1-5: 0.375rem;
+  --spacing-2: 0.5rem;
+  --spacing-2-5: 0.625rem;
+  --spacing-3: 0.75rem;
+  --spacing-3-5: 0.875rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-7: 1.75rem;
+  --spacing-8: 2rem;
+  --spacing-9: 2.25rem;
+  --spacing-10: 2.5rem;
+  --spacing-11: 2.75rem;
+  --spacing-12: 3rem;
+  --spacing-14: 3.5rem;
+  --spacing-16: 4rem;
+  --spacing-20: 5rem;
+  --spacing-24: 6rem;
+  --spacing-28: 7rem;
+  --spacing-32: 8rem;
+  --spacing-36: 9rem;
+  --spacing-40: 10rem;
+  --spacing-44: 11rem;
+  --spacing-48: 12rem;
+  --spacing-52: 13rem;
+  --spacing-56: 14rem;
+  --spacing-60: 15rem;
+  --spacing-64: 16rem;
+  --spacing-72: 18rem;
+  --spacing-80: 20rem;
+  --spacing-96: 24rem;
+
+  /* Typography */
+  --font-family-sans: 'Outfit', 'Inter', system-ui, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Menlo', monospace;
+  --font-family-display: 'Outfit', 'Inter', system-ui, sans-serif;
+
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --font-size-5xl: 3rem;
+  --font-size-6xl: 3.75rem;
+  --font-size-7xl: 4.5rem;
+
+  /* Line Heights */
+  --line-height-xs: 1rem;
+  --line-height-sm: 1.25rem;
+  --line-height-base: 1.5rem;
+  --line-height-lg: 1.75rem;
+  --line-height-xl: 1.75rem;
+  --line-height-2xl: 2rem;
+  --line-height-3xl: 2.25rem;
+  --line-height-4xl: 2.5rem;
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* Font Weights */
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+
+  /* Letter Spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+
+  /* Shadows */
+  --shadow-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  --shadow-sm: 0px 1px 3px 0px rgba(16, 24, 40, 0.1), 0px 1px 2px 0px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0px 4px 8px -2px rgba(16, 24, 40, 0.1), 0px 2px 4px -2px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  --shadow-xl: 0px 20px 24px -4px rgba(16, 24, 40, 0.08), 0px 8px 8px -4px rgba(16, 24, 40, 0.03);
+  --shadow-2xl: 0px 25px 50px -12px rgba(16, 24, 40, 0.25);
+  --shadow-inner: inset 0px 2px 4px 0px rgba(16, 24, 40, 0.05);
+  --shadow-focus: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
+  --shadow-error: 0px 0px 0px 4px rgba(240, 68, 56, 0.12);
+  --shadow-success: 0px 0px 0px 4px rgba(18, 183, 106, 0.12);
+
+  /* Border Radius */
+  --border-radius-none: 0;
+  --border-radius-xs: 0.125rem;
+  --border-radius-sm: 0.25rem;
+  --border-radius-base: 0.375rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  --border-radius-xl: 1rem;
+  --border-radius-2xl: 1.5rem;
+  --border-radius-3xl: 2rem;
+  --border-radius-full: 9999px;
+
+  /* Animation Duration */
+  --duration-instant: 0ms;
+  --duration-75: 75ms;
+  --duration-100: 100ms;
+  --duration-150: 150ms;
+  --duration-200: 200ms;
+  --duration-300: 300ms;
+  --duration-500: 500ms;
+  --duration-700: 700ms;
+  --duration-1000: 1000ms;
+
+  /* Animation Easing */
+  --easing-linear: linear;
+  --easing-in: cubic-bezier(0.4, 0, 1, 1);
+  --easing-out: cubic-bezier(0, 0, 0.2, 1);
+  --easing-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --easing-elastic: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* Z-Index */
+  --z-index-hide: -1;
+  --z-index-auto: auto;
+  --z-index-base: 0;
+  --z-index-docked: 10;
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1100;
+  --z-index-banner: 1200;
+  --z-index-overlay: 1300;
+  --z-index-modal: 1400;
+  --z-index-popover: 1500;
+  --z-index-skip-link: 1600;
+  --z-index-toast: 1700;
+  --z-index-tooltip: 1800;
+}
+
+/* ============================================================================
+   DARK THEME - Темная тема
+   ============================================================================ */
+
+.dark,
+[data-theme='dark'] {
+  /* Override colors for dark theme */
+  --color-neutral-25: #0c111d;
+  --color-neutral-50: #101828;
+  --color-neutral-100: #1d2939;
+  --color-neutral-200: #344054;
+  --color-neutral-300: #475467;
+  --color-neutral-400: #667085;
+  --color-neutral-500: #98a2b3;
+  --color-neutral-600: #d0d5dd;
+  --color-neutral-700: #e4e7ec;
+  --color-neutral-800: #f2f4f7;
+  --color-neutral-900: #f9fafb;
+  --color-neutral-950: #fcfcfd;
+
+  /* Adjust shadows for dark theme */
+  --shadow-xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.12);
+  --shadow-sm: 0px 1px 3px 0px rgba(0, 0, 0, 0.2), 0px 1px 2px 0px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0px 4px 8px -2px rgba(0, 0, 0, 0.2), 0px 2px 4px -2px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0px 12px 16px -4px rgba(0, 0, 0, 0.15), 0px 4px 6px -2px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0px 20px 24px -4px rgba(0, 0, 0, 0.15), 0px 8px 8px -4px rgba(0, 0, 0, 0.08);
+  --shadow-2xl: 0px 25px 50px -12px rgba(0, 0, 0, 0.35);
+  --shadow-inner: inset 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================================================
+   HIGH CONTRAST THEME - Высококонтрастная тема
+   ============================================================================ */
+
+.high-contrast,
+[data-theme='high-contrast'] {
+  /* High contrast color overrides */
+  --color-brand-500: #0066ff;
+  --color-neutral-900: #000000;
+  --color-neutral-50: #ffffff;
+  --color-success-500: #00cc00;
+  --color-error-500: #ff0000;
+  --color-warning-500: #ffcc00;
+}
+
+/* ============================================================================
+   REDUCED MOTION - Уменьшенная анимация
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-75: 0ms;
+    --duration-100: 0ms;
+    --duration-150: 0ms;
+    --duration-200: 0ms;
+    --duration-300: 0ms;
+    --duration-500: 0ms;
+    --duration-700: 0ms;
+    --duration-1000: 0ms;
+  }
+}
+
+/* ============================================================================
+   SEMANTIC ALIASES - Семантические псевдонимы
+   ============================================================================ */
+
+:root {
+  /* Text colors */
+  --text-primary: var(--color-neutral-900);
+  --text-secondary: var(--color-neutral-600);
+  --text-tertiary: var(--color-neutral-500);
+  --text-quaternary: var(--color-neutral-400);
+  --text-on-brand: var(--color-white);
+  --text-brand: var(--color-brand-500);
+  --text-success: var(--color-success-600);
+  --text-warning: var(--color-warning-600);
+  --text-error: var(--color-error-600);
+  --text-info: var(--color-info-600);
+
+  /* Background colors */
+  --bg-primary: var(--color-white);
+  --bg-secondary: var(--color-neutral-50);
+  --bg-tertiary: var(--color-neutral-100);
+  --bg-brand: var(--color-brand-500);
+  --bg-success: var(--color-success-50);
+  --bg-warning: var(--color-warning-50);
+  --bg-error: var(--color-error-50);
+  --bg-info: var(--color-info-50);
+
+  /* Border colors */
+  --border-primary: var(--color-neutral-200);
+  --border-secondary: var(--color-neutral-300);
+  --border-brand: var(--color-brand-500);
+  --border-success: var(--color-success-300);
+  --border-warning: var(--color-warning-300);
+  --border-error: var(--color-error-300);
+  --border-info: var(--color-info-300);
+
+  /* Interactive colors */
+  --interactive-primary: var(--color-brand-500);
+  --interactive-primary-hover: var(--color-brand-600);
+  --interactive-primary-active: var(--color-brand-700);
+  --interactive-secondary: var(--color-neutral-100);
+  --interactive-secondary-hover: var(--color-neutral-200);
+  --interactive-secondary-active: var(--color-neutral-300);
+}
+
+.dark,
+[data-theme='dark'] {
+  /* Text colors for dark theme */
+  --text-primary: var(--color-neutral-50);
+  --text-secondary: var(--color-neutral-300);
+  --text-tertiary: var(--color-neutral-400);
+  --text-quaternary: var(--color-neutral-500);
+
+  /* Background colors for dark theme */
+  --bg-primary: var(--color-neutral-900);
+  --bg-secondary: var(--color-neutral-800);
+  --bg-tertiary: var(--color-neutral-700);
+
+  /* Interactive colors for dark theme */
+  --interactive-secondary: var(--color-neutral-800);
+  --interactive-secondary-hover: var(--color-neutral-700);
+  --interactive-secondary-active: var(--color-neutral-600);
+}
