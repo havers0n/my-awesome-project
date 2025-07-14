@@ -1,7 +1,11 @@
 import './setup.integration';
 import { seedTestData } from '../seeds/test/seed';
 import supertest from 'supertest';
-import { app } from '../app';
+import { PrismaClient } from '@prisma/client';
+import { execSync } from 'child_process';
+import app from '../app';
+
+const prisma = new PrismaClient();
 
 export const request = supertest(app);
 

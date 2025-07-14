@@ -5,6 +5,25 @@ import { getSupabaseUserClient } from '../supabaseUserClient';
 // Mock Supabase client
 jest.mock('../supabaseUserClient');
 
+interface MockOperation {
+  id?: number;
+  operation_date?: string | null;
+  operation_type?: 'sale' | 'purchase';
+  quantity?: number | null;
+  amount?: number;
+  price?: number | null;
+  products?: { id: number; name: string; code: string; } | null;
+  locations?: { id: number; address: string; } | null;
+  out_of_stock?: boolean | null;
+  shelf_price?: number | null;
+  store_hours?: number | null;
+  store_stock?: number | null;
+  total_amount?: number;
+  cost_price?: number;
+  product_id?: number;
+  location_id?: number;
+}
+
 describe('mlPayloadFormatter', () => {
   let mockSupabase: any;
   
@@ -27,7 +46,7 @@ describe('mlPayloadFormatter', () => {
   describe('createMlPayload', () => {
     it('should format date to YYYY-MM-DD format', async () => {
       // Mock данные с полной датой
-      const mockOperationsData = [
+      const mockOperationsData: MockOperation[] = [
         {
           id: 1,
           operation_date: '2024-01-15T10:30:00.000Z', // Полная дата с временем
@@ -58,7 +77,7 @@ describe('mlPayloadFormatter', () => {
 
     it('should round quantity to integer', async () => {
       // Mock данные с дробным количеством
-      const mockOperationsData = [
+      const mockOperationsData: MockOperation[] = [
         {
           id: 1,
           operation_date: '2024-01-15T10:30:00.000Z',
@@ -105,7 +124,7 @@ describe('mlPayloadFormatter', () => {
 
     it('should not add price field for sale operations', async () => {
       // Mock данные с операцией продажи
-      const mockOperationsData = [
+      const mockOperationsData: MockOperation[] = [
         {
           id: 1,
           operation_date: '2024-01-15T10:30:00.000Z',
@@ -136,7 +155,7 @@ describe('mlPayloadFormatter', () => {
 
     it('should add price field for purchase operations', async () => {
       // Mock данные с операцией поставки
-      const mockOperationsData = [
+      const mockOperationsData: MockOperation[] = [
         {
           id: 1,
           operation_date: '2024-01-15T10:30:00.000Z',
@@ -164,7 +183,7 @@ describe('mlPayloadFormatter', () => {
 
     it('should handle null/undefined values correctly', async () => {
       // Mock данные с null/undefined значениями
-      const mockOperationsData = [
+      const mockOperationsData: MockOperation[] = [
         {
           id: 1,
           operation_date: null, // Нет даты
@@ -197,7 +216,7 @@ describe('mlPayloadFormatter', () => {
     });
 
     it('should include DaysCount in the first element', async () => {
-      const mockOperationsData = [];
+      const mockOperationsData: MockOperation[] = [];
 
       mockSupabase.order.mockResolvedValue({
         data: mockOperationsData,

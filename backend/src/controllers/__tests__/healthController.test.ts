@@ -156,6 +156,5 @@ describe('HealthController', () => {
         message: 'Backend service is running'
       });
     });
-    });
   });
 });

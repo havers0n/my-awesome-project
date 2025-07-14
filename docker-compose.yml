@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   backend:
     build: ./backend
@@ -44,7 +42,7 @@ services:
       driver: local
 
   ml-service:
-    build: ./ml
+    build: ./ML
     ports:
       - "5678:5678"
     env_file:
@@ -74,7 +72,7 @@ services:
     build: ./db
     restart: always
     ports:
-      - "5432:5432"
+      - "5433:5432"
     env_file:
       - .env
     environment:
@@ -90,7 +88,7 @@ services:
     image: redis:7-alpine
     restart: always
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes

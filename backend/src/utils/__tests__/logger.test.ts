@@ -6,14 +6,17 @@ jest.mock('fs');
 
 const mockFs = fs as jest.Mocked<typeof fs>;
 const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+let consoleLogSpy: jest.SpyInstance;
 
 describe('Logger Utilities', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
   });
 
   afterAll(() => {
     consoleErrorSpy.mockRestore();
+    consoleLogSpy.mockRestore();
   });
 
   beforeEach(() => {

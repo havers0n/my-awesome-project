@@ -19,7 +19,7 @@ describe('ForecastController - Basic Tests', () => {
     mockReq = {
       headers: { authorization: 'Bearer test-token' },
       body: { DaysCount: 7 },
-      user: { id: 'test-user-id', email: 'test@example.com', organization_id: 1 }
+      user: { id: 'test-user-id', email: 'test@example.com', organization_id: 1, authType: 'supabase', location_id: 1 }
     };
     
     mockRes = {
@@ -95,7 +95,7 @@ describe('ForecastController - Basic Tests', () => {
 
     it('should return mock data when USE_MOCK_ML is true', async () => {
       process.env.USE_MOCK_ML = 'true';
-      mockReq.user = { id: 'test-user', email: 'test@example.com', organization_id: 1 };
+      mockReq.user = { id: 'test-user', email: 'test@example.com', organization_id: 1, authType: 'supabase', location_id: 1 };
 
       await getForecastData(mockReq as Request, mockRes as Response);
 
