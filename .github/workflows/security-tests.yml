@@ -1,0 +1,157 @@
+name: Security Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  security-tests:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd backend
+        npm ci
+    
+    - name: Run npm audit
+      run: |
+        cd backend
+        npm audit --production --audit-level=moderate
+        npm audit --json > security-audit.json
+      continue-on-error: true
+    
+    - name: Upload npm audit results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: npm-audit-results
+        path: backend/security-audit.json
+    
+    - name: Run security tests
+      run: |
+        cd backend
+        npm test -- src/__tests__/security/ --coverage --coverageDirectory=./coverage/security
+      env:
+        NODE_ENV: test
+        JWT_SECRET: ${{ secrets.TEST_JWT_SECRET }}
+        DATABASE_URL: sqlite::memory:
+    
+    - name: Upload test coverage
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-coverage
+        path: backend/coverage/security
+    
+    - name: Install OWASP ZAP
+      run: |
+        wget -q https://github.com/zaproxy/zaproxy/releases/download/v2.14.0/ZAP_2.14.0_Linux.tar.gz
+        tar -xzf ZAP_2.14.0_Linux.tar.gz
+        rm ZAP_2.14.0_Linux.tar.gz
+    
+    - name: Start application for scanning
+      run: |
+        cd backend
+        npm start &
+        sleep 30
+      env:
+        NODE_ENV: test
+        PORT: 3000
+        DATABASE_URL: sqlite::memory:
+        JWT_SECRET: ${{ secrets.TEST_JWT_SECRET }}
+    
+    - name: Run OWASP ZAP scan
+      run: |
+        cd backend
+        ../ZAP_2.14.0/zap.sh -cmd -autorun src/__tests__/security/zap-config.yaml || true
+    
+    - name: Upload ZAP results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: zap-scan-results
+        path: backend/security-reports/
+    
+    - name: Check for high severity vulnerabilities
+      run: |
+        cd backend
+        # Check npm audit for high/critical vulnerabilities
+        HIGH_VULNS=$(npm audit --json | jq '.metadata.vulnerabilities.high // 0')
+        CRITICAL_VULNS=$(npm audit --json | jq '.metadata.vulnerabilities.critical // 0')
+        
+        if [ "$HIGH_VULNS" -gt 0 ] || [ "$CRITICAL_VULNS" -gt 0 ]; then
+          echo "Found $HIGH_VULNS high and $CRITICAL_VULNS critical vulnerabilities"
+          exit 1
+        fi
+    
+    - name: Comment PR with results
+      uses: actions/github-script@v6
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const fs = require('fs');
+          const auditResults = JSON.parse(fs.readFileSync('backend/security-audit.json', 'utf8'));
+          
+          const comment = `## Security Test Results
+          
+          ### NPM Audit
+          - Total vulnerabilities: ${auditResults.metadata.vulnerabilities.total || 0}
+          - Critical: ${auditResults.metadata.vulnerabilities.critical || 0}
+          - High: ${auditResults.metadata.vulnerabilities.high || 0}
+          - Moderate: ${auditResults.metadata.vulnerabilities.moderate || 0}
+          - Low: ${auditResults.metadata.vulnerabilities.low || 0}
+          
+          ### Test Coverage
+          Check the artifacts for detailed security test coverage.
+          
+          ### OWASP ZAP Scan
+          Automated security scan completed. Check artifacts for detailed report.
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  dependency-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run OWASP Dependency Check
+      uses: dependency-check/Dependency-Check_Action@main
+      with:
+        project: 'backend'
+        path: './backend'
+        format: 'HTML'
+        args: >
+          --enableRetired
+          --enableExperimental
+    
+    - name: Upload dependency check results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: dependency-check-report
+        path: reports/

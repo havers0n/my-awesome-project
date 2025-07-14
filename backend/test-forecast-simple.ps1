@@ -1,0 +1,10 @@
+# Simple test for forecast API
+$token = "eyJhbGciOiJIUzI1NiIsImtpZCI6IjZqeGVNTzVvSnpuV3VOdkMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3V4Y3N6aXlsbXlvZ3ZjcXl5dWl3LnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI5NzIwMDdmNS0zMDVmLTQ5Y2EtYTM1MS1lYTU1MjBhMDk4MmMiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzUyMTgwNTIyLCJpYXQiOjE3NTIxNzY5MjIsImVtYWlsIjoiZGFueXBldHJvdjIwMDJAZ21haWwuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZnVsbF9uYW1lIjoiZGFuaWVsIGhhdmVyc29uIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3NTE1NjQyODN9XSwic2Vzc2lvbl9pZCI6IjJkMDk5ZDQ1LWJjZTQtNGYwZS1hOTNmLTliN2VhOTc5ZTAxNiIsImlzX2Fub255bW91cyI6ZmFsc2V9.TwGh74UjMW4pUxYkUNd8okZBm7ITfQqIKpwm1GnrH1M"
+
+# Test the actual predict endpoint
+Write-Host "Testing /api/predictions/predict endpoint..." -ForegroundColor Cyan
+$body = '{"DaysCount":7}'
+$response = Invoke-RestMethod -Uri "http://localhost:3000/api/predictions/predict" -Method POST -Body $body -ContentType "application/json" -Headers @{"Authorization"="Bearer $token"} -ErrorAction Stop
+
+Write-Host "Success! Response:" -ForegroundColor Green
+$response | ConvertTo-Json -Depth 10

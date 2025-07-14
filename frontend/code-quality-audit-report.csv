@@ -1,0 +1,46 @@
+File,Rule/Issue,Severity,Category,Description,Fix Suggestion,Line Number
+src/App.tsx,console.log in production,Medium,Stylistic,"Console.log statements left in production code","Replace with proper logging service or remove",38
+src/App.tsx,Missing dependency in useEffect,High,Critical,"navigate dependency missing from useEffect dependency array","Add navigate to dependency array: [navigate]",48
+src/context/AuthContext.tsx,Use of any type,High,Critical,"Promise<any> return types reduce type safety","Define specific return types for auth functions",19-23
+src/context/AuthContext.tsx,Non-null assertion operator,Medium,Critical,"Using ! operator without proper null checks","Add proper null checks before accessing properties",109
+src/context/AuthContext.tsx,console.log in production,Medium,Stylistic,"Console.log statements left in production code","Replace with proper logging service or remove",56
+src/context/SidebarContext.tsx,Direct DOM access,High,Critical,"Direct access to window.innerWidth in useEffect","Use window resize observer or custom hook",38
+src/context/SidebarContext.tsx,addEventListener without cleanup,Medium,Critical,"Event listener added but cleanup might fail","Ensure proper cleanup in useEffect return",46-50
+src/context/ThemeContext.tsx,Direct DOM manipulation,High,Critical,"Direct manipulation of document.documentElement.classList","Use CSS variables or Tailwind's class toggling",34-36
+src/context/ThemeContext.tsx,Direct localStorage access,Medium,Critical,"Direct localStorage access without error handling","Wrap localStorage calls in try-catch blocks",23-32
+src/components/ui/modal/index.tsx,Direct DOM manipulation,High,Critical,"Direct manipulation of document.body.style","Use CSS classes or portal for body scroll control",40-46
+src/components/ui/modal/index.tsx,addEventListener in useEffect,Medium,Critical,"Event listener setup without proper dependency tracking","Add onClose to dependency array",30-36
+src/layout/AppSidebar.tsx,Non-memoized inline functions,Medium,Performance,"Inline functions in map operations cause re-renders","Use useCallback for handleSubmenuToggle function",166
+src/layout/AppSidebar.tsx,Complex conditional rendering,Medium,Stylistic,"Complex nested conditional rendering logic","Extract into separate component functions",186-220
+src/layout/AppSidebar.tsx,Hardcoded icon paths,Low,Stylistic,"Hardcoded image sources scattered throughout","Centralize icon paths in constants file",16-363
+src/components/form/MultiSelect.tsx,Non-memoized inline functions,Medium,Performance,"Inline arrow functions in onClick handlers","Use useCallback for click handlers",71-73
+src/components/form/MultiSelect.tsx,State mutation potential,Medium,Critical,"Direct array manipulation in selectedOptions","Use immutable update patterns",33-44
+src/components/auth/SignInForm.tsx,Use of any in catch block,High,Critical,"Catch block uses any type reducing error handling safety","Define specific error types",29
+src/components/auth/SignInForm.tsx,Non-memoized inline functions,Medium,Performance,"Inline functions in event handlers","Use useCallback for form handlers",80-96
+src/pages/SalesForecastPage.tsx,Hardcoded color values,Medium,Anti-pattern,"Hardcoded color values instead of design tokens","Use Tailwind color classes or CSS custom properties",79-84
+src/pages/SalesForecastPage.tsx,Direct Chart.js DOM manipulation,High,Critical,"Direct canvas manipulation through Chart.js","Consider using React Chart.js wrapper",97-117
+src/pages/SalesForecastPage.tsx,Use of any in Chart callback,High,Critical,"Chart tooltip callback uses any type","Define proper Chart.js callback types",97
+src/pages/SalesForecastPage.tsx,Non-memoized expensive operations,Medium,Performance,"Chart recreation on every render","Memoize chart configuration and data",66-134
+src/components/ecommerce/CountryMap.tsx,Hardcoded color values,Medium,Anti-pattern,"Multiple hardcoded color values #465FFF","Create color constants or use design tokens",17-75
+src/components/ecommerce/CountryMap.tsx,Use of any type assertion,Medium,Critical,"Type assertion bypasses TypeScript checks","Define proper VectorMap style types",19
+src/components/charts/line/LineChartOne.tsx,Hardcoded color values,Medium,Anti-pattern,"Hardcoded color array ['#465FFF', '#9CB9FF']","Use design system color tokens",11
+src/components/charts/line/LineChartOne.tsx,Hardcoded configuration,Low,Stylistic,"Chart configuration hardcoded in component","Extract chart options to separate config",5-101
+src/components/charts/LineChart.tsx,Commented out code,Low,Unused Code,"Large block of commented Recharts code","Remove commented code or implement feature",14-22
+src/components/form/form-elements/DropZone.tsx,Hardcoded file types,Low,Stylistic,"File type restrictions hardcoded","Move to configuration constant",13-18
+src/components/form/form-elements/DropZone.tsx,console.log in production,Medium,Stylistic,"Console.log in file drop handler","Replace with proper file handling logic",7
+src/components/common/Icon.tsx,console.warn in production,Medium,Stylistic,"Console.warn for missing icons","Use proper error reporting service",15
+src/components/common/Icon.tsx,Dynamic className construction,Low,Performance,"String concatenation for Tailwind classes","Use clsx or cn utility function",26
+src/services/outOfStockService.ts,Use of any type,High,Critical,"API response types use any","Define specific API response interfaces",70-71
+src/hooks/useSalesForecast.ts,Missing error handling,Medium,Critical,"API calls without proper error boundaries","Add try-catch blocks and error states",34-35
+src/constants.ts,Hardcoded mock data,Low,Maintenance,"Large mock data objects in constants","Move to separate data files or API",58-129
+src/main.tsx,Missing error boundary,High,Critical,"No error boundary around App component","Wrap App in error boundary component",12
+eslint.config.js,Empty ESLint configuration,High,Critical,"ESLint configuration is empty","Configure ESLint rules for React/TypeScript",1
+Global,Missing TypeScript strict mode,Medium,Critical,"noUnusedLocals/Parameters not preventing unused vars","Enable additional TypeScript strict checks",N/A
+Global,No code formatting rules,Medium,Stylistic,"No Prettier or formatting rules configured","Set up Prettier integration with ESLint",N/A
+Global,Missing import sorting,Low,Stylistic,"Imports not consistently organized","Configure import sorting rules",N/A
+Global,Inconsistent error handling,Medium,Critical,"No centralized error handling pattern","Implement global error handling service",N/A
+Global,Missing accessibility audit,Medium,Accessibility,"No accessibility rules configured","Add eslint-plugin-jsx-a11y",N/A
+Global,No performance monitoring,Low,Performance,"No React performance rules","Add react-hooks exhaustive-deps rules",N/A
+Global,Missing security headers,Medium,Security,"No security-related ESLint rules","Add security-focused ESLint plugins",N/A
+Global,Tailwind class optimization,Low,Performance,"No PurgeCSS or class optimization","Configure Tailwind purging for production",N/A
+Global,Bundle size monitoring,Low,Performance,"No bundle analysis configured","Add bundle analyzer for size monitoring",N/A

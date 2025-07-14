@@ -1,0 +1,120 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - ML_SERVICE_URL=http://ml-service:5678/forecast
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+    extra_hosts:
+      - "db.uxcsziylmyogvcqyyuiw.supabase.co:65.9.91.24"
+    depends_on:
+      - db
+      - ml-service
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health/simple"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: local
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./frontend/.env
+    environment:
+      - VITE_API_BASE_URL=http://backend:3000
+      - VITE_ML_SERVICE_URL=http://ml-service:5678/forecast
+    depends_on:
+      - backend
+      - ml-service
+    networks:
+      - app-network
+    logging:
+      driver: local
+
+  ml-service:
+    build: ./ML
+    ports:
+      - "5678:5678"
+    env_file:
+      - .env
+    environment:
+      - ML_PORT=5678
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./ml/models:/app/models
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5678/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: local
+
+  db:
+    build: ./db
+    restart: always
+    ports:
+      - "5433:5432"
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    logging:
+      driver: local
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    logging:
+      driver: local
+
+  worker:
+    build: ./backend
+    command: ["npm", "run", "worker"]
+    env_file:
+      - .env
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+      - SUPABASE_URL=https://uxcsziylmyogvcqyyuiw.supabase.co
+      - SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4Y3N6aXlsbXlvZ3ZjcXl5dWl3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTYyNDE0NSwiZXhwIjoyMDY1MjAwMTQ1fQ.wVMJpIWKY32ialHsv8ns8R8bMfv-IpAJ2j69bQQecpg
+    depends_on:
+      - backend
+      - db
+    networks:
+      - app-network
+
+volumes:
+  db_data:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge

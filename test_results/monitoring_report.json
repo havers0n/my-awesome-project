@@ -1,0 +1,467 @@
+{
+  "monitoring_duration": 36.06026649475098,
+  "total_log_entries": 1474,
+  "error_counts": {
+    "backend": 47,
+    "frontend": 0,
+    "ml-service": 18,
+    "db": 0,
+    "worker": 5
+  },
+  "warning_counts": {
+    "backend": 1,
+    "frontend": 1,
+    "ml-service": 52,
+    "db": 1,
+    "worker": 1
+  },
+  "critical_errors": [
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | /app/api_main.py:137: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | {\"text\": \"2025-07-09 10:53:40.355 | ERROR    | error_handler:wrapper:56 - РћС€РёР±РєР° РѕР±СЂР°Р±РѕС‚РєРё РґР°РЅРЅС‹С…: РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: y contains previously unseen labels: 'laptop'\\n\", \"record\": {\"elapsed\": {\"repr\": \"0:07:51.275646\", \"seconds\": 471.275646}, \"exception\": null, \"extra\": {}, \"file\": {\"name\": \"error_handler.py\", \"path\": \"/app/error_handler.py\"}, \"function\": \"wrapper\", \"level\": {\"icon\": \"вќЊ\", \"name\": \"ERROR\", \"no\": 40}, \"line\": 56, \"message\": \"РћС€РёР±РєР° РѕР±СЂР°Р±РѕС‚РєРё РґР°РЅРЅС‹С…: РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: y contains previously unseen labels: 'laptop'\", \"module\": \"error_handler\", \"name\": \"error_handler\", \"process\": {\"id\": 1, \"name\": \"MainProcess\"}, \"thread\": {\"id\": 140314663492480, \"name\": \"MainThread\"}, \"time\": {\"repr\": \"2025-07-09 10:53:40.355631+00:00\", \"timestamp\": 1752058420.355631}}}",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | {\"text\": \"2025-07-09 10:53:40.357 | DEBUG    | error_handler:wrapper:57 - Traceback (most recent call last):\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 235, in _encode\\n    return _map_to_integer(values, uniques)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 174, in _map_to_integer\\n    return xp.asarray([table[v] for v in values], device=device(values))\\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 174, in <listcomp>\\n    return xp.asarray([table[v] for v in values], device=device(values))\\n                       ~~~~~^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 167, in __missing__\\n    raise KeyError(key)\\nKeyError: 'laptop'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/app/api_main.py\\\", line 150, in forecast\\n    latest[\\\"ItemEnc\\\"] = encoder.transform(latest[\\\"РќРѕРјРµРЅРєР»Р°С‚СѓСЂР°\\\"])\\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/preprocessing/_label.py\\\", line 134, in transform\\n    return _encode(y, uniques=self.classes_)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 237, in _encode\\n    raise ValueError(f\\\"y contains previously unseen labels: {e}\\\")\\nValueError: y contains previously unseen labels: 'laptop'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/app/error_handler.py\\\", line 47, in wrapper\\n    return await func(*args, **kwargs)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/app/api_main.py\\\", line 153, in forecast\\n    raise DataProcessingError(f\\\"РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: {str(e)}\\\")\\nerror_handler.DataProcessingError: РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: y contains previously unseen labels: 'laptop'\\n\\n\", \"record\": {\"elapsed\": {\"repr\": \"0:07:51.277558\", \"seconds\": 471.277558}, \"exception\": null, \"extra\": {}, \"file\": {\"name\": \"error_handler.py\", \"path\": \"/app/error_handler.py\"}, \"function\": \"wrapper\", \"level\": {\"icon\": \"рџђћ\", \"name\": \"DEBUG\", \"no\": 10}, \"line\": 57, \"message\": \"Traceback (most recent call last):\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 235, in _encode\\n    return _map_to_integer(values, uniques)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 174, in _map_to_integer\\n    return xp.asarray([table[v] for v in values], device=device(values))\\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 174, in <listcomp>\\n    return xp.asarray([table[v] for v in values], device=device(values))\\n                       ~~~~~^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 167, in __missing__\\n    raise KeyError(key)\\nKeyError: 'laptop'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/app/api_main.py\\\", line 150, in forecast\\n    latest[\\\"ItemEnc\\\"] = encoder.transform(latest[\\\"РќРѕРјРµРЅРєР»Р°С‚СѓСЂР°\\\"])\\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/preprocessing/_label.py\\\", line 134, in transform\\n    return _encode(y, uniques=self.classes_)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 237, in _encode\\n    raise ValueError(f\\\"y contains previously unseen labels: {e}\\\")\\nValueError: y contains previously unseen labels: 'laptop'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/app/error_handler.py\\\", line 47, in wrapper\\n    return await func(*args, **kwargs)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/app/api_main.py\\\", line 153, in forecast\\n    raise DataProcessingError(f\\\"РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: {str(e)}\\\")\\nerror_handler.DataProcessingError: РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: y contains previously unseen labels: 'laptop'\\n\", \"module\": \"error_handler\", \"name\": \"error_handler\", \"process\": {\"id\": 1, \"name\": \"MainProcess\"}, \"thread\": {\"id\": 140314663492480, \"name\": \"MainThread\"}, \"time\": {\"repr\": \"2025-07-09 10:53:40.357543+00:00\", \"timestamp\": 1752058420.357543}}}",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | /app/api_main.py:137: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | {\"text\": \"2025-07-09 10:53:40.381 | ERROR    | error_handler:wrapper:56 - РћС€РёР±РєР° РѕР±СЂР°Р±РѕС‚РєРё РґР°РЅРЅС‹С…: РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: y contains previously unseen labels: 'laptop'\\n\", \"record\": {\"elapsed\": {\"repr\": \"0:07:51.301964\", \"seconds\": 471.301964}, \"exception\": null, \"extra\": {}, \"file\": {\"name\": \"error_handler.py\", \"path\": \"/app/error_handler.py\"}, \"function\": \"wrapper\", \"level\": {\"icon\": \"вќЊ\", \"name\": \"ERROR\", \"no\": 40}, \"line\": 56, \"message\": \"РћС€РёР±РєР° РѕР±СЂР°Р±РѕС‚РєРё РґР°РЅРЅС‹С…: РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: y contains previously unseen labels: 'laptop'\", \"module\": \"error_handler\", \"name\": \"error_handler\", \"process\": {\"id\": 1, \"name\": \"MainProcess\"}, \"thread\": {\"id\": 140314663492480, \"name\": \"MainThread\"}, \"time\": {\"repr\": \"2025-07-09 10:53:40.381949+00:00\", \"timestamp\": 1752058420.381949}}}",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | {\"text\": \"2025-07-09 10:53:40.382 | DEBUG    | error_handler:wrapper:57 - Traceback (most recent call last):\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 235, in _encode\\n    return _map_to_integer(values, uniques)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 174, in _map_to_integer\\n    return xp.asarray([table[v] for v in values], device=device(values))\\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 174, in <listcomp>\\n    return xp.asarray([table[v] for v in values], device=device(values))\\n                       ~~~~~^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 167, in __missing__\\n    raise KeyError(key)\\nKeyError: 'laptop'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/app/api_main.py\\\", line 150, in forecast\\n    latest[\\\"ItemEnc\\\"] = encoder.transform(latest[\\\"РќРѕРјРµРЅРєР»Р°С‚СѓСЂР°\\\"])\\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/preprocessing/_label.py\\\", line 134, in transform\\n    return _encode(y, uniques=self.classes_)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 237, in _encode\\n    raise ValueError(f\\\"y contains previously unseen labels: {e}\\\")\\nValueError: y contains previously unseen labels: 'laptop'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/app/error_handler.py\\\", line 47, in wrapper\\n    return await func(*args, **kwargs)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/app/api_main.py\\\", line 153, in forecast\\n    raise DataProcessingError(f\\\"РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: {str(e)}\\\")\\nerror_handler.DataProcessingError: РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: y contains previously unseen labels: 'laptop'\\n\\n\", \"record\": {\"elapsed\": {\"repr\": \"0:07:51.302765\", \"seconds\": 471.302765}, \"exception\": null, \"extra\": {}, \"file\": {\"name\": \"error_handler.py\", \"path\": \"/app/error_handler.py\"}, \"function\": \"wrapper\", \"level\": {\"icon\": \"рџђћ\", \"name\": \"DEBUG\", \"no\": 10}, \"line\": 57, \"message\": \"Traceback (most recent call last):\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 235, in _encode\\n    return _map_to_integer(values, uniques)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 174, in _map_to_integer\\n    return xp.asarray([table[v] for v in values], device=device(values))\\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 174, in <listcomp>\\n    return xp.asarray([table[v] for v in values], device=device(values))\\n                       ~~~~~^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 167, in __missing__\\n    raise KeyError(key)\\nKeyError: 'laptop'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/app/api_main.py\\\", line 150, in forecast\\n    latest[\\\"ItemEnc\\\"] = encoder.transform(latest[\\\"РќРѕРјРµРЅРєР»Р°С‚СѓСЂР°\\\"])\\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/preprocessing/_label.py\\\", line 134, in transform\\n    return _encode(y, uniques=self.classes_)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 237, in _encode\\n    raise ValueError(f\\\"y contains previously unseen labels: {e}\\\")\\nValueError: y contains previously unseen labels: 'laptop'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/app/error_handler.py\\\", line 47, in wrapper\\n    return await func(*args, **kwargs)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/app/api_main.py\\\", line 153, in forecast\\n    raise DataProcessingError(f\\\"РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: {str(e)}\\\")\\nerror_handler.DataProcessingError: РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: y contains previously unseen labels: 'laptop'\\n\", \"module\": \"error_handler\", \"name\": \"error_handler\", \"process\": {\"id\": 1, \"name\": \"MainProcess\"}, \"thread\": {\"id\": 140314663492480, \"name\": \"MainThread\"}, \"time\": {\"repr\": \"2025-07-09 10:53:40.382750+00:00\", \"timestamp\": 1752058420.38275}}}",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | /app/api_main.py:137: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | {\"text\": \"2025-07-09 10:53:40.509 | ERROR    | error_handler:wrapper:56 - РћС€РёР±РєР° РѕР±СЂР°Р±РѕС‚РєРё РґР°РЅРЅС‹С…: РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: y contains previously unseen labels: 'laptop'\\n\", \"record\": {\"elapsed\": {\"repr\": \"0:07:51.429255\", \"seconds\": 471.429255}, \"exception\": null, \"extra\": {}, \"file\": {\"name\": \"error_handler.py\", \"path\": \"/app/error_handler.py\"}, \"function\": \"wrapper\", \"level\": {\"icon\": \"вќЊ\", \"name\": \"ERROR\", \"no\": 40}, \"line\": 56, \"message\": \"РћС€РёР±РєР° РѕР±СЂР°Р±РѕС‚РєРё РґР°РЅРЅС‹С…: РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: y contains previously unseen labels: 'laptop'\", \"module\": \"error_handler\", \"name\": \"error_handler\", \"process\": {\"id\": 1, \"name\": \"MainProcess\"}, \"thread\": {\"id\": 140314663492480, \"name\": \"MainThread\"}, \"time\": {\"repr\": \"2025-07-09 10:53:40.509240+00:00\", \"timestamp\": 1752058420.50924}}}",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | {\"text\": \"2025-07-09 10:53:40.510 | DEBUG    | error_handler:wrapper:57 - Traceback (most recent call last):\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 235, in _encode\\n    return _map_to_integer(values, uniques)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 174, in _map_to_integer\\n    return xp.asarray([table[v] for v in values], device=device(values))\\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 174, in <listcomp>\\n    return xp.asarray([table[v] for v in values], device=device(values))\\n                       ~~~~~^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 167, in __missing__\\n    raise KeyError(key)\\nKeyError: 'laptop'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/app/api_main.py\\\", line 150, in forecast\\n    latest[\\\"ItemEnc\\\"] = encoder.transform(latest[\\\"РќРѕРјРµРЅРєР»Р°С‚СѓСЂР°\\\"])\\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/preprocessing/_label.py\\\", line 134, in transform\\n    return _encode(y, uniques=self.classes_)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 237, in _encode\\n    raise ValueError(f\\\"y contains previously unseen labels: {e}\\\")\\nValueError: y contains previously unseen labels: 'laptop'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/app/error_handler.py\\\", line 47, in wrapper\\n    return await func(*args, **kwargs)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/app/api_main.py\\\", line 153, in forecast\\n    raise DataProcessingError(f\\\"РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: {str(e)}\\\")\\nerror_handler.DataProcessingError: РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: y contains previously unseen labels: 'laptop'\\n\\n\", \"record\": {\"elapsed\": {\"repr\": \"0:07:51.430097\", \"seconds\": 471.430097}, \"exception\": null, \"extra\": {}, \"file\": {\"name\": \"error_handler.py\", \"path\": \"/app/error_handler.py\"}, \"function\": \"wrapper\", \"level\": {\"icon\": \"рџђћ\", \"name\": \"DEBUG\", \"no\": 10}, \"line\": 57, \"message\": \"Traceback (most recent call last):\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 235, in _encode\\n    return _map_to_integer(values, uniques)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 174, in _map_to_integer\\n    return xp.asarray([table[v] for v in values], device=device(values))\\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 174, in <listcomp>\\n    return xp.asarray([table[v] for v in values], device=device(values))\\n                       ~~~~~^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 167, in __missing__\\n    raise KeyError(key)\\nKeyError: 'laptop'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/app/api_main.py\\\", line 150, in forecast\\n    latest[\\\"ItemEnc\\\"] = encoder.transform(latest[\\\"РќРѕРјРµРЅРєР»Р°С‚СѓСЂР°\\\"])\\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/preprocessing/_label.py\\\", line 134, in transform\\n    return _encode(y, uniques=self.classes_)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/usr/local/lib/python3.11/site-packages/sklearn/utils/_encode.py\\\", line 237, in _encode\\n    raise ValueError(f\\\"y contains previously unseen labels: {e}\\\")\\nValueError: y contains previously unseen labels: 'laptop'\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"/app/error_handler.py\\\", line 47, in wrapper\\n    return await func(*args, **kwargs)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/app/api_main.py\\\", line 153, in forecast\\n    raise DataProcessingError(f\\\"РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: {str(e)}\\\")\\nerror_handler.DataProcessingError: РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё РїСЂРёР·РЅР°РєРѕРІ: y contains previously unseen labels: 'laptop'\\n\", \"module\": \"error_handler\", \"name\": \"error_handler\", \"process\": {\"id\": 1, \"name\": \"MainProcess\"}, \"thread\": {\"id\": 140314663492480, \"name\": \"MainThread\"}, \"time\": {\"repr\": \"2025-07-09 10:53:40.510082+00:00\", \"timestamp\": 1752058420.510082}}}",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | Error connecting to the database: Error: connect ECONNREFUSED 65.9.91.24:5432",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | Server will continue to run, but database operations will fail",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | {\"level\":\"error\",\"message\":\"Error Handler Caught РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹\",\"stack\":\"Error: РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹\\n    at fileFilter (/app/dist/routes/uploadRoutes.js:21:16)\\n    at wrappedFileFilter (/app/node_modules/multer/index.js:44:7)\\n    at Multipart.<anonymous> (/app/node_modules/multer/lib/make-middleware.js:109:7)\\n    at Multipart.emit (node:events:524:28)\\n    at HeaderParser.cb (/app/node_modules/busboy/lib/types/multipart.js:358:14)\\n    at HeaderParser.push (/app/node_modules/busboy/lib/types/multipart.js:162:20)\\n    at SBMH.ssCb [as _cb] (/app/node_modules/busboy/lib/types/multipart.js:394:37)\\n    at feed (/app/node_modules/streamsearch/lib/sbmh.js:219:14)\\n    at SBMH.push (/app/node_modules/streamsearch/lib/sbmh.js:104:16)\\n    at Multipart._write (/app/node_modules/busboy/lib/types/multipart.js:567:19)\"}",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | [01:16:30.197] ERROR: Error Handler Caught",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"type\": \"Error\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | /app/api_main.py:137: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |           Error: РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"storageErrors\": []",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | /app/api_main.py:168: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | [01:16:30.200] INFO: request errored",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | /app/api_main.py:183: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"type\": \"Error\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | /app/api_main.py:137: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"message\": \"failed with status code 500\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |           Error: failed with status code 500",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | /app/api_main.py:168: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | {\"level\":\"error\",\"message\":\"Error Handler Caught РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹\",\"stack\":\"Error: РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹\\n    at fileFilter (/app/dist/routes/uploadRoutes.js:21:16)\\n    at wrappedFileFilter (/app/node_modules/multer/index.js:44:7)\\n    at Multipart.<anonymous> (/app/node_modules/multer/lib/make-middleware.js:109:7)\\n    at Multipart.emit (node:events:524:28)\\n    at HeaderParser.cb (/app/node_modules/busboy/lib/types/multipart.js:358:14)\\n    at HeaderParser.push (/app/node_modules/busboy/lib/types/multipart.js:162:20)\\n    at SBMH.ssCb [as _cb] (/app/node_modules/busboy/lib/types/multipart.js:394:37)\\n    at feed (/app/node_modules/streamsearch/lib/sbmh.js:219:14)\\n    at SBMH.push (/app/node_modules/streamsearch/lib/sbmh.js:104:16)\\n    at Multipart._write (/app/node_modules/busboy/lib/types/multipart.js:567:19)\"}",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | /app/api_main.py:183: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | /app/api_main.py:137: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | [01:24:03.873] ERROR: Error Handler Caught",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "worker",
+      "line": "worker-1  | npm error Missing script: \"worker\"",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"type\": \"Error\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "worker",
+      "line": "worker-1  | npm error",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |           Error: РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | /app/api_main.py:168: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"storageErrors\": []",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "ml-service",
+      "line": "ml-service-1  | /app/api_main.py:183: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | [01:24:03.874] INFO: request errored",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"type\": \"Error\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "worker",
+      "line": "worker-1  | npm error To see a list of scripts, run:",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"message\": \"failed with status code 500\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "worker",
+      "line": "worker-1  | npm error   npm run",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |           Error: failed with status code 500",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "worker",
+      "line": "worker-1  | npm error A complete log of this run can be found in: /root/.npm/_logs/2025-07-09T00_23_05_270Z-debug-0.log",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | {\"level\":\"error\",\"message\":\"Error Handler Caught РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹\",\"stack\":\"Error: РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹\\n    at fileFilter (/app/dist/routes/uploadRoutes.js:21:16)\\n    at wrappedFileFilter (/app/node_modules/multer/index.js:44:7)\\n    at Multipart.<anonymous> (/app/node_modules/multer/lib/make-middleware.js:109:7)\\n    at Multipart.emit (node:events:524:28)\\n    at HeaderParser.cb (/app/node_modules/busboy/lib/types/multipart.js:358:14)\\n    at HeaderParser.push (/app/node_modules/busboy/lib/types/multipart.js:162:20)\\n    at SBMH.ssCb [as _cb] (/app/node_modules/busboy/lib/types/multipart.js:394:37)\\n    at feed (/app/node_modules/streamsearch/lib/sbmh.js:219:14)\\n    at SBMH.push (/app/node_modules/streamsearch/lib/sbmh.js:104:16)\\n    at Multipart._write (/app/node_modules/busboy/lib/types/multipart.js:567:19)\"}",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | [01:28:39.072] ERROR: Error Handler Caught",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"type\": \"Error\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |           Error: РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"storageErrors\": []",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | [01:28:39.073] INFO: request errored",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"type\": \"Error\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"message\": \"failed with status code 500\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |           Error: failed with status code 500",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | {\"level\":\"error\",\"message\":\"Error Handler Caught РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹\",\"stack\":\"Error: РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹\\n    at fileFilter (/app/dist/routes/uploadRoutes.js:21:16)\\n    at wrappedFileFilter (/app/node_modules/multer/index.js:44:7)\\n    at Multipart.<anonymous> (/app/node_modules/multer/lib/make-middleware.js:109:7)\\n    at Multipart.emit (node:events:524:28)\\n    at HeaderParser.cb (/app/node_modules/busboy/lib/types/multipart.js:358:14)\\n    at HeaderParser.push (/app/node_modules/busboy/lib/types/multipart.js:162:20)\\n    at SBMH.ssCb [as _cb] (/app/node_modules/busboy/lib/types/multipart.js:394:37)\\n    at feed (/app/node_modules/streamsearch/lib/sbmh.js:219:14)\\n    at SBMH.push (/app/node_modules/streamsearch/lib/sbmh.js:104:16)\\n    at Multipart._write (/app/node_modules/busboy/lib/types/multipart.js:567:19)\"}",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | [10:53:40.405] ERROR: Error Handler Caught",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"type\": \"Error\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |           Error: РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"storageErrors\": []",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | [10:53:40.407] INFO: request errored",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"type\": \"Error\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"message\": \"failed with status code 500\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |           Error: failed with status code 500",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | {\"level\":\"error\",\"message\":\"Error Handler Caught РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹\",\"stack\":\"Error: РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹\\n    at fileFilter (/app/dist/routes/uploadRoutes.js:21:16)\\n    at wrappedFileFilter (/app/node_modules/multer/index.js:44:7)\\n    at Multipart.<anonymous> (/app/node_modules/multer/lib/make-middleware.js:109:7)\\n    at Multipart.emit (node:events:524:28)\\n    at HeaderParser.cb (/app/node_modules/busboy/lib/types/multipart.js:358:14)\\n    at HeaderParser.push (/app/node_modules/busboy/lib/types/multipart.js:162:20)\\n    at SBMH.ssCb [as _cb] (/app/node_modules/busboy/lib/types/multipart.js:394:37)\\n    at feed (/app/node_modules/streamsearch/lib/sbmh.js:219:14)\\n    at SBMH.push (/app/node_modules/streamsearch/lib/sbmh.js:104:16)\\n    at Multipart._write (/app/node_modules/busboy/lib/types/multipart.js:567:19)\"}",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | [10:54:43.684] ERROR: Error Handler Caught",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"type\": \"Error\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |           Error: РўРѕР»СЊРєРѕ CSV С„Р°Р№Р»С‹ СЂР°Р·СЂРµС€РµРЅС‹",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"storageErrors\": []",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  | [10:54:43.685] INFO: request errored",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"type\": \"Error\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |       \"message\": \"failed with status code 500\",",
+      "level": "error"
+    },
+    {
+      "timestamp": "2025-07-09 13:54:52",
+      "service": "backend",
+      "line": "backend-1  |           Error: failed with status code 500",
+      "level": "error"
+    }
+  ],
+  "services_status": {
+    "backend": {
+      "status": "critical",
+      "errors": 47,
+      "warnings": 1
+    },
+    "frontend": {
+      "status": "healthy",
+      "errors": 0,
+      "warnings": 1
+    },
+    "ml-service": {
+      "status": "critical",
+      "errors": 18,
+      "warnings": 52
+    },
+    "db": {
+      "status": "healthy",
+      "errors": 0,
+      "warnings": 1
+    },
+    "worker": {
+      "status": "healthy",
+      "errors": 5,
+      "warnings": 1
+    }
+  }
+}

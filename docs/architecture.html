@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивная архитектурная диаграмма проекта</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(15px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a202c;
+            margin-bottom: 40px;
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section {
+            margin-bottom: 50px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #cbd5e0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .flow-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .node {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            min-width: 180px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 3px solid transparent;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .node:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-color: #4299e1;
+        }
+
+        .node-title {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .node-desc {
+            color: #4a5568;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .node-path {
+            font-family: 'Courier New', monospace;
+            color: #718096;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            padding: 5px 8px;
+            background: #f7fafc;
+            border-radius: 5px;
+        }
+
+        .arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            font-size: 2rem;
+            color: #4299e1;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        .connection-line {
+            position: relative;
+            margin: 15px 0;
+        }
+
+        .connection-line::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #4299e1, #63b3ed, #4299e1);
+            transform: translateY(-50%);
+            animation: flow 3s linear infinite;
+        }
+
+        @keyframes flow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .connection-label {
+            background: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+            position: relative;
+            z-index: 1;
+            display: inline-block;
+            margin: 0 auto;
+        }
+
+        /* Специальные стили для разных типов узлов */
+        .entry-node { border-left: 5px solid #f093fb; }
+        .router-node { border-left: 5px solid #4facfe; }
+        .auth-node { border-left: 5px solid #43e97b; }
+        .style-node { border-left: 5px solid #fa709a; }
+        .asset-node { border-left: 5px solid #a8edea; }
+        .component-node { border-left: 5px solid #ff9a9e; }
+
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .step-nodes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .detailed-flow {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .flow-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .interactive-hint {
+            text-align: center;
+            color: #718096;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .flow-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .step-nodes {
+                flex-direction: column;
+            }
+            
+            .arrow {
+                transform: rotate(90deg);
+                margin: 10px 0;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏗️ Интерактивная Архитектурная Диаграмма</h1>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                <span>Точка входа</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+                <span>Роутинг</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);"></div>
+                <span>Аутентификация</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"></div>
+                <span>Стилизация</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"></div>
+                <span>Ассеты</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);"></div>
+                <span>Компоненты</span>
+            </div>
+        </div>
+
+        <!-- 1. Entry Point & Application Load Process -->
+        <div class="section">
+            <div class="section-title">
+                <div class="section-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">🚀</div>
+                1. Точка входа и загрузка приложения
+            </div>
+            
+            <div class="flow-step">
+                <div class="step-nodes">
+                    <div class="node entry-node">
+                        <div class="node-title">index.html</div>
+                        <div class="node-desc">Главная HTML точка входа</div>
+                        <div class="node-path">&lt;div id="root"&gt;</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node entry-node">
+                        <div class="node-title">src/main.tsx</div>
+                        <div class="node-desc">Инициализация React</div>
+                        <div class="node-path">ReactDOM.createRoot</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node entry-node">
+                        <div class="node-title">App Component</div>
+                        <div class="node-desc">Корневой компонент</div>
+                        <div class="node-path">src/App.tsx</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detailed-flow">
+                <div class="flow-title">🔧 Глобальные провайдеры</div>
+                <div class="step-nodes">
+                    <div class="node entry-node">
+                        <div class="node-title">&lt;StrictMode&gt;</div>
+                        <div class="node-desc">React инструмент для отладки</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node entry-node">
+                        <div class="node-title">&lt;BrowserRouter&gt;</div>
+                        <div class="node-desc">Клиентский роутинг</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node entry-node">
+                        <div class="node-title">&lt;AuthProvider&gt;</div>
+                        <div class="node-desc">Глобальная аутентификация</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Routing System & Route Protection -->
+        <div class="section">
+            <div class="section-title">
+                <div class="section-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">🛣️</div>
+                2. Система роутинга и защита маршрутов
+            </div>
+
+            <div class="flow-step">
+                <div class="step-nodes">
+                    <div class="node router-node">
+                        <div class="node-title">src/App.tsx</div>
+                        <div class="node-desc">Центр определения маршрутов</div>
+                        <div class="node-path">Route definitions</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node router-node">
+                        <div class="node-title">Public Routes</div>
+                        <div class="node-desc">/login, /register</div>
+                        <div class="node-path">Доступны всем</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detailed-flow">
+                <div class="flow-title">🔒 Логика защищенных маршрутов</div>
+                <div class="step-nodes">
+                    <div class="node router-node">
+                        <div class="node-title">ProtectedRoute</div>
+                        <div class="node-desc">Страж маршрутов</div>
+                        <div class="node-path">src/components/auth/</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node auth-node">
+                        <div class="node-title">AuthContext</div>
+                        <div class="node-desc">useAuth() hook</div>
+                        <div class="node-path">isAuthenticated, isLoading</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node router-node">
+                        <div class="node-title">AppLayout</div>
+                        <div class="node-desc">Макет для авторизованных</div>
+                        <div class="node-path">sidebar + header</div>
+                    </div>
+                </div>
+                
+                <div class="connection-line">
+                    <div class="connection-label">Если НЕ авторизован</div>
+                </div>
+                
+                <div class="step-nodes">
+                    <div class="node router-node">
+                        <div class="node-title">Redirect to /login</div>
+                        <div class="node-desc">Автоматическое перенаправление</div>
+                        <div class="node-path">useNavigate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Authentication & API Interaction -->
+        <div class="section">
+            <div class="section-title">
+                <div class="section-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">🔐</div>
+                3. Аутентификация и взаимодействие с API
+            </div>
+
+            <div class="flow-step">
+                <div class="step-nodes">
+                    <div class="node auth-node">
+                        <div class="node-title">SignInForm</div>
+                        <div class="node-desc">UI формы входа</div>
+                        <div class="node-path">src/components/auth/</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node auth-node">
+                        <div class="node-title">AuthContext</div>
+                        <div class="node-desc">login() функция</div>
+                        <div class="node-path">src/context/AuthContext.tsx</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node auth-node">
+                        <div class="node-title">Supabase</div>
+                        <div class="node-desc">onAuthStateChange</div>
+                        <div class="node-path">Внешний сервис</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detailed-flow">
+                <div class="flow-title">💾 Управление сессией</div>
+                <div class="step-nodes">
+                    <div class="node auth-node">
+                        <div class="node-title">localStorage</div>
+                        <div class="node-desc">JWT токен</div>
+                        <div class="node-path">sb-*-auth-token</div>
+                    </div>
+                    <div class="arrow">↔</div>
+                    <div class="node auth-node">
+                        <div class="node-title">api.ts</div>
+                        <div class="node-desc">Axios interceptor</div>
+                        <div class="node-path">src/services/api.ts</div>
+                    </div>
+                </div>
+                
+                <div class="connection-line">
+                    <div class="connection-label">Автоматически добавляет Bearer токен</div>
+                </div>
+                
+                <div class="step-nodes">
+                    <div class="node auth-node">
+                        <div class="node-title">Authenticated API Call</div>
+                        <div class="node-desc">api.get('/data')</div>
+                        <div class="node-path">Authorization: Bearer JWT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Styling Management -->
+        <div class="section">
+            <div class="section-title">
+                <div class="section-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">🎨</div>
+                4. Управление стилизацией (Tailwind CSS)
+            </div>
+
+            <div class="flow-step">
+                <div class="step-nodes">
+                    <div class="node style-node">
+                        <div class="node-title">postcss.config.js</div>
+                        <div class="node-desc">Конфигурация PostCSS</div>
+                        <div class="node-path">tailwindcss + autoprefixer</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node style-node">
+                        <div class="node-title">src/index.css</div>
+                        <div class="node-desc">@theme директива</div>
+                        <div class="node-path">Дизайн-система</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node style-node">
+                        <div class="node-title">Tailwind Engine</div>
+                        <div class="node-desc">Сканирует файлы</div>
+                        <div class="node-path">Генерирует оптимизированный CSS</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detailed-flow">
+                <div class="flow-title">🏗️ Процесс сборки</div>
+                <div class="step-nodes">
+                    <div class="node style-node">
+                        <div class="node-title">@theme Colors</div>
+                        <div class="node-desc">primary, secondary, accent</div>
+                    </div>
+                    <div class="node style-node">
+                        <div class="node-title">@theme Fonts</div>
+                        <div class="node-desc">"Outfit" from Google</div>
+                    </div>
+                    <div class="node style-node">
+                        <div class="node-title">@theme Shadows</div>
+                        <div class="node-desc">boxShadow, borders</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Static Assets Management -->
+        <div class="section">
+            <div class="section-title">
+                <div class="section-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">📁</div>
+                5. Управление статическими ассетами (Иконки)
+            </div>
+
+            <div class="flow-step">
+                <div class="step-nodes">
+                    <div class="node asset-node">
+                        <div class="node-title">public/images/icons/</div>
+                        <div class="node-desc">SVG файлы иконок</div>
+                        <div class="node-path">*.svg</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node asset-node">
+                        <div class="node-title">src/helpers/icons.ts</div>
+                        <div class="node-desc">Манифест иконок</div>
+                        <div class="node-path">icons объект + IconName тип</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node asset-node">
+                        <div class="node-title">Components</div>
+                        <div class="node-desc">&lt;img src={icons[name]} /&gt;</div>
+                        <div class="node-path">Типизированное использование</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detailed-flow">
+                <div class="flow-title">🔧 Пример использования</div>
+                <div class="step-nodes">
+                    <div class="node asset-node">
+                        <div class="node-title">AppSidebar.tsx</div>
+                        <div class="node-desc">import { icons, IconName }</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node asset-node">
+                        <div class="node-title">icons['grid']</div>
+                        <div class="node-desc">/images/icons/grid.svg</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Core Components & Data Flows -->
+        <div class="section">
+            <div class="section-title">
+                <div class="section-icon" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">⚛️</div>
+                6. Основные компоненты и потоки данных
+            </div>
+
+            <div class="flow-step">
+                <div class="step-nodes">
+                    <div class="node component-node">
+                        <div class="node-title">Dashboard/Home.tsx</div>
+                        <div class="node-desc">Главная страница дашборда</div>
+                        <div class="node-path">src/pages/Dashboard/</div>
+                    </div>
+                </div>
+                
+                <div class="connection-line">
+                    <div class="connection-label">Композиция виджетов</div>
+                </div>
+                
+                <div class="step-nodes">
+                    <div class="node component-node">
+                        <div class="node-title">EcommerceMetrics</div>
+                        <div class="node-desc">Метрики продаж</div>
+                    </div>
+                    <div class="node component-node">
+                        <div class="node-title">MonthlySalesChart</div>
+                        <div class="node-desc">График продаж</div>
+                    </div>
+                    <div class="node component-node">
+                        <div class="node-title">RecentSalesTable</div>
+                        <div class="node-desc">Таблица продаж</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detailed-flow">
+                <div class="flow-title">📊 Паттерн получения данных (на примере графика)</div>
+                <div class="step-nodes">
+                    <div class="node component-node">
+                        <div class="node-title">useEffect Hook</div>
+                        <div class="node-desc">При монтировании компонента</div>
+                        <div class="node-path">React.useEffect</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node component-node">
+                        <div class="node-title">api.get('/sales-data')</div>
+                        <div class="node-desc">Запрос к API</div>
+                        <div class="node-path">Axios call</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node component-node">
+                        <div class="node-title">useState Hook</div>
+                        <div class="node-desc">data, isLoading</div>
+                        <div class="node-path">Локальное состояние</div>
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="node component-node">
+                        <div class="node-title">react-apexcharts</div>
+                        <div class="node-desc">Рендеринг графика</div>
+                        <div class="node-path">&lt;Chart data={data} /&gt;</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interactive-hint">
+            💡 Наведите курсор на любой элемент для интерактивного взаимодействия
+        </div>
+    </div>
+</body>
+</html>
