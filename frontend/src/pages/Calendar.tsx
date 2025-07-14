@@ -4,8 +4,15 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { EventInput, DateSelectArg, EventClickArg } from "@fullcalendar/core";
-import { Modal } from "@/components/ui/modal";
-import { useModal } from "@/hooks/useModal";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalTitle,
+  ModalDescription,
+  ModalClose,
+} from '@/components/molecules/Modal';
 import PageMeta from "@/components/common/PageMeta";
 
 interface CalendarEvent extends EventInput {
@@ -24,7 +31,7 @@ const Calendar: React.FC = () => {
   const [eventLevel, setEventLevel] = useState("");
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const calendarRef = useRef<FullCalendar>(null);
-  const { isOpen, openModal, closeModal } = useModal();
+  const [isOpen, setIsOpen] = useState(false);
 
   const calendarsEvents = {
     Danger: "danger",
@@ -62,7 +69,7 @@ const Calendar: React.FC = () => {
     resetModalFields();
     setEventStartDate(selectInfo.startStr);
     setEventEndDate(selectInfo.endStr || selectInfo.startStr);
-    openModal();
+    setIsOpen(true);
   };
 
   const handleEventClick = (clickInfo: EventClickArg) => {
@@ -72,7 +79,7 @@ const Calendar: React.FC = () => {
     setEventStartDate(event.start?.toISOString().split("T")[0] || "");
     setEventEndDate(event.end?.toISOString().split("T")[0] || "");
     setEventLevel(event.extendedProps.calendar);
-    openModal();
+    setIsOpen(true);
   };
 
   const handleAddOrUpdateEvent = () => {
@@ -103,7 +110,7 @@ const Calendar: React.FC = () => {
       };
       setEvents((prevEvents) => [...prevEvents, newEvent]);
     }
-    closeModal();
+    setIsOpen(false);
     resetModalFields();
   };
 
@@ -140,27 +147,23 @@ const Calendar: React.FC = () => {
             customButtons={{
               addEventButton: {
                 text: "Add Event +",
-                click: openModal,
+                click: () => setIsOpen(true),
               },
             }}
           />
         </div>
-        <Modal
-          isOpen={isOpen}
-          onClose={closeModal}
-          className="max-w-[700px] p-6 lg:p-10"
-        >
-          <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar">
-            <div>
-              <h5 className="mb-2 font-semibold text-gray-800 modal-title text-theme-xl dark:text-white/90 lg:text-2xl">
+        <Modal open={isOpen} onOpenChange={setIsOpen}>
+          <ModalContent size="lg">
+            <ModalHeader>
+              <ModalTitle>
                 {selectedEvent ? "Edit Event" : "Add Event"}
-              </h5>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              </ModalTitle>
+              <ModalDescription>
                 Plan your next big moment: schedule or edit an event to stay on
                 track
-              </p>
-            </div>
-            <div className="mt-8">
+              </ModalDescription>
+            </ModalHeader>
+            <div className="p-6">
               <div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
@@ -245,23 +248,22 @@ const Calendar: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-3 mt-6 modal-footer sm:justify-end">
-              <button
-                onClick={closeModal}
-                type="button"
-                className="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto"
-              >
-                Close
-              </button>
-              <button
-                onClick={handleAddOrUpdateEvent}
-                type="button"
-                className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto"
-              >
-                {selectedEvent ? "Update Changes" : "Add Event"}
-              </button>
-            </div>
-          </div>
+            <ModalFooter>
+                <ModalClose asChild>
+                    <button
+                        className="rounded-lg bg-gray-200 px-6 py-2.5 text-sm font-medium text-gray-800 transition-all duration-300 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                    >
+                        Cancel
+                    </button>
+                </ModalClose>
+                <button
+                    onClick={handleAddOrUpdateEvent}
+                    className="rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white transition-all duration-300 hover:bg-brand-600"
+                >
+                    {selectedEvent ? "Update Event" : "Add Event"}
+                </button>
+            </ModalFooter>
+          </ModalContent>
         </Modal>
       </div>
     </>

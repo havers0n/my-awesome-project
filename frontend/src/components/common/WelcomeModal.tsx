@@ -1,57 +1,66 @@
-import React, { useEffect, useState } from "react";
-import { Icon } from "@/components/common/Icon";
+import React, { useEffect, useState } from 'react';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+} from '@/components/molecules/Modal';
+import { Icon } from '@/components/common/Icon';
 
-const WELCOME_MODAL_SHOWN_KEY = "hasSeenWelcomeModal";
+const WELCOME_MODAL_SHOWN_KEY = 'hasSeenWelcomeModal';
 
-const WelcomeModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
-  if (!open) return null;
+const WelcomeModal: React.FC = () => {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    // On component mount, check if the user has seen the modal before.
+    const hasSeen = localStorage.getItem(WELCOME_MODAL_SHOWN_KEY);
+    if (!hasSeen) {
+      // If not, open the modal and mark it as seen.
+      setOpen(true);
+      localStorage.setItem(WELCOME_MODAL_SHOWN_KEY, 'true');
+    }
+  }, []);
+
+  // The entire modal state is now controlled by the `open` state and `onOpenChange`.
+  // The presentation is handled by our new composable Modal components.
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-8 relative animate-fadeIn">
-        <button
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
-          onClick={onClose}
-          aria-label="Закрыть"
-        >
-          <Icon name="CLOSE" size={6} />
-        </button>
-        <div className="flex flex-col items-center text-center gap-4">
-          <Icon name="INFO" size={8} className="mb-3" />
-          <h2 className="text-xl font-semibold mb-2">Добро пожаловать!</h2>
-          <p className="text-gray-700 mb-2">
-            Вы находитесь на странице прогнозирования. Здесь можно создавать новые прогнозы и анализировать прошлые результаты. Для начала работы используйте кнопки:
-          </p>
-          <div className="flex flex-col items-center gap-2">
+    <Modal open={open} onOpenChange={setOpen}>
+      <ModalContent size="md">
+        <div className="flex flex-col items-center text-center p-6">
+          <Icon name="INFO" size={8} className="mb-3 text-blue-500" />
+          <ModalHeader className="p-0">
+            <ModalTitle>Добро пожаловать!</ModalTitle>
+          </ModalHeader>
+          <ModalDescription className="mt-2">
+            Вы находитесь на странице прогнозирования. Здесь можно создавать
+            новые прогнозы и анализировать прошлые результаты. Для начала работы
+            используйте кнопки:
+          </ModalDescription>
+          <div className="flex flex-col items-start gap-2 my-4 text-sm">
             <div className="flex items-center gap-2">
-              <span role="img" aria-label="Прогноз">📊</span>
+              <span role="img" aria-label="Прогноз">
+                📊
+              </span>
               <span>— Новый прогноз (5-10 сек)</span>
             </div>
             <div className="flex items-center gap-2">
-              <span role="img" aria-label="Обновить">🔄</span>
+              <span role="img" aria-label="Обновить">
+                🔄
+              </span>
               <span>— Обновить график с новыми данными</span>
             </div>
           </div>
-          <p className="text-gray-500 mt-2 text-xs">Подсказки на кнопках помогут освоиться быстрее!<br/>Приятного пользования!</p>
+          <p className="text-gray-500 mt-2 text-xs">
+            Подсказки на кнопках помогут освоиться быстрее!
+            <br />
+            Приятного пользования!
+          </p>
         </div>
-      </div>
-    </div>
+      </ModalContent>
+    </Modal>
   );
-};
-
-export const useWelcomeModal = () => {
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    const hasSeen = localStorage.getItem(WELCOME_MODAL_SHOWN_KEY);
-    if (!hasSeen) {
-      setOpen(true);
-      localStorage.setItem(WELCOME_MODAL_SHOWN_KEY, "true");
-    }
-  }, []);
-  return {
-    WelcomeModal,
-    welcomeModalOpen: open,
-    closeWelcomeModal: () => setOpen(false),
-  };
 };
 
 export default WelcomeModal;
