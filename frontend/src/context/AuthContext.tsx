@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/services/supabaseClient';
 import axios from 'axios';
+import api from '@/services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Session, User, AuthResponse } from '@supabase/supabase-js';
 
@@ -101,7 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const resetPassword = async (email: string) => {
     // Вызываем наш бэкенд
-    const res = await axios.post('/auth/reset-password', { email });
+    const res = await api.post('/auth/reset-password', { email });
     return res.data;
   };
 
@@ -126,7 +127,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       const { access_token: token } = session;
-      const res = await axios.get('/auth/me', {
+      const res = await api.get('/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(res.data);

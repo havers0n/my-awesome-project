@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import api from '@/services/api';
 import { ForecastApiResponse } from '../pages/types';
 import { QualityMetricsResponse } from '../types.admin';
 import { getErrorFromAxiosError, createMLError } from '../types/errors';
@@ -70,7 +71,7 @@ export const startNewForecast = async (days: number): Promise<void> => {
     const requestBody = { DaysCount: days };
     
     // Используем реальный ML эндпоинт
-    const res = await axios.post('/api/real-ml-predict', requestBody, {
+    const res = await api.post('/real-ml-predict', requestBody, {
       headers,
       timeout: 120000 // 2 minutes timeout for forecast generation process
     });
@@ -184,7 +185,7 @@ export const fetchForecastHistory = async (
 export const fetchQualityMetrics = async (): Promise<QualityMetricsResponse> => {
   try {
     const headers = getAuthHeaders();
-    const res = await axios.get('/api/quality-metrics', { headers });
+    const res = await api.get('/quality-metrics', { headers });
     return res.data;
   } catch (error) {
     console.warn('Quality metrics API unavailable, using mocks:', error);

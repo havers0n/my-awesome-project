@@ -2,7 +2,7 @@ import express from 'express';
 import { getSupabaseUserClient } from '../supabaseUserClient';
 import { createMlPayload } from '../services/mlPayloadFormatter';
 import { supabaseAdmin } from '../supabaseAdminClient';
-import { predictSales, getForecastData, getForecastHistory } from '../controllers/forecastController';
+import { predictSales, getForecastData, getForecastHistory, getOverallMetrics } from '../controllers/forecastController';
 import { dualAuthenticateToken } from '../middleware/dualAuthMiddleware';
 import axios from 'axios';
 
@@ -18,6 +18,9 @@ router.get('/forecast', dualAuthenticateToken, getForecastData as any);
 
 // GET /history
 router.get('/history', dualAuthenticateToken, getForecastHistory as any);
+
+// GET /metrics - получить общие метрики прогнозирования
+router.get('/metrics', dualAuthenticateToken, getOverallMetrics as any);
 
 // POST /bulk-upload (bulk upload продаж/поставок)
 router.post('/bulk-upload', async (req, res) => {

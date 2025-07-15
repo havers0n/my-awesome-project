@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 1. Создаем инстанс Axios с базовым URL нашего бэкенда
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000', // URL нашего бэкенда
+  baseURL: (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000') + '/api', // URL нашего бэкенда + /api prefix
   headers: {
     'Content-Type': 'application/json',
   },

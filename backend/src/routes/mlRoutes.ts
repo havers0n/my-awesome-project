@@ -12,7 +12,7 @@ router.use(authenticateSupabaseToken);
  * GET /api/ml/features/:productId
  * Получить признаки для товара из БД
  */
-router.get('/features/:productId', async (req: express.Request, res: express.Response) => {
+router.get('/features/:productId', async (req: express.Request, res: express.Response): Promise<void> => {
   try {
     const { productId } = req.params;
     const { targetDate } = req.query;
@@ -20,7 +20,8 @@ router.get('/features/:productId', async (req: express.Request, res: express.Res
     // Получаем organization_id из токена пользователя
     const authHeader = req.headers['authorization'];
     if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization header' });
+      res.status(401).json({ error: 'No authorization header' });
+      return;
     }
     
     const token = authHeader.replace('Bearer ', '');
@@ -28,7 +29,8 @@ router.get('/features/:productId', async (req: express.Request, res: express.Res
     
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData?.user) {
-      return res.status(401).json({ error: 'Invalid token' });
+      res.status(401).json({ error: 'Invalid token' });
+      return;
     }
     
     const { data: profile, error: profileError } = await supabase
@@ -38,7 +40,8 @@ router.get('/features/:productId', async (req: express.Request, res: express.Res
       .single();
       
     if (profileError || !profile?.organization_id) {
-      return res.status(400).json({ error: 'User not associated with organization' });
+      res.status(400).json({ error: 'User not associated with organization' });
+      return;
     }
     
     const date = targetDate ? new Date(targetDate as string) : new Date();
@@ -50,7 +53,8 @@ router.get('/features/:productId', async (req: express.Request, res: express.Res
     );
     
     if (!features) {
-      return res.status(404).json({ error: 'No data found for product' });
+      res.status(404).json({ error: 'No data found for product' });
+      return;
     }
     
     res.json(features);
@@ -64,14 +68,15 @@ router.get('/features/:productId', async (req: express.Request, res: express.Res
  * GET /api/ml/metrics/:productId
  * Получить метрики точности для товара
  */
-router.get('/metrics/:productId', async (req: express.Request, res: express.Response) => {
+router.get('/metrics/:productId', async (req: express.Request, res: express.Response): Promise<void> => {
   try {
     const { productId } = req.params;
     
     // Получаем organization_id (аналогично предыдущему роуту)
     const authHeader = req.headers['authorization'];
     if (!authHeader) {
-      return res.status(401).json({ error: 'No authorization header' });
+      res.status(401).json({ error: 'No authorization header' });
+      return;
     }
     
     const token = authHeader.replace('Bearer ', '');
@@ -85,7 +90,8 @@ router.get('/metrics/:productId', async (req: express.Request, res: express.Resp
       .single();
       
     if (!profile?.organization_id) {
-      return res.status(400).json({ error: 'User not associated with organization' });
+      res.status(400).json({ error: 'User not associated with organization' });
+      return;
     }
     
     const metrics = await MLDataService.getProductMetrics(
@@ -94,7 +100,8 @@ router.get('/metrics/:productId', async (req: express.Request, res: express.Resp
     );
     
     if (!metrics) {
-      return res.status(404).json({ error: 'No metrics found for product' });
+      res.status(404).json({ error: 'No metrics found for product' });
+      return;
     }
     
     res.json(metrics);

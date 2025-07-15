@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { supabaseAdmin } from '../supabaseAdminClient';
 
-// Расширяем Express.Request для req.user
+// Ensure the Express Request interface is extended (should match express.d.ts)
 declare global {
   namespace Express {
     interface Request {
@@ -12,6 +12,7 @@ declare global {
         authType: 'supabase' | 'legacy';
         organization_id: number | null;
         location_id: number | null;
+        [key: string]: any;
       };
     }
   }

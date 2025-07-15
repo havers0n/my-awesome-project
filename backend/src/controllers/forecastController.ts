@@ -516,3 +516,94 @@ export const getForecastHistory = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Ошибка получения истории прогнозов', details: message });
   }
 };
+
+// GET /metrics - получить общие метрики прогнозирования
+export const getOverallMetrics = async (req: Request, res: Response) => {
+  const log = (message: string, data?: any) => {
+    console.log(`[getOverallMetrics] ${new Date().toISOString()} - ${message}`, data !== undefined ? JSON.stringify(data, null, 2) : '');
+  };
+  const logError = (message: string, error: any) => {
+    console.error(`[getOverallMetrics] ${new Date().toISOString()} - ERROR: ${message}`, error);
+  };
+
+  try {
+    // @ts-ignore
+    const user = (req as any).user;
+    if (!user || !user.organization_id) {
+      logError('User not authenticated or no organization_id', {});
+      return res.status(401).json({ error: 'User not authenticated or no organization associated' });
+    }
+
+    const organizationId = user.organization_id;
+    log('Getting overall metrics for organization', { organizationId });
+
+    // Получаем общие метрики из базы данных
+    const supabase = getSupabaseUserClient(req.headers['authorization']!.replace('Bearer ', ''));
+    
+    const { data: predictions, error } = await supabase
+      .from('sales_forecasts')
+      .select('item_mape, item_mae, predicted_quantity, created_at')
+      .eq('organization_id', organizationId)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (error) {
+      logError('Database error getting metrics', error);
+      return res.status(500).json({ error: 'Database error', details: error.message });
+    }
+
+    // Если нет данных, возвращаем значения по умолчанию
+    if (!predictions || predictions.length === 0) {
+      log('No predictions found, returning default metrics');
+      return res.json({
+        totalPredictions: 0,
+        averageAccuracy: 0,
+        lastUpdated: new Date().toISOString(),
+        avgMAPE: 0,
+        avgMAE: 0,
+        accuracyTrend: 'stable',
+        predictionCount: 0
+      });
+    }
+
+    // Вычисляем общие метрики
+    const totalPredictions = predictions.length;
+    const avgMAPE = predictions.reduce((sum, pred) => sum + (pred.item_mape || 0), 0) / totalPredictions;
+    const avgMAE = predictions.reduce((sum, pred) => sum + (pred.item_mae || 0), 0) / totalPredictions;
+    const averageAccuracy = Math.max(0, 100 - avgMAPE); // Преобразуем MAPE в точность
+    const lastUpdated = predictions[0].created_at;
+
+    // Простая оценка тренда (сравниваем последние 10 с предыдущими 10)
+    let accuracyTrend = 'stable';
+    if (predictions.length >= 20) {
+      const recent10 = predictions.slice(0, 10);
+      const previous10 = predictions.slice(10, 20);
+      const recentAvgMAPE = recent10.reduce((sum, pred) => sum + (pred.item_mape || 0), 0) / 10;
+      const previousAvgMAPE = previous10.reduce((sum, pred) => sum + (pred.item_mape || 0), 0) / 10;
+      
+      if (recentAvgMAPE < previousAvgMAPE - 2) {
+        accuracyTrend = 'improving';
+      } else if (recentAvgMAPE > previousAvgMAPE + 2) {
+        accuracyTrend = 'declining';
+      }
+    }
+
+    const metrics = {
+      totalPredictions,
+      averageAccuracy: Math.round(averageAccuracy * 100) / 100,
+      lastUpdated,
+      avgMAPE: Math.round(avgMAPE * 100) / 100,
+      avgMAE: Math.round(avgMAE * 100) / 100,
+      accuracyTrend,
+      predictionCount: totalPredictions
+    };
+
+    log('Overall metrics calculated', metrics);
+    res.json(metrics);
+    
+  } catch (err) {
+    logError('Error getting overall metrics', err);
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: 'Error getting overall metrics', details: message });
+  }
+};

@@ -1,3 +1,4 @@
+/// <reference path="../../types/express.d.ts" />
 import { Request, Response } from 'express';
 import { predictSales, getForecastData, getForecastHistory } from '../forecastController';
 import * as supabaseUserClient from '../../supabaseUserClient';
@@ -19,7 +20,14 @@ describe('ForecastController - Basic Tests', () => {
     mockReq = {
       headers: { authorization: 'Bearer test-token' },
       body: { DaysCount: 7 },
-      user: { id: 'test-user-id', email: 'test@example.com', organization_id: 1 }
+      user: { 
+        id: 'test-user-id', 
+        email: 'test@example.com', 
+        organization_id: 1,
+        authType: 'supabase' as const,
+        location_id: null,
+        role: 'user'
+      }
     };
     
     mockRes = {
@@ -95,7 +103,14 @@ describe('ForecastController - Basic Tests', () => {
 
     it('should return mock data when USE_MOCK_ML is true', async () => {
       process.env.USE_MOCK_ML = 'true';
-      mockReq.user = { id: 'test-user', email: 'test@example.com', organization_id: 1 };
+      mockReq.user = { 
+        id: 'test-user', 
+        email: 'test@example.com', 
+        organization_id: 1,
+        authType: 'supabase' as const,
+        location_id: null,
+        role: 'user'
+      };
 
       await getForecastData(mockReq as Request, mockRes as Response);
 

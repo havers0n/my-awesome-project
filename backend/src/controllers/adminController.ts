@@ -4,11 +4,12 @@ import { logAdminAction } from '../utils/logger';
 import { supabaseAdmin } from '../supabaseAdminClient';
 
 // Функция для проверки уникальности email
-export const checkEmail = async (req: Request, res: Response) => {
+export const checkEmail = async (req: Request, res: Response): Promise<void> => {
   const { email } = req.query;
 
   if (!email || typeof email !== 'string') {
-    return res.status(400).json({ error: 'Email is required' });
+    res.status(400).json({ error: 'Email is required' });
+    return;
   }
 
   try {
@@ -32,11 +33,12 @@ export const checkEmail = async (req: Request, res: Response) => {
 };
 
 
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, full_name, organization_id, role, phone, position } = req.body;
     if (!email || !password || !role) {
-      return res.status(400).json({ error: 'Email, password и роль обязательны' });
+      res.status(400).json({ error: 'Email, password и роль обязательны' });
+      return;
     }
     
     // 1. Создать пользователя в Supabase Auth
@@ -54,7 +56,8 @@ export const createUser = async (req: Request, res: Response) => {
     if (authError) {
       logAdminAction('create_user_auth_error', { adminId: req.user?.id, error: authError.message, email });
       // Возвращаем более понятную ошибку на фронтенд
-      return res.status(400).json({ error: authError.message.includes('unique constraint') ? 'Пользователь с таким email уже существует.' : authError.message });
+      res.status(400).json({ error: authError.message.includes('unique constraint') ? 'Пользователь с таким email уже существует.' : authError.message });
+      return;
     }
 
     if (!authData.user) {
@@ -81,7 +84,8 @@ export const createUser = async (req: Request, res: Response) => {
       // Если не удалось вставить пользователя в нашу таблицу, нужно откатить создание в Auth
       await supabaseAdmin.auth.admin.deleteUser(newUser.id);
       logAdminAction('create_user_db_error', { adminId: req.user?.id, error: dbError.message, email });
-      return res.status(500).json({ error: 'Failed to save user profile', details: dbError.message });
+      res.status(500).json({ error: 'Failed to save user profile', details: dbError.message });
+      return;
     }
 
     logAdminAction('create_user_success', { adminId: req.user?.id, email, userId: newUser.id });

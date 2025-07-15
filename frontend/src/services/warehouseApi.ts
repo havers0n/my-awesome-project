@@ -10,26 +10,24 @@ import {
   ItemMetrics, 
   OverallMetrics 
 } from '@/types/warehouse';
+import { supabase } from '@/services/supabaseClient';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-// Helper to get auth token from localStorage
-const getAuthToken = (): string | null => {
-  const authData = localStorage.getItem('supabase.auth.token');
-  if (!authData) return null;
+// Helper to get auth token from Supabase
+const getAuthToken = async (): Promise<string | null> => {
   try {
-    const parsedData = JSON.parse(authData);
-    return parsedData.access_token;
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || null;
   } catch (e) {
-    console.error("Failed to parse Supabase auth token from localStorage", e);
+    console.error("Failed to get Supabase auth token", e);
     return null;
   }
 };
 
-
 // Helper for making authenticated API requests
 async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const token = getAuthToken();
+  const token = await getAuthToken();
 
   const headers = {
     'Content-Type': 'application/json',

@@ -23,10 +23,11 @@ const quantityUpdateSchema = z.object({
 });
 
 // GET /products - Get all products for an organization
-export const getProducts = async (req: Request, res: Response) => {
+export const getProducts = async (req: Request, res: Response): Promise<void> => {
     const organizationId = getOrgId(req);
     if (!organizationId) {
-        return res.status(401).json({ error: 'User is not associated with an organization.' });
+        res.status(401).json({ error: 'User is not associated with an organization.' });
+        return;
     }
 
     const supabase = getSupabaseUserClient(req.headers['authorization']!.replace('Bearer ', ''));
@@ -52,10 +53,11 @@ export const getProducts = async (req: Request, res: Response) => {
 };
 
 // POST /products - Create a new product
-export const createProduct = async (req: Request, res: Response) => {
+export const createProduct = async (req: Request, res: Response): Promise<void> => {
     const organizationId = getOrgId(req);
     if (!organizationId) {
-        return res.status(401).json({ error: 'User is not associated with an organization.' });
+        res.status(401).json({ error: 'User is not associated with an organization.' });
+        return;
     }
 
     try {
@@ -74,18 +76,20 @@ export const createProduct = async (req: Request, res: Response) => {
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         if (err instanceof z.ZodError) {
-            return res.status(400).json({ error: 'Invalid product data', details: err.errors });
+            res.status(400).json({ error: 'Invalid product data', details: err.errors });
+            return;
         }
         res.status(500).json({ error: 'Failed to create product', details: message });
     }
 };
 
 // PUT /products/:id - Update a product
-export const updateProduct = async (req: Request, res: Response) => {
+export const updateProduct = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const organizationId = getOrgId(req);
     if (!organizationId) {
-        return res.status(401).json({ error: 'User is not associated with an organization.' });
+        res.status(401).json({ error: 'User is not associated with an organization.' });
+        return;
     }
     
     try {
@@ -101,24 +105,29 @@ export const updateProduct = async (req: Request, res: Response) => {
             .single();
 
         if (error) throw error;
-        if (!data) return res.status(404).json({ error: 'Product not found or access denied.' });
+        if (!data) {
+            res.status(404).json({ error: 'Product not found or access denied.' });
+            return;
+        }
 
         res.json(data);
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
          if (err instanceof z.ZodError) {
-            return res.status(400).json({ error: 'Invalid product data', details: err.errors });
+            res.status(400).json({ error: 'Invalid product data', details: err.errors });
+            return;
         }
         res.status(500).json({ error: 'Failed to update product', details: message });
     }
 };
 
 // DELETE /products/:id - Delete a product
-export const deleteProduct = async (req: Request, res: Response) => {
+export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const organizationId = getOrgId(req);
     if (!organizationId) {
-        return res.status(401).json({ error: 'User is not associated with an organization.' });
+        res.status(401).json({ error: 'User is not associated with an organization.' });
+        return;
     }
 
     const supabase = getSupabaseUserClient(req.headers['authorization']!.replace('Bearer ', ''));
@@ -140,11 +149,12 @@ export const deleteProduct = async (req: Request, res: Response) => {
 };
 
 // PUT /products/:id/quantity - A more specific update for quantity and logging history
-export const updateProductQuantity = async (req: Request, res: Response) => {
+export const updateProductQuantity = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const organizationId = getOrgId(req);
     if (!organizationId) {
-        return res.status(401).json({ error: 'User is not associated with an organization.' });
+        res.status(401).json({ error: 'User is not associated with an organization.' });
+        return;
     }
     
     try {
@@ -162,7 +172,10 @@ export const updateProductQuantity = async (req: Request, res: Response) => {
             .single();
 
         if (updateError) throw updateError;
-        if (!updatedProduct) return res.status(404).json({ error: 'Product not found or access denied.' });
+        if (!updatedProduct) {
+            res.status(404).json({ error: 'Product not found or access denied.' });
+            return;
+        }
 
         // 2. Log the change to operations/history table
         const { error: historyError } = await supabase
@@ -184,7 +197,8 @@ export const updateProductQuantity = async (req: Request, res: Response) => {
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
          if (err instanceof z.ZodError) {
-            return res.status(400).json({ error: 'Invalid quantity update data', details: err.errors });
+            res.status(400).json({ error: 'Invalid quantity update data', details: err.errors });
+            return;
         }
         res.status(500).json({ error: 'Failed to update product quantity', details: message });
     }
