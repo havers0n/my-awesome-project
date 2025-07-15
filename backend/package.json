@@ -3,9 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev": "ts-node --project tsconfig.server.json src/app.ts",
-    "build": "tsc --project tsconfig.server.json",
     "start": "node --dns-result-order=ipv4first dist/app.js",
+    "dev": "npx cross-env UV_TCP_IPV6ONLY=0 NODE_OPTIONS='--dns-result-order=ipv4first' ts-node --project tsconfig.server.json src/app.ts",
+    "devlocal": "ts-node --project tsconfig.server.json src/app.ts",
+    "build": "tsc --project tsconfig.server.json",
     "worker": "node src/worker.js",
     "test": "jest",
     "test:unit": "jest --config jest.unit.config.js",

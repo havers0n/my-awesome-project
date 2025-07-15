@@ -1,5 +1,6 @@
-import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useCallback, useEffect } from 'react';
 import { User, Organization, Location, Supplier, Role, Permission, RolePermission } from '@/types';
+import api from '@/services/api'; // Используем наш настроенный инстанс axios
 import { 
   INITIAL_USERS, 
   INITIAL_ORGANIZATIONS, 
@@ -27,9 +28,9 @@ interface DataContextType {
   getUsersByLocationId: (locId: string) => User[];
   
   // Организации
-  addOrganization: (org: Omit<Organization, 'id' | 'createdAt'>) => Organization;
-  updateOrganization: (org: Organization) => void;
-  deleteOrganization: (orgId: string) => void;
+  addOrganization: (org: Omit<Organization, 'id' | 'createdAt'>) => Promise<Organization>;
+  updateOrganization: (org: Organization) => Promise<void>;
+  deleteOrganization: (orgId: string) => Promise<void>;
   
   // Локации
   addLocation: (loc: Omit<Location, 'id' | 'createdAt'>) => Location;
@@ -66,12 +67,36 @@ export const DataContext = createContext<DataContextType | undefined>(undefined)
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [users, setUsers] = useState<User[]>(INITIAL_USERS);
-  const [organizations, setOrganizations] = useState<Organization[]>(INITIAL_ORGANIZATIONS);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [locations, setLocations] = useState<Location[]>(INITIAL_LOCATIONS);
   const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
   const [roles, setRoles] = useState<Role[]>(INITIAL_ROLES);
   const [permissions, setPermissions] = useState<Permission[]>(INITIAL_PERMISSIONS);
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>(INITIAL_ROLE_PERMISSIONS);
+  const [loading, setLoading] = useState(true); // Состояние для отслеживания начальной загрузки
+
+  // Загружаем все данные при первом рендере
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Загружаем организации
+        const orgsResponse = await api.get('/organizations');
+        setOrganizations(orgsResponse.data);
+
+        // TODO: Добавить загрузку пользователей, ролей и т.д.
+        // const usersResponse = await api.get('/users');
+        // setUsers(usersResponse.data);
+
+      } catch (error) {
+        console.error("Failed to fetch initial data", error);
+        // Можно добавить уведомление для пользователя
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const addUser = useCallback((userData: Omit<User, 'id' | 'created_at' | 'last_sign_in'>): User => {
     const newUser: User = {
@@ -92,21 +117,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUsers(prev => prev.filter(u => u.id !== userId));
   }, []);
 
-  const addOrganization = useCallback((orgData: Omit<Organization, 'id' | 'createdAt'>): Organization => {
-    const newOrg: Organization = {
-      ...orgData,
-      id: `org-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    };
+  // --- Организации ---
+  const addOrganization = useCallback(async (orgData: Omit<Organization, 'id' | 'createdAt'>): Promise<Organization> => {
+    const response = await api.post('/organizations', orgData);
+    const newOrg = response.data;
     setOrganizations(prev => [...prev, newOrg]);
     return newOrg;
   }, []);
 
-  const updateOrganization = useCallback((updatedOrg: Organization) => {
+  const updateOrganization = useCallback(async (updatedOrg: Organization) => {
+    await api.put(`/organizations/${updatedOrg.id}`, updatedOrg);
     setOrganizations(prev => prev.map(o => o.id === updatedOrg.id ? updatedOrg : o));
   }, []);
 
-  const deleteOrganization = useCallback((orgId: string) => {
+  const deleteOrganization = useCallback(async (orgId: string) => {
+    await api.delete(`/organizations/${orgId}`);
     setOrganizations(prev => prev.filter(o => o.id !== orgId));
     setLocations(prev => prev.filter(l => l.organizationId !== orgId)); // Cascade delete locations
     setUsers(prev => prev.map(u => u.organizationId === orgId ? {...u, organizationId: null, locationId: null} : u)); // Unlink users
@@ -246,17 +271,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .some(p => p.name === permissionName);
   }, [rolePermissions, permissions]);
 
+  const value = {
+    users, organizations, locations, suppliers, roles, permissions, rolePermissions,
+    addUser, updateUser, deleteUser, getUsersByOrgId, getUsersByLocationId,
+    addOrganization, updateOrganization, deleteOrganization,
+    addLocation, updateLocation, deleteLocation, getLocationsByOrgId,
+    addSupplier, updateSupplier, deleteSupplier, getSuppliersByOrgId,
+    addRole, updateRole, deleteRole, getRoleById,
+    addPermission, updatePermission, deletePermission, getPermissionsByResource,
+    addRolePermission, deleteRolePermission, getRolePermissions, hasPermission
+  };
+
+  if (loading) {
+    return <div>Loading initial data...</div>; // Или можно использовать спиннер
+  }
+
   return (
-    <DataContext.Provider value={{
-      users, organizations, locations, suppliers, roles, permissions, rolePermissions,
-      addUser, updateUser, deleteUser, getUsersByOrgId, getUsersByLocationId,
-      addOrganization, updateOrganization, deleteOrganization,
-      addLocation, updateLocation, deleteLocation, getLocationsByOrgId,
-      addSupplier, updateSupplier, deleteSupplier, getSuppliersByOrgId,
-      addRole, updateRole, deleteRole, getRoleById,
-      addPermission, updatePermission, deletePermission, getPermissionsByResource,
-      addRolePermission, deleteRolePermission, getRolePermissions, hasPermission
-    }}>
+    <DataContext.Provider value={value}>
       {children}
     </DataContext.Provider>
   );

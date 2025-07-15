@@ -34,7 +34,11 @@ import adminRoutes from './routes/adminRoutes';
 import healthRoutes from './routes/healthRoutes';
 import uploadRoutes from './routes/uploadRoutes';
 import userPreferencesRoutes from './routes/userPreferencesRoutes';
+import inventoryRoutes from './routes/inventoryRoutes'; // Импортируем новые роуты
+import organizationRoutes from './routes/organizationRoutes'; // Импорт роутов организаций
+import mlRoutes from './routes/mlRoutes'; // Импорт ML роутов
 import { authenticateSupabaseToken } from './middleware/supabaseAuthMiddleware';
+import { handleZodError, handleSupabaseError } from './controllers/organizationController'; // Импорт обработчиков ошибок
 
 const app = express();
 
@@ -118,6 +122,9 @@ app.use('/api/monetization', authenticateSupabaseToken, monetizationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/forecast', forecastRoutes);
 app.use('/api/user-preferences', userPreferencesRoutes);
+app.use('/api/inventory', inventoryRoutes); // Регистрируем новые роуты
+app.use('/api/organizations', organizationRoutes); // Регистрация роутов организаций
+app.use('/api/ml', mlRoutes); // Регистрация ML роутов
 
 // Temporary test route
 app.post('/test-direct', (req, res) => {
@@ -407,14 +414,16 @@ app.use('/api/upload', uploadRoutes); // Upload routes
 // Static file serving
 app.use(express.static('public'));
 
-// Error handling middleware (surface 4xx/5xx)
+// Error Handling Middleware
+// These should be added after all routes
+// TODO: Fix TypeScript errors for these handlers
+// app.use(handleZodError);
+// app.use(handleSupabaseError);
+
+// Generic error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  // log error via both loggers
-  pinoLogger.error({ err }, 'Error Handler Caught');
-  winstonLogger.error('Error Handler Caught', { stack: err.stack, status: err.status, message: err.message });
-  const code = err.status || err.statusCode || 500;
-  // surface 4xx/5xx JSON error
-  res.status(code).json({ error: err.message || 'Something went wrong!', code });
+    console.error("Unhandled Error:", err);
+    res.status(500).json({ error: 'Something went wrong!', details: err.message });
 });
 
 // Start server
