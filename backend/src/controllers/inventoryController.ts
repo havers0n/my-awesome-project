@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { getSupabaseUserClient } from '../supabaseUserClient';
 import { z } from 'zod';
 
+
 // Helper to get organization_id from user
 const getOrgId = (req: Request): number | null => {
     const user = (req as any).user;
@@ -24,11 +25,20 @@ const quantityUpdateSchema = z.object({
 
 // GET /products - Get all products for an organization
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
+    // ---- НАШ ЛОГ ДЛЯ ПРОВЕРКИ ----
+    console.log('✅✅✅ УРА! Запрос дошел до НАСТОЯЩЕГО контроллера getProducts! ✅✅✅');
+    console.log('Данные пользователя, полученные из токена (req.user):', (req as any).user);
+    // ---- КОНЕЦ ЛОГА ----
+
     const organizationId = getOrgId(req);
     if (!organizationId) {
+        // Добавим лог и здесь для ясности
+        console.error('❌ ОШИБКА: Не удалось получить organizationId из req.user');
         res.status(401).json({ error: 'User is not associated with an organization.' });
         return;
     }
+
+    console.log(`Ищем продукты для organizationId: ${organizationId}`); // <-- Еще один полезный лог
 
     const supabase = getSupabaseUserClient(req.headers['authorization']!.replace('Bearer ', ''));
 
@@ -39,15 +49,19 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
             .eq('organization_id', organizationId)
             .order('name', { ascending: true });
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Ошибка от Supabase при получении продуктов:', error);
+            throw error;
+        }
+
+        console.log(`✅ Найдено ${data.length} продуктов для организации ${organizationId}`); // <-- Супер полезный лог!
         
-        // The frontend expects a 'history' property which might not be in the db.
-        // We will return an empty array for now.
         const productsWithHistory = data.map(p => ({ ...p, history: [] }));
 
         res.json(productsWithHistory);
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
+        console.error('❌ Ошибка в блоке catch контроллера getProducts:', message);
         res.status(500).json({ error: 'Failed to fetch products', details: message });
     }
 };
