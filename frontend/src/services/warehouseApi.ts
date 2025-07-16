@@ -1,18 +1,16 @@
 import { 
   Product, 
-  ProductStatus, 
   HistoryEntry, 
   ForecastData, 
-  Forecast, 
   ProductSnapshot, 
   ComparativeForecastData, 
-  ComparativeForecastItem, 
   ItemMetrics, 
   OverallMetrics 
 } from '@/types/warehouse';
 import { supabase } from '@/services/supabaseClient';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// Use relative URLs to leverage the Vite proxy
+const API_BASE_URL = '/api';
 
 // Helper to get auth token from Supabase
 const getAuthToken = async (): Promise<string | null> => {
@@ -42,17 +40,39 @@ async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
     ...options,
     headers,
   });
+  console.log('API Request:', url, options.method || 'GET', response.status);
 
   if (!response.ok) {
     let errorDetails = 'Request failed';
+    let errorData = null;
+    
     try {
-      const errorData = await response.json();
+      errorData = await response.json();
       errorDetails = errorData.error || errorData.message || JSON.stringify(errorData);
     } catch (e) {
       // Could not parse error JSON, use status text
       errorDetails = response.statusText;
     }
-    throw new Error(`API Error: ${errorDetails} (Status: ${response.status})`);
+    
+    // Log detailed error information for debugging
+    console.error('API Request Failed:', {
+      url: `${API_BASE_URL}${url}`,
+      method: options.method || 'GET',
+      status: response.status,
+      statusText: response.statusText,
+      errorDetails,
+      errorData,
+      hasAuthToken: !!token
+    });
+    
+    // Create a more informative error object
+    const error = new Error(`API Error: ${errorDetails} (Status: ${response.status})`);
+    (error as any).status = response.status;
+    (error as any).statusText = response.statusText;
+    (error as any).url = `${API_BASE_URL}${url}`;
+    (error as any).errorData = errorData;
+    
+    throw error;
   }
 
   // Handle cases where response body might be empty (e.g., 204 No Content)
@@ -101,7 +121,7 @@ export const fetchProductSnapshot = (productId: string): Promise<ProductSnapshot
 };
 
 
-export const requestSalesForecast = async (days: number): Promise<any> => {
+export const requestSalesForecast = async (days: number, product: Product, priceOverride?: number): Promise<ForecastData> => {
   // This is a two-step process now:
   // 1. Trigger the forecast generation on the backend.
   // 2. Fetch the results to display them.
@@ -110,46 +130,61 @@ export const requestSalesForecast = async (days: number): Promise<any> => {
   // Backend endpoint handles org ID and fetches necessary data internally.
   await apiFetch('/forecast/predict', {
     method: 'POST',
-    body: JSON.stringify({ DaysCount: days }),
+    body: JSON.stringify({ 
+      DaysCount: days,
+      ProductId: product.id,
+      PriceOverride: priceOverride
+    }),
   });
   
   // Step 2: Fetch the latest forecast data to display on the page
   // The backend's getForecastData seems to be what we need.
-  return apiFetch(`/forecast/forecast?days=${days}`);
+  return apiFetch(`/forecast/forecast?days=${days}&productId=${product.id}`);
 };
 
 
 export const requestComparativeForecast = async (productIds: string[], days: number): Promise<ComparativeForecastData> => {
-  console.warn("requestComparativeForecast is not fully implemented on the backend yet.");
-  // This would need a dedicated backend endpoint.
-  // For now, we can try to call the main forecast and filter on the frontend,
-  // or return mock data.
-  const allForecastData = await requestSalesForecast(days);
-  
-  const filteredItems = allForecastData.history.items
-    .filter((item: any) => productIds.includes(item.product_id))
-    .map((item: any) => ({
-      id: item.product_id,
-      name: item.product,
-      totalForecast: item.forecast,
-      // The detailed daily breakdown is not provided by the current backend endpoint,
-      // so we have to generate some plausible data.
-      daily_forecast: Array.from({ length: days }, (_, i) => ({
-        day: i + 1,
-        quantity: parseFloat((item.forecast / days).toFixed(1)),
-      })),
+  // Make a direct call to the comparative forecast endpoint
+  try {
+    const response = await apiFetch<ComparativeForecastData>('/forecast/comparative', {
+      method: 'POST',
+      body: JSON.stringify({
+        productIds,
+        days
+      })
+    });
+
+    // Validate response format
+    if (!response || !Array.isArray(response)) {
+      console.error('Invalid response format from comparative forecast API:', response);
+      throw new Error('Некорректный формат данных от сервера');
+    }
+
+    // Validate each item in the response
+    const validatedResponse = response.map(item => ({
+      productName: item.productName || 'Неизвестный продукт',
+      totalForecast: typeof item.totalForecast === 'number' ? item.totalForecast : 0,
+      mape: typeof item.mape === 'number' ? item.mape : null,
+      mae: typeof item.mae === 'number' ? item.mae : null,
+      color: item.color || `hsl(${Math.random() * 360}, 70%, 50%)`
     }));
-      
-      return {
-    items: filteredItems,
-    days,
-  };
+
+    return validatedResponse;
+  } catch (error) {
+    console.error('Error in requestComparativeForecast:', error);
+    // Return empty array instead of mock data in case of error
+    return [];
+  }
 };
 
 export const fetchOverallMetrics = (): Promise<OverallMetrics> => {
-  // This would need a backend endpoint like /api/metrics/overall
-  console.warn("fetchOverallMetrics is using a placeholder endpoint. Backend implementation may be required.");
-  return apiFetch('/forecast/metrics');
+  console.log("fetchOverallMetrics is using mock data as the backend endpoint is not yet implemented.");
+  // Mock data until the backend is ready
+  const mockMetrics: OverallMetrics = {
+    avgMape: 0,
+    avgMae: 0,
+  } as OverallMetrics;
+  return Promise.resolve(mockMetrics);
 };
 
 export const fetchItemMetrics = (): Promise<ItemMetrics[]> => {

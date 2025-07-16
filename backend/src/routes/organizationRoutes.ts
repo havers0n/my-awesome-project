@@ -19,6 +19,10 @@ router.use(authenticateSupabaseToken);
 // This ensures only users with 'admin' role can manage organizations.
 //router.use(checkAdminPermission); 
 
+// Handle empty path for GET and POST (no trailing slash)
+router.get('', getOrganizations);
+router.post('', createOrganization);
+
 router.route('/')
     .get(getOrganizations)
     .post(createOrganization);

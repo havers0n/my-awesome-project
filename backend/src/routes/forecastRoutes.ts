@@ -22,6 +22,29 @@ router.get('/history', dualAuthenticateToken, getForecastHistory as any);
 // GET /metrics - получить общие метрики прогнозирования
 router.get('/metrics', dualAuthenticateToken, getOverallMetrics as any);
 
+// Test route for metrics without authentication
+router.get('/metrics-test-no-auth', async (req, res) => {
+  try {
+    console.log('=== Metrics test route called (no auth) ===');
+    
+    // Return mock metrics data for testing
+    res.json({
+      totalPredictions: 25,
+      averageAccuracy: 85.7,
+      lastUpdated: new Date().toISOString(),
+      avgMAPE: 14.3,
+      avgMAE: 5.2,
+      accuracyTrend: 'improving',
+      predictionCount: 25,
+      testRoute: true
+    });
+  } catch (error) {
+    console.error('Metrics test route error:', error);
+    const message = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ error: 'Test metrics error', details: message });
+  }
+});
+
 // POST /bulk-upload (bulk upload продаж/поставок)
 router.post('/bulk-upload', async (req, res) => {
   try {

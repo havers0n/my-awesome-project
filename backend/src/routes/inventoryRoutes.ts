@@ -10,7 +10,17 @@ import { dualAuthenticateToken } from '../middleware/dualAuthMiddleware';
 
 const router = express.Router();
 
-// Apply authentication middleware to all routes in this file
+// Test route without authentication for debugging
+router.get('/test-no-auth', (req, res) => {
+    console.log('=== Inventory test route called (no auth) ===');
+    res.json({ 
+        success: true, 
+        message: 'This test route works without authentication',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Apply authentication middleware to all other routes in this file
 router.use(dualAuthenticateToken);
 
 // Route to get all products and create a new product

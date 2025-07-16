@@ -2,10 +2,9 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { Product, Forecast, ForecastData, ProductSnapshot, ComparativeForecastData, OverallMetrics } from '@/types/warehouse';
 import { fetchProducts, requestSalesForecast, requestComparativeForecast, fetchProductSnapshot, fetchOverallMetrics } from '@/services/warehouseApi';
 import { useToast } from '@/contexts/ToastContext';
-import { TrendingUp, Wand2, Search, AlertTriangle, Info, CheckSquare, Loader2 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Loader2, Wand2, TrendingUp, AlertTriangle, Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Компоненты
+// Helper Components
 const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = '' }) => (
   <div className={`bg-white rounded-lg border border-gray-200 p-6 shadow-sm ${className}`}>
     {children}
@@ -22,7 +21,7 @@ const KpiCard: React.FC<{ title: string; value: string | number; unit?: string, 
 );
 
 const AccuracyBadge: React.FC<{ mape: number | null, mae: number | null }> = ({ mape, mae }) => {
-  if (mape === null) return null;
+  if (mape === null || mae === null) return null;
   const mapeValue = mape;
   let accuracyText = 'Средняя';
   let classes = 'bg-yellow-100 text-yellow-800';
@@ -37,9 +36,8 @@ const AccuracyBadge: React.FC<{ mape: number | null, mae: number | null }> = ({ 
 
   return (
     <span 
-      title={`MAPE: ${mape.toFixed(1)}%, MAE: ${mae?.toFixed(1)}`} 
-      className={`px-2 py-1 text-xs font-semibold rounded-md ${classes}`}
-    >
+      title={`MAPE: ${mape.toFixed(1)}%, MAE: ${mae.toFixed(1)}`} 
+      className={`px-2 py-1 text-xs font-semibold rounded-md ${classes}`}>
       {accuracyText}
     </span>
   );
@@ -52,29 +50,42 @@ const SnapshotCard: React.FC<{ title: string; value: string; }> = ({ title, valu
   </div>
 );
 
-const MultiSelectDropdown: React.FC<{
+const MultiSelectDropdown: React.FC<{ 
   options: { id: string; name: string }[];
   selectedIds: string[];
   onSelectionChange: (ids: string[]) => void;
   placeholder: string;
 }> = ({ options, selectedIds, onSelectionChange, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleToggle = (id: string) => {
-    if (selectedIds.includes(id)) {
-      onSelectionChange(selectedIds.filter(selectedId => selectedId !== id));
-    } else {
-      onSelectionChange([...selectedIds, id]);
-    }
+    onSelectionChange(
+      selectedIds.includes(id)
+        ? selectedIds.filter(selectedId => selectedId !== id)
+        : [...selectedIds, id]
+    );
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-2 border border-gray-300 rounded-md text-left bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full p-2 border border-gray-300 rounded-md text-left bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex justify-between items-center"
       >
-        {selectedIds.length > 0 ? `Выбрано: ${selectedIds.length}` : placeholder}
+        <span>{selectedIds.length > 0 ? `Выбрано: ${selectedIds.length}` : placeholder}</span>
+        {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
       {isOpen && (
         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -84,7 +95,7 @@ const MultiSelectDropdown: React.FC<{
                 type="checkbox"
                 checked={selectedIds.includes(option.id)}
                 onChange={() => handleToggle(option.id)}
-                className="mr-2"
+                className="mr-2 form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out"
               />
               <span className="text-sm">{option.name}</span>
             </label>
@@ -103,7 +114,7 @@ const SalesForecastNewPage: React.FC = () => {
   const [trendSubMode, setTrendSubMode] = useState<TrendSubMode>('detailed');
   const { addToast } = useToast();
 
-  // --- Trend State ---
+  // --- State ---
   const [forecastData, setForecastData] = useState<ForecastData | null>(null);
   const [history, setHistory] = useState<Forecast[]>([]);
   const [isTrendLoading, setIsTrendLoading] = useState(false);
@@ -115,48 +126,41 @@ const SalesForecastNewPage: React.FC = () => {
   const [snapshot, setSnapshot] = useState<ProductSnapshot | null>(null);
   const [isSnapshotLoading, setIsSnapshotLoading] = useState(false);
   const initialLoadDone = useRef(false);
-  const itemsPerPage = 5;
   const [lowConfidence, setLowConfidence] = useState(false);
-
-  // --- Comparative State ---
   const [selectedComparativeIds, setSelectedComparativeIds] = useState<string[]>([]);
-  const [comparativeData, setComparativeData] = useState<ComparativeForecastData | null>(null);
+  const [comparativeData, setComparativeData] = useState<ComparativeForecastData>([]);
   const [isComparativeLoading, setIsComparativeLoading] = useState(false);
-
-  // --- Metrics State ---
   const [overallMetrics, setOverallMetrics] = useState<OverallMetrics | null>(null);
   const [isMetricsLoading, setIsMetricsLoading] = useState(true);
+  const itemsPerPage = 5;
 
-  // Load products
+  // --- Data Loading ---
   useEffect(() => {
-    const loadProducts = async () => {
+    const loadInitialData = async () => {
+      setIsLoading(true);
+      setIsMetricsLoading(true);
       try {
-        setIsLoading(true);
         const fetchedProducts = await fetchProducts();
         setProducts(fetchedProducts);
       } catch (error) {
-        addToast(error instanceof Error ? error.message : 'Не удалось загрузить данные', 'error');
+        addToast(error instanceof Error ? error.message : 'Не удалось загрузить товары', 'error');
       } finally {
         setIsLoading(false);
       }
-    };
-    loadProducts();
-  }, [addToast]);
 
-  // Load metrics
-  useEffect(() => {
-    const fetchMetricsData = async () => {
-      setIsMetricsLoading(true);
       try {
-        const data = await fetchOverallMetrics();
-        setOverallMetrics(data);
+        const metricsData = await fetchOverallMetrics();
+        setOverallMetrics(metricsData);
       } catch (error) {
-        addToast(error instanceof Error ? error.message : 'Ошибка при загрузке метрик.', 'error');
+        addToast(error instanceof Error ? error.message : 'Не удалось загрузить общие метрики', 'error');
+        // Set to null or default state if metrics fail
+        setOverallMetrics(null);
       } finally {
         setIsMetricsLoading(false);
       }
     };
-    fetchMetricsData();
+
+    loadInitialData();
   }, [addToast]);
 
   const fetchTrendData = useCallback(async (days: number, product: Product, price?: number) => {
@@ -165,15 +169,15 @@ const SalesForecastNewPage: React.FC = () => {
     try {
       const data = await requestSalesForecast(days, product, price);
       setForecastData(data);
-      setHistory(prev => [data.historyEntry, ...prev]);
-
-      const salesHistoryCount = product.history.filter(h => h.type === 'Списание').length;
-      if (salesHistoryCount < 3) {
-        setLowConfidence(true);
+      if (data.historyEntry) {
+        setHistory(prev => [data.historyEntry, ...prev].filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i));
       }
+      const salesHistoryCount = product.history.filter(h => h.type === 'Списание').length;
+      if (salesHistoryCount < 3) setLowConfidence(true);
       addToast(`Прогноз для "${product.name}" успешно сгенерирован!`, 'success');
     } catch (error) {
       addToast(error instanceof Error ? error.message : 'Ошибка при запросе прогноза.', 'error');
+      setForecastData(null);
     } finally {
       setIsTrendLoading(false);
     }
@@ -188,7 +192,6 @@ const SalesForecastNewPage: React.FC = () => {
       setWhatIfPrice(undefined);
       return;
     }
-
     setWhatIfPrice(product.price);
     setIsSnapshotLoading(true);
     try {
@@ -203,15 +206,14 @@ const SalesForecastNewPage: React.FC = () => {
   }, [products, addToast]);
 
   useEffect(() => {
-    if (products.length > 0 && !initialLoadDone.current) {
+    if (products?.length > 0 && !initialLoadDone.current) {
       const initialProduct = products[0];
-      if (initialProduct) {
-        handleProductSelectionChange(initialProduct.id);
-      }
+      if (initialProduct) handleProductSelectionChange(initialProduct.id);
       initialLoadDone.current = true;
     }
   }, [products, handleProductSelectionChange]);
 
+  // --- Event Handlers ---
   const handleForecastRequest = () => {
     const productToForecast = products.find(p => p.id === selectedProductId);
     if (productToForecast) {
@@ -228,11 +230,13 @@ const SalesForecastNewPage: React.FC = () => {
       return;
     }
     setIsComparativeLoading(true);
-    setComparativeData(null);
+    setComparativeData([]);
     try {
-      const productsToCompare = products.filter(p => selectedComparativeIds.includes(p.id));
-      const data = await requestComparativeForecast(productsToCompare, daysToForecast);
-      setComparativeData(data);
+      const response = await requestComparativeForecast(selectedComparativeIds, daysToForecast);
+      setComparativeData(response || []);
+      if (!response || response.length === 0) {
+        addToast('Нет данных для сравнительного прогноза.', 'info');
+      }
     } catch (error) {
       addToast(error instanceof Error ? error.message : 'Ошибка при запросе сравнительного прогноза.', 'error');
     } finally {
@@ -240,29 +244,26 @@ const SalesForecastNewPage: React.FC = () => {
     }
   };
 
-  const filteredHistory = useMemo(() => {
-    return history.filter(item => searchQuery ? item.productName.toLowerCase().includes(searchQuery.toLowerCase()) : true);
-  }, [history, searchQuery]);
-
+  // --- Memoized Values ---
+  const selectedProduct = useMemo(() => products?.find(p => p.id === selectedProductId) || null, [products, selectedProductId]);
+  const filteredHistory = useMemo(() => history.filter(item => item.productName.toLowerCase().includes(searchQuery.toLowerCase())), [history, searchQuery]);
   const paginatedHistory = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredHistory.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredHistory, currentPage]);
-
   const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
 
-  const selectedProduct = useMemo(() => products.find(p => p.id === selectedProductId), [products, selectedProductId]);
-
+  // --- Render Logic ---
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <Loader2 className="animate-spin text-blue-500" size={48} />
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       <Card>
         <div className="flex justify-between items-start">
           <div>
@@ -284,328 +285,146 @@ const SalesForecastNewPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* Режимы */}
       <Card>
-        <div className="flex gap-4 mb-4">
-          <button
-            onClick={() => setTrendSubMode('detailed')}
-            className={`px-4 py-2 rounded-md font-medium transition-colors ${
-              trendSubMode === 'detailed'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            Детальный прогноз
-          </button>
-          <button
-            onClick={() => setTrendSubMode('comparative')}
-            className={`px-4 py-2 rounded-md font-medium transition-colors ${
-              trendSubMode === 'comparative'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            Сравнительный прогноз
-          </button>
+        <div className="flex border-b border-gray-200 mb-4">
+          <button onClick={() => setTrendSubMode('detailed')} className={`px-4 py-2 font-medium transition-colors ${trendSubMode === 'detailed' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}>Детальный прогноз</button>
+          <button onClick={() => setTrendSubMode('comparative')} className={`px-4 py-2 font-medium transition-colors ${trendSubMode === 'comparative' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}>Сравнительный прогноз</button>
         </div>
 
-        {trendSubMode === 'detailed' ? (
+        {trendSubMode === 'detailed' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Левая колонка - настройки */}
             <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Настройки</h3>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Товар</label>
-                <select
-                  value={selectedProductId}
-                  onChange={(e) => handleProductSelectionChange(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
+                <label className="block text-sm font-medium text-gray-700 mb-1">Товар</label>
+                <select value={selectedProductId} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleProductSelectionChange(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Выберите товар</option>
-                  {products.map(product => (
-                    <option key={product.id} value={product.id}>{product.name}</option>
-                  ))}
+                  {products?.map(p => <option key={p.id} value={p.id}>{p.name}</option>) ?? []}
                 </select>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Период прогноза (дней)</label>
-                <input
-                  type="number"
-                  value={daysToForecast}
-                  onChange={(e) => setDaysToForecast(parseInt(e.target.value) || 7)}
-                  min="1"
-                  max="365"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Период прогноза (дней)</label>
+                <input type="number" value={daysToForecast} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDaysToForecast(parseInt(e.target.value) || 7)} min="1" max="365" className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
-
               {selectedProduct && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Цена (₽) - что если?
-                  </label>
-                  <input
-                    type="number"
-                    value={whatIfPrice || ''}
-                    onChange={(e) => setWhatIfPrice(parseInt(e.target.value) || undefined)}
-                    placeholder={`Текущая: ${selectedProduct.price || 0}₽`}
-                    min="0"
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Цена (₽) - "что если?"</label>
+                  <input type="number" value={whatIfPrice || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setWhatIfPrice(parseInt(e.target.value) || undefined)} placeholder={`Текущая: ${selectedProduct.price || 0}₽`} min="0" className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
               )}
-
-              <button
-                onClick={handleForecastRequest}
-                disabled={!selectedProductId || isTrendLoading}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                {isTrendLoading ? (
-                  <>
-                    <Loader2 className="animate-spin" size={20} />
-                    Генерация прогноза...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 size={20} />
-                    Создать прогноз
-                  </>
-                )}
+              <button onClick={handleForecastRequest} disabled={!selectedProductId || isTrendLoading} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors">
+                {isTrendLoading ? <><Loader2 className="animate-spin" size={20} />Генерация...</> : <><Wand2 size={20} />Создать прогноз</>}
               </button>
             </div>
-
-            {/* Правая колонка - данные товара */}
             <div className="space-y-4">
-              {isSnapshotLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="animate-spin" size={32} />
-                </div>
-              ) : snapshot && selectedProduct ? (
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Снимок товара: {selectedProduct.name}</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <SnapshotCard title="Средние продажи 7д" value={`${snapshot.avgSales7d.toFixed(1)} шт/день`} />
-                    <SnapshotCard title="Средние продажи 30д" value={`${snapshot.avgSales30d.toFixed(1)} шт/день`} />
-                    <SnapshotCard title="Продажи вчера" value={`${snapshot.salesLag1d} шт`} />
-                    <SnapshotCard title="Текущий остаток" value={`${selectedProduct.quantity} шт`} />
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  Выберите товар для просмотра данных
-                </div>
-              )}
+              {isSnapshotLoading ? <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin"/></div> : 
+                selectedProduct && snapshot ? (
+                  <Card className="bg-gray-50">
+                    <h3 className="text-lg font-semibold mb-3">Снимок товара: {selectedProduct.name}</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <SnapshotCard title="Средние продажи 7д" value={`${snapshot.avgSales7d.toFixed(1)} шт/день`} />
+                      <SnapshotCard title="Средние продажи 30д" value={`${snapshot.avgSales30d.toFixed(1)} шт/день`} />
+                      <SnapshotCard title="Продажи вчера" value={`${snapshot.salesLag1d} шт`} />
+                      <SnapshotCard title="Текущий остаток" value={`${selectedProduct.quantity} шт`} />
+                    </div>
+                  </Card>
+                ) : <div className="text-center py-8 text-gray-500">Выберите товар для просмотра данных</div>
+              }
+              {isTrendLoading ? <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin"/></div> : 
+                forecastData && (
+                  <Card>
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2"><TrendingUp size={20}/>Результаты прогноза</h3>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <KpiCard title="Суммарный прогноз" value={forecastData.totalForecastedQuantity} unit="шт" />
+                      <KpiCard title="Точность (MAPE)" value={`${forecastData.metrics.mape.toFixed(1)}%`} />
+                    </div>
+                    {lowConfidence && <div className="flex items-center gap-2 p-3 mb-4 text-yellow-800 bg-yellow-100 rounded-md"><AlertTriangle size={20}/>Низкая уверенность: мало исторических данных для точного прогноза.</div>}
+                    <div className="space-y-2">
+                      {forecastData.forecasts && forecastData.forecasts.map((f: Forecast) => (
+                        <div key={f.date} className="flex justify-between items-center p-2 rounded-md hover:bg-gray-50">
+                          <span className="font-medium text-gray-700">{new Date(f.date).toLocaleDateString('ru-RU')}</span>
+                          <span className="font-bold text-blue-600">{f.forecastedQuantity} шт</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )
+              }
             </div>
           </div>
-        ) : (
+        )}
+
+        {trendSubMode === 'comparative' && (
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Товары для сравнения</label>
-              <MultiSelectDropdown
-                options={products.map(p => ({ id: p.id, name: p.name }))}
-                selectedIds={selectedComparativeIds}
-                onSelectionChange={setSelectedComparativeIds}
-                placeholder="Выберите товары для сравнения"
-              />
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Товары для сравнения</label>
+                    <MultiSelectDropdown options={products?.map(p => ({ id: p.id, name: p.name })) ?? []} selectedIds={selectedComparativeIds} onSelectionChange={setSelectedComparativeIds} placeholder="Выберите товары" />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Период (дней)</label>
+                    <input type="number" value={daysToForecast} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDaysToForecast(parseInt(e.target.value) || 7)} min="1" max="365" className="w-full p-2 border border-gray-300 rounded-md" />
+                </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Период прогноза (дней)</label>
-              <input
-                type="number"
-                value={daysToForecast}
-                onChange={(e) => setDaysToForecast(parseInt(e.target.value) || 7)}
-                min="1"
-                max="365"
-                className="w-full max-w-xs p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <button
-              onClick={handleComparativeRequest}
-              disabled={selectedComparativeIds.length === 0 || isComparativeLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {isComparativeLoading ? (
-                <>
-                  <Loader2 className="animate-spin" size={20} />
-                  Генерация сравнительного прогноза...
-                </>
-              ) : (
-                <>
-                  <TrendingUp size={20} />
-                  Создать сравнительный прогноз
-                </>
-              )}
+            <button onClick={handleComparativeRequest} disabled={selectedComparativeIds.length === 0 || isComparativeLoading} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors">
+              {isComparativeLoading ? <><Loader2 className="animate-spin" size={20} />Сравнение...</> : <>Сравнить прогнозы</>}
             </button>
+            {isComparativeLoading ? <div className="flex justify-center items-center h-40"><Loader2 className="animate-spin"/></div> : 
+              comparativeData && comparativeData.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {comparativeData.map((data, index) => (
+                    <Card key={index}>
+                      <h4 className="font-bold text-md mb-2 truncate">{data.productName}</h4>
+                      <div className="space-y-2">
+                        <KpiCard title="Суммарный прогноз" value={data.totalForecast} unit="шт" />
+                        <KpiCard title="Точность (MAPE)" value={`${data.mape?.toFixed(1) ?? 'N/A'}%`} />
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )
+            }
           </div>
         )}
       </Card>
 
-      {/* Результаты прогноза */}
-      {trendSubMode === 'detailed' && forecastData && (
-        <Card>
-          <div className="flex justify-between items-start mb-4">
-            <h3 className="text-lg font-semibold">Результат прогноза</h3>
-            {lowConfidence && (
-              <div className="flex items-center gap-2 text-yellow-600">
-                <AlertTriangle size={16} />
-                <span className="text-sm">Низкая достоверность - мало данных</span>
-              </div>
-            )}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <KpiCard
-              title="Прогнозируемые продажи"
-              value={forecastData.totalForecastedQuantity}
-              unit="шт"
-            />
-            <KpiCard
-              title="MAPE"
-              value={forecastData.historyEntry.mape?.toFixed(1) || 'N/A'}
-              unit="%"
-            />
-            <KpiCard
-              title="MAE"
-              value={forecastData.historyEntry.mae?.toFixed(1) || 'N/A'}
-              unit=""
-            />
-          </div>
-          <div className="mt-4 flex items-center gap-2">
-            <span className="text-sm text-gray-600">Точность прогноза:</span>
-            <AccuracyBadge 
-              mape={forecastData.historyEntry.mape} 
-              mae={forecastData.historyEntry.mae} 
-            />
-          </div>
-        </Card>
-      )}
-
-      {/* Сравнительный прогноз */}
-      {trendSubMode === 'comparative' && comparativeData && (
-        <Card>
-          <h3 className="text-lg font-semibold mb-4">Сравнительный прогноз</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Товар
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Прогноз
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    MAPE
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    MAE
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Точность
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {comparativeData.map((item, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {item.productName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.totalForecast} шт
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.mape?.toFixed(1)}%
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.mae?.toFixed(1)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <AccuracyBadge mape={item.mape} mae={item.mae} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
-
-      {/* История прогнозов */}
       {history.length > 0 && (
         <Card>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">История прогнозов</h3>
-            <div className="flex items-center gap-2">
-              <Search size={16} className="text-gray-400" />
-              <input
-                type="text"
-                placeholder="Поиск по товару..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+          <h3 className="text-xl font-bold mb-4">История прогнозов</h3>
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <input type="text" placeholder="Поиск по названию..." value={searchQuery} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)} className="w-full p-2 pl-10 border border-gray-300 rounded-md" />
           </div>
-          
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Дата
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Товар
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Прогноз
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Точность
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {paginatedHistory.map((item) => (
-                  <tr key={item.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(item.date).toLocaleString('ru-RU')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {item.productName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {item.forecastedQuantity} шт
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <AccuracyBadge mape={item.mape} mae={item.mae} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Пагинация */}
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-4">
-              <div className="flex gap-2">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-1 rounded-md text-sm ${
-                      currentPage === page
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+          <div className="space-y-3">
+            {paginatedHistory.map(h => (
+              <div key={h.id} className="p-4 border rounded-md grid grid-cols-4 gap-4 items-center bg-gray-50">
+                <span className="font-semibold col-span-2">{h.productName}</span>
+                <span className="text-gray-600">{new Date(h.date).toLocaleDateString('ru-RU')}</span>
+                <div className="flex justify-end">
+                  <AccuracyBadge mape={h.mape} mae={h.mae} />
+                </div>
               </div>
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-4">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-md disabled:opacity-50 hover:bg-gray-100"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <span className="text-sm font-medium">
+                Страница {currentPage} из {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-md disabled:opacity-50 hover:bg-gray-100"
+              >
+                <ChevronRight size={20} />
+              </button>
             </div>
           )}
         </Card>
@@ -614,4 +433,4 @@ const SalesForecastNewPage: React.FC = () => {
   );
 };
 
-export default SalesForecastNewPage; 
+export default SalesForecastNewPage;

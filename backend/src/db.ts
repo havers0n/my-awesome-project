@@ -24,35 +24,7 @@ const pool = new Pool({
   allowExitOnIdle: false,
 });
 
-// Test the connection with retry logic
-const connectWithRetry = async (retries = 3) => {
-  console.log('Attempting to connect to database...');
-  console.log('Using Supabase Transaction Pooler (IPv4 compatible)');
-  
-  for (let i = 0; i < retries; i++) {
-    try {
-      const client = await pool.connect();
-      console.log('Connected to the database successfully via Transaction Pooler!');
-      
-      // Проверяем версию PostgreSQL
-      const result = await client.query('SELECT version()');
-      console.log('PostgreSQL version:', result.rows[0].version);
-      
-      client.release();
-      console.log('Database connection test completed, client released');
-      return;
-    } catch (err) {
-      console.error(`Connection attempt ${i + 1} failed:`, err);
-      if (i === retries - 1) {
-        console.error('Error connecting to the database after all retries:', err);
-        console.log('Server will continue to run, but database operations will fail');
-      } else {
-        console.log(`Retrying in 3 seconds...`);
-        await new Promise(resolve => setTimeout(resolve, 3000));
-      }
-    }
-  }
-};
+
 
 // Добавляем обработчики событий pool
 pool.on('error', (err) => {
@@ -71,16 +43,9 @@ pool.on('remove', () => {
   console.log('Client removed from pool');
 });
 
-// Инициализируем подключение
-console.log('Starting database connection initialization...');
-connectWithRetry()
-  .then(() => {
-    console.log('Database initialization completed');
-  })
-  .catch((err) => {
-    console.error('Database initialization failed:', err);
-  });
+// Код инициализации удален, так как он мешал запуску сервера.
+// Пул соединений будет создаваться автоматически при первом запросе.
 
 // Экспортируем функцию для получения pool
 export const getPool = () => pool;
-export { pool }; 
+export { pool };

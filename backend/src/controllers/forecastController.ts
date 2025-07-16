@@ -517,6 +517,15 @@ export const getForecastHistory = async (req: Request, res: Response) => {
   }
 };
 
+// Определяем интерфейс для объекта предсказания, чтобы избежать неявного 'any'
+interface Prediction {
+  item_mape?: number | null;
+  item_mae?: number | null;
+  predicted_quantity?: number;
+  created_at?: string;
+  [key: string]: any; // Позволяет другие поля, если они есть
+}
+
 // GET /metrics - получить общие метрики прогнозирования
 export const getOverallMetrics = async (req: Request, res: Response) => {
   const log = (message: string, data?: any) => {
@@ -529,36 +538,110 @@ export const getOverallMetrics = async (req: Request, res: Response) => {
   try {
     // @ts-ignore
     const user = (req as any).user;
-    if (!user || !user.organization_id) {
-      logError('User not authenticated or no organization_id', {});
-      return res.status(401).json({ error: 'User not authenticated or no organization associated' });
+    if (!user || !user.id) {
+      logError('User not authenticated', {});
+      return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    const organizationId = user.organization_id;
+    log('Authenticated user', { id: user.id, email: user.email });
+
+    // Get the authorization token from the request header
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+      logError('Authorization header is missing', {});
+      return res.status(401).json({ error: 'Authorization header is missing' });
+    }
+    const userToken = authHeader.replace('Bearer ', '');
+    const supabase = getSupabaseUserClient(userToken);
+
+    // Get user profile to determine organization_id
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile || !profile.organization_id) {
+      logError('Failed to get user profile or organization_id', profileError);
+      return res.status(400).json({
+        error: 'Failed to get user profile or organization_id',
+        details: profileError?.message || 'Profile not found or no organization associated'
+      });
+    }
+
+    const organizationId = profile.organization_id;
     log('Getting overall metrics for organization', { organizationId });
 
-    // Получаем общие метрики из базы данных
-    const supabase = getSupabaseUserClient(req.headers['authorization']!.replace('Bearer ', ''));
-    
-    const { data: predictions, error } = await supabase
-      .from('sales_forecasts')
-      .select('item_mape, item_mae, predicted_quantity, created_at')
+    // First, try to get data from prediction_runs table (most likely to have organization_id)
+    const { data: predictionRuns, error: runsError } = await supabase
+      .from('prediction_runs')
+      .select('id, overall_mape, overall_mae, run_timestamp')
       .eq('organization_id', organizationId)
-      .order('created_at', { ascending: false })
+      .order('run_timestamp', { ascending: false })
       .limit(100);
 
-    if (error) {
-      logError('Database error getting metrics', error);
-      return res.status(500).json({ error: 'Database error', details: error.message });
+    if (runsError) {
+      logError('Error querying prediction_runs table', runsError);
+      // Don't return error yet, try other tables
     }
 
-    // Если нет данных, возвращаем значения по умолчанию
-    if (!predictions || predictions.length === 0) {
-      log('No predictions found, returning default metrics');
+    // If we have prediction runs, get the associated predictions
+    let predictions: Prediction[] = [];
+    let lastUpdated = new Date().toISOString();
+    
+    if (predictionRuns && predictionRuns.length > 0) {
+      log('Found prediction runs', { count: predictionRuns.length });
+      lastUpdated = predictionRuns[0].run_timestamp;
+      
+      // Get all prediction run IDs
+      const runIds = predictionRuns.map(run => run.id);
+      
+      // Get predictions for these runs
+      const { data: predictionDetails, error: predictionsError } = await supabase
+        .from('predictions')
+        .select('item_mape, item_mae, predicted_quantity, period_start, period_end')
+        .in('prediction_run_id', runIds)
+        .order('period_start', { ascending: false });
+      
+      if (!predictionsError && predictionDetails && predictionDetails.length > 0) {
+        log('Found predictions', { count: predictionDetails.length });
+        predictions = predictionDetails;
+      } else {
+        // If no predictions found, use the metrics from prediction_runs
+        log('No prediction details found, using metrics from prediction_runs');
+        predictions = predictionRuns.map(run => ({
+          item_mape: run.overall_mape,
+          item_mae: run.overall_mae,
+          predicted_quantity: 0,
+          created_at: run.run_timestamp
+        }));
+      }
+    } else {
+      // If no prediction_runs, try the legacy sales_forecasts table as a last resort
+      log('No prediction runs found, trying sales_forecasts table');
+      const { data: forecasts, error: forecastsError } = await supabase
+        .from('sales_forecasts')
+        .select('item_mape, item_mae, predicted_quantity, created_at')
+        .eq('organization_id', organizationId)
+        .order('created_at', { ascending: false })
+        .limit(100);
+      
+      if (!forecastsError && forecasts && forecasts.length > 0) {
+        log('Found forecasts in legacy table', { count: forecasts.length });
+        predictions = forecasts;
+        lastUpdated = forecasts[0].created_at;
+      } else {
+        log('No forecast data found in any table');
+      }
+    }
+
+    // If no data found in any table, return default metrics
+    if (predictions.length === 0) {
+      log('No metrics data found, returning default metrics');
       return res.json({
         totalPredictions: 0,
         averageAccuracy: 0,
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: lastUpdated,
         avgMAPE: 0,
         avgMAE: 0,
         accuracyTrend: 'stable',
@@ -566,14 +649,13 @@ export const getOverallMetrics = async (req: Request, res: Response) => {
       });
     }
 
-    // Вычисляем общие метрики
+    // Calculate metrics
     const totalPredictions = predictions.length;
     const avgMAPE = predictions.reduce((sum, pred) => sum + (pred.item_mape || 0), 0) / totalPredictions;
     const avgMAE = predictions.reduce((sum, pred) => sum + (pred.item_mae || 0), 0) / totalPredictions;
-    const averageAccuracy = Math.max(0, 100 - avgMAPE); // Преобразуем MAPE в точность
-    const lastUpdated = predictions[0].created_at;
+    const averageAccuracy = Math.max(0, 100 - avgMAPE); // Convert MAPE to accuracy
 
-    // Простая оценка тренда (сравниваем последние 10 с предыдущими 10)
+    // Calculate trend
     let accuracyTrend = 'stable';
     if (predictions.length >= 20) {
       const recent10 = predictions.slice(0, 10);
@@ -598,7 +680,7 @@ export const getOverallMetrics = async (req: Request, res: Response) => {
       predictionCount: totalPredictions
     };
 
-    log('Overall metrics calculated', metrics);
+    log('Overall metrics calculated successfully', metrics);
     res.json(metrics);
     
   } catch (err) {

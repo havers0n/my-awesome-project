@@ -48,8 +48,13 @@ export interface Forecast {
 }
 
 export interface ForecastData {
-  totalForecastedQuantity: number;
+  forecasts: Forecast[];
+  metrics: {
+    mape: number;
+    mae: number;
+  };
   historyEntry: Forecast;
+  totalForecastedQuantity: number;
 }
 
 export interface ComparativeForecastItem {

@@ -21,10 +21,16 @@ declare global {
 }
 
 export const dualAuthenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  console.log(`[Auth] Authenticating request to ${req.method} ${req.path}`);
+  
   const authHeader = req.headers['authorization'];
+  console.log(`[Auth] Authorization header present: ${!!authHeader}`);
+  
   const token = authHeader && authHeader.split(' ')[1];
+  console.log(`[Auth] Token extracted: ${!!token}`);
 
   if (!token) {
+    console.log(`[Auth] No token provided, returning 401`);
     res.status(401).json({ error: 'Token required' });
     return;
   }
@@ -32,9 +38,15 @@ export const dualAuthenticateToken = async (req: Request, res: Response, next: N
   try {
     // Сначала пробуем как Supabase токен
     if (supabaseAdmin) {
+      console.log(`[Auth] Attempting Supabase token validation`);
       const { data: { user: supabaseUser }, error: supabaseError } = await supabaseAdmin.auth.getUser(token);
       
+      if (supabaseError) {
+        console.log(`[Auth] Supabase validation error:`, supabaseError);
+      }
+      
       if (!supabaseError && supabaseUser) {
+        console.log(`[Auth] Supabase token valid for user:`, supabaseUser.email);
         let userRole = 'employee';
         let locationId: number | null = null;
         let organizationId: number | null = null;
@@ -59,6 +71,19 @@ export const dualAuthenticateToken = async (req: Request, res: Response, next: N
                 organizationId = orgResult.rows[0].organization_id;
               }
             }
+
+            // Fallback or primary way to get organization_id directly if location-based logic fails
+            if (!organizationId) {
+              const userOrgResult = await pool.query(
+                'SELECT organization_id FROM public.user_organizations WHERE user_id = $1',
+                [supabaseUser.id]
+              );
+              if (userOrgResult.rows.length > 0) {
+                organizationId = userOrgResult.rows[0].organization_id;
+                console.log(`[Auth] Fetched organization_id directly via user_organizations: ${organizationId}`);
+              }
+            }
+
           }
         } catch (profileError) {
           console.error('Error fetching profile/location for Supabase user:', profileError);

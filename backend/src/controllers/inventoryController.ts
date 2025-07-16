@@ -25,20 +25,23 @@ const quantityUpdateSchema = z.object({
 
 // GET /products - Get all products for an organization
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
-    // ---- НАШ ЛОГ ДЛЯ ПРОВЕРКИ ----
-    console.log('✅✅✅ УРА! Запрос дошел до НАСТОЯЩЕГО контроллера getProducts! ✅✅✅');
-    console.log('Данные пользователя, полученные из токена (req.user):', (req as any).user);
-    // ---- КОНЕЦ ЛОГА ----
-
+    console.log('=== getProducts controller called ===');
+    console.log('Request path:', req.path);
+    console.log('Request method:', req.method);
+    console.log('Request headers:', JSON.stringify(req.headers, null, 2));
+    console.log('User object from request:', JSON.stringify((req as any).user, null, 2));
+    
     const organizationId = getOrgId(req);
+    console.log(`Organization ID extracted from user: ${organizationId}`);
+    
     if (!organizationId) {
-        // Добавим лог и здесь для ясности
-        console.error('❌ ОШИБКА: Не удалось получить organizationId из req.user');
+        console.error('ERROR: Failed to get organizationId from req.user');
+        console.error('User object details:', JSON.stringify((req as any).user, null, 2));
         res.status(401).json({ error: 'User is not associated with an organization.' });
         return;
     }
 
-    console.log(`Ищем продукты для organizationId: ${organizationId}`); // <-- Еще один полезный лог
+    console.log(`Fetching products for organizationId: ${organizationId}`);
 
     const supabase = getSupabaseUserClient(req.headers['authorization']!.replace('Bearer ', ''));
 
@@ -56,13 +59,23 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 
         console.log(`✅ Найдено ${data.length} продуктов для организации ${organizationId}`); // <-- Супер полезный лог!
         
-        const productsWithHistory = data.map(p => ({ ...p, history: [] }));
+        // Even if no products are found, we should return an empty array, not an error
+        const productsWithHistory = (data || []).map(p => ({ ...p, history: [] }));
 
         res.json(productsWithHistory);
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         console.error('❌ Ошибка в блоке catch контроллера getProducts:', message);
-        res.status(500).json({ error: 'Failed to fetch products', details: message });
+        
+        // Provide more detailed error information
+        const errorResponse = {
+            error: 'Failed to fetch products',
+            details: message,
+            timestamp: new Date().toISOString(),
+            organizationId: organizationId
+        };
+        
+        res.status(500).json(errorResponse);
     }
 };
 
