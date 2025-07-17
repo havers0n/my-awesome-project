@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-apt install npm
 npm install
 
 npm run build
