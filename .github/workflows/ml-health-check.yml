@@ -1,0 +1,123 @@
+name: ML Service Health Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run every 5 minutes during business hours (9 AM to 5 PM UTC)
+    - cron: '*/5 9-17 * * 1-5'
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up environment
+      run: |
+        echo "ML_SERVICE_URL=${{ secrets.ML_SERVICE_URL || 'http://localhost:8000' }}" >> $GITHUB_ENV
+        echo "Starting ML service health check..."
+    
+    - name: Health Check with curl
+      run: |
+        # Create health check script
+        cat > health-check.sh << 'EOF'
+        #!/bin/bash
+        
+        URL="${ML_SERVICE_URL}/health"
+        LOG_FILE="health-check-$(date +%Y%m%d-%H%M%S).log"
+        
+        echo "=== ML Service Health Check - $(date) ===" | tee -a $LOG_FILE
+        echo "Target URL: $URL" | tee -a $LOG_FILE
+        
+        # Perform health check with timing and headers
+        HTTP_CODE=$(curl -w "%{http_code}" -s -o response.json \
+          -H "Accept: application/json" \
+          -H "User-Agent: CI-Health-Check/1.0" \
+          --connect-timeout 30 \
+          --max-time 60 \
+          --write-out "Time: %{time_total}s\nSize: %{size_download} bytes\nStatus: %{response_code}\n" \
+          "$URL" 2>&1 | tee -a $LOG_FILE)
+        
+        # Extract just the HTTP status code
+        STATUS_CODE=$(echo "$HTTP_CODE" | tail -n1)
+        
+        echo "HTTP Status Code: $STATUS_CODE" | tee -a $LOG_FILE
+        
+        # Check if request was successful
+        if [ "$STATUS_CODE" = "200" ]; then
+          echo "✓ Health check successful!" | tee -a $LOG_FILE
+          
+          # Validate JSON response
+          if [ -f response.json ]; then
+            echo "Response body:" | tee -a $LOG_FILE
+            cat response.json | tee -a $LOG_FILE
+            
+            # Check for expected status
+            if jq -e '.status == "ok"' response.json > /dev/null 2>&1; then
+              echo "✓ Expected JSON response received: status=ok" | tee -a $LOG_FILE
+            else
+              echo "⚠ Unexpected or missing status in JSON response" | tee -a $LOG_FILE
+              jq '.' response.json | tee -a $LOG_FILE
+            fi
+          fi
+          
+          exit 0
+        else
+          echo "✗ Health check failed with status: $STATUS_CODE" | tee -a $LOG_FILE
+          
+          # Log error response if available
+          if [ -f response.json ]; then
+            echo "Error response body:" | tee -a $LOG_FILE
+            cat response.json | tee -a $LOG_FILE
+          fi
+          
+          exit 1
+        fi
+        EOF
+        
+        chmod +x health-check.sh
+        ./health-check.sh
+    
+    - name: Upload health check logs
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: health-check-logs
+        path: |
+          health-check-*.log
+          response.json
+        retention-days: 7
+    
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "Health check failed. Check the logs for details."
+        # Add notification logic here (Slack, Teams, email, etc.)
+        
+  windows-health-check:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Run PowerShell Health Check
+      shell: pwsh
+      run: |
+        $url = "${{ secrets.ML_SERVICE_URL || 'http://localhost:8000' }}"
+        .\health-check.ps1 -Url $url -LogFile "health-check-windows.log"
+    
+    - name: Upload Windows health check logs
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: health-check-logs-windows
+        path: |
+          health-check-windows.log
+        retention-days: 7

@@ -1,0 +1,15 @@
+fastapi
+scikit-learn
+lightgbm
+pandas
+numpy
+uvicorn
+pydantic
+loguru
+psycopg2-binary
+requests
+redis
+prometheus-client
+aiofiles
+celery
+
