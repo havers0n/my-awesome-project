@@ -86,8 +86,8 @@ export const createUser = async (req: Request, res: Response) => {
         full_name: full_name || null,
         role: role || 'EMPLOYEE',
         organization_id: organization_id || null,
-        phone: phone || null,
-        position: position || null,
+        // phone: phone || null, // Убрали, так как колонка отсутствует
+        // position: position || null, // Убрали, так как колонка отсутствует
         is_active: true,
       }])
       .select()
