@@ -52,89 +52,74 @@ export const createUser = async (req: Request, res: Response) => {
     const validatedData = createUserSchema.parse(req.body);
     console.log('Validated data:', { ...validatedData, password: '[HIDDEN]' });
 
-        const { email, password, full_name, organization_id, role, phone, position } = validatedData;
+    const { email, password, full_name, organization_id, role, phone, position } = validatedData;
 
-    // 1. First, create user in Supabase Auth
-    console.log('Creating user in Supabase Auth...');
+    // Шаг 1: Создаем пользователя в Supabase Auth
+    console.log('Step 1: Creating user in Supabase Auth...');
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: true, // Auto-confirm email
+      email_confirm: true,
       user_metadata: {
-        full_name,
-        role: role || 'EMPLOYEE'
+        full_name: full_name || '', // Можно хранить здесь для быстрого доступа, но основной источник - public.users
       }
     });
 
-    if (authError) {
+    if (authError || !authData?.user) {
       console.error('Supabase Auth error:', authError);
       return res.status(400).json({ 
         error: 'Failed to create authentication account',
-        details: authError.message 
-      });
-    }
-
-    if (!authData?.user) {
-      console.error('No user data returned from Supabase Auth');
-      return res.status(500).json({ 
-        error: 'Authentication account created but no user data returned' 
+        details: authError?.message || 'Unknown auth error' 
       });
     }
 
     const userId = authData.user.id;
-    console.log('User created in Supabase Auth with ID:', userId);
+    console.log('Step 1 successful. User created in Supabase Auth with ID:', userId);
 
-    // 2. Then, create user profile in users table
-    console.log('Creating user profile in database...');
+    // Шаг 2: Создаем запись в таблице public.users
+    console.log('Step 2: Creating user profile in public.users table...');
     const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
       .insert([{
-        id: userId, // Use the Auth user ID
+        id: userId, // UUID из auth.users
         email,
-        full_name,
+        full_name: full_name || null,
         role: role || 'EMPLOYEE',
         organization_id: organization_id || null,
         phone: phone || null,
         position: position || null,
         is_active: true,
-        created_at: new Date().toISOString()
       }])
       .select()
       .single();
 
+    // Обработка ошибок для Шага 2
     if (userError) {
       console.error('Database error creating user profile:', userError);
       
-      // Rollback: Delete the auth user if profile creation failed
+      // Откат: удаляем пользователя из Auth, если не удалось создать профиль
       console.log('Rolling back - deleting auth user...');
       await supabaseAdmin.auth.admin.deleteUser(userId);
       
       return res.status(500).json({ 
-        error: 'Failed to create user profile',
+        error: 'Failed to create user profile in public.users table.',
         details: userError.message 
       });
     }
 
-    console.log('User profile created successfully:', userData);
+    console.log('Step 2 successful. User profile created:', userData);
 
-    // Return success response
+    // Финальный успешный ответ
     res.status(201).json({
       success: true,
-      message: 'User created successfully',
-      user: {
-        id: userId,
-        email,
-        full_name,
-        role: role || 'EMPLOYEE',
-        organization_id: organization_id || null,
-        is_active: true
-      }
+      message: 'User created successfully in both Auth and database.',
+      user: userData
     });
 
-    console.log('=== User creation completed successfully ===');
+    console.log('=== User creation process completed successfully ===');
 
   } catch (error: any) {
-    console.error('Error creating user:', error);
+    console.error('Error in createUser controller:', error);
     
     if (error instanceof z.ZodError) {
       return res.status(400).json({

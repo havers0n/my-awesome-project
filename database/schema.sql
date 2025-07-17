@@ -59,11 +59,11 @@ CREATE TABLE public.operations (
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT operations_pkey PRIMARY KEY (id),
-  CONSTRAINT operations_location_id_fkey FOREIGN KEY (location_id) REFERENCES public.locations(id),
-  CONSTRAINT operations_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id),
   CONSTRAINT operations_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id),
-  CONSTRAINT operations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-  CONSTRAINT operations_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
+  CONSTRAINT operations_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id),
+  CONSTRAINT operations_location_id_fkey FOREIGN KEY (location_id) REFERENCES public.locations(id),
+  CONSTRAINT operations_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
+  CONSTRAINT operations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
 CREATE TABLE public.organizations (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -93,8 +93,8 @@ CREATE TABLE public.out_of_stock_items (
   updated_at timestamp with time zone DEFAULT now(),
   product_id bigint,
   CONSTRAINT out_of_stock_items_pkey PRIMARY KEY (id),
-  CONSTRAINT out_of_stock_items_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
-  CONSTRAINT out_of_stock_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id)
+  CONSTRAINT out_of_stock_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id),
+  CONSTRAINT out_of_stock_items_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.permissions (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -241,8 +241,6 @@ CREATE TABLE public.sales_input (
   updated_at timestamp with time zone DEFAULT now(),
   organization_id bigint,
   price numeric,
-  is_processed boolean NOT NULL DEFAULT false,
-  processed_at timestamp with time zone,
   CONSTRAINT sales_input_pkey PRIMARY KEY (id),
   CONSTRAINT fk_sales_input_supplier FOREIGN KEY (supplier_id) REFERENCES public.suppliers(id),
   CONSTRAINT fk_sales_input_location_id FOREIGN KEY (location_id) REFERENCES public.locations(id)
@@ -255,6 +253,15 @@ CREATE TABLE public.suppliers (
   organization_id bigint NOT NULL,
   CONSTRAINT suppliers_pkey PRIMARY KEY (id)
 );
+CREATE TABLE public.user_preferences (
+  id integer NOT NULL DEFAULT nextval('user_preferences_id_seq'::regclass),
+  user_id uuid NOT NULL UNIQUE,
+  preferences jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT user_preferences_pkey PRIMARY KEY (id),
+  CONSTRAINT user_preferences_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
 CREATE TABLE public.users (
   id uuid NOT NULL,
   email character varying NOT NULL UNIQUE,
@@ -264,8 +271,10 @@ CREATE TABLE public.users (
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  role character varying,
+  location_id bigint,
   CONSTRAINT users_pkey PRIMARY KEY (id),
+  CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id),
   CONSTRAINT users_default_location_id_fkey FOREIGN KEY (default_location_id) REFERENCES public.locations(id),
-  CONSTRAINT users_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id),
-  CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+  CONSTRAINT users_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
 );
