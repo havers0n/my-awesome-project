@@ -6,6 +6,7 @@ on:
       - Vlad_branch
       - Daniel_branch
       - Alex_branch
+      - CI-CD-Site
   workflow_dispatch:
     inputs:
       branch:
@@ -17,6 +18,7 @@ on:
           - Vlad_branch
           - Daniel_branch
           - Alex_branch
+          - CI-CD-Site
 
 jobs:
   deploy:
