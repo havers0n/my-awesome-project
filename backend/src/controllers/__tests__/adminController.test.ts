@@ -1,13 +1,14 @@
 import { Request, Response } from 'express';
-import { createUser } from '../adminController';
+import { createUser, checkEmail } from '../adminController';
 import * as logger from '../../utils/logger';
-import { supabaseAdmin } from '../../supabaseAdminClient';
+import { supabaseAdmin } from '../../supabaseClient';
 import bcrypt from 'bcryptjs';
 
 // Mock dependencies
 jest.mock('../../utils/logger');
-jest.mock('../../supabaseAdminClient', () => ({
+jest.mock('../../supabaseClient', () => ({
   supabaseAdmin: {
+    from: jest.fn(),
     auth: {
       admin: {
         createUser: jest.fn()

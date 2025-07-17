@@ -36,4 +36,45 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Auth API methods
+export const authAPI = {
+  register: async (userData: {
+    email: string;
+    password: string;
+    full_name: string;
+    organization_id?: number;
+    role?: string;
+    phone?: string;
+    position?: string;
+  }) => {
+    const response = await api.post('/admin/users', userData);
+    return response.data;
+  },
+
+  checkEmailUnique: async (email: string) => {
+    const response = await api.get(`/admin/users/check-email?email=${encodeURIComponent(email)}`);
+    return response.data.isUnique;
+  },
+
+  getProfile: async () => {
+    const response = await api.get('/auth/me');
+    return response.data;
+  },
+
+  updateProfile: async (updateData: any) => {
+    const response = await api.put('/auth/me', updateData);
+    return response.data;
+  },
+
+  resetPassword: async (email: string) => {
+    const response = await api.post('/auth/reset-password', { email });
+    return response.data;
+  },
+
+  logout: async () => {
+    const response = await api.post('/auth/logout');
+    return response.data;
+  }
+};
+
 export default api;

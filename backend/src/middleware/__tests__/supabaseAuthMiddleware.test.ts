@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { authenticateSupabaseToken } from '../supabaseAuthMiddleware';
-import { supabaseAdmin } from '../../supabaseAdminClient';
+import { supabaseAdmin } from '../../supabaseClient';
 import { 
   mockRequest, 
   mockResponse, 
@@ -10,7 +10,7 @@ import {
 } from '../../__tests__/helpers/testHelpers';
 
 // Мокаем supabaseAdminClient
-jest.mock('../../supabaseAdminClient', () => ({
+jest.mock('../../supabaseClient', () => ({
   supabaseAdmin: {
     auth: {
       getUser: jest.fn(),

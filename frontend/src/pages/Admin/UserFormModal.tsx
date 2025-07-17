@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { User, Organization, Location, Role } from '../../types.admin';
 import { ROLES, EMPTY_USER, ALL_OPTION_VALUE } from '../../constants';
 import { useData } from '../../context/DataContext';
+import { authAPI } from '../../services/api';
 import { Save } from 'lucide-react';
 
 interface UserFormModalProps {
@@ -18,6 +19,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
     : EMPTY_USER
   );
   const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (userToEdit) {
@@ -31,6 +34,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
       setFormData(EMPTY_USER);
       setAvailableLocations([]);
     }
+    setError(null);
   }, [userToEdit, isOpen, getLocationsByOrgId]);
 
   useEffect(() => {
@@ -57,28 +61,67 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email || (!userToEdit && !formData.password)) {
-      alert('Email и пароль обязательны для нового пользователя.');
-      return;
-    }
-    if (userToEdit) {
-      // For editing, ensure password is only updated if provided
-      const finalUserData: User = { ...userToEdit, ...formData };
-      if (!formData.password) { // If password field is empty, don't change it
-        delete finalUserData.password;
-      }
-      updateUser(finalUserData);
-    } else {
-      // Ensure password exists for new user
-      if (!formData.password) {
-        alert('Пароль обязателен для нового пользователя.');
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (!formData.email || (!userToEdit && !formData.password)) {
+        setError('Email и пароль обязательны для нового пользователя.');
         return;
       }
-      addUser(formData as Omit<User, 'id' | 'created_at' | 'last_sign_in'> & {password: string}); // Ensure password is set for new user
+
+      if (userToEdit) {
+        // For editing, ensure password is only updated if provided
+        const finalUserData: User = { ...userToEdit, ...formData };
+        if (!formData.password) { // If password field is empty, don't change it
+          delete finalUserData.password;
+        }
+        updateUser(finalUserData);
+      } else {
+        // Ensure password exists for new user
+        if (!formData.password) {
+          setError('Пароль обязателен для нового пользователя.');
+          return;
+        }
+        
+        // Call backend API to create user
+        await authAPI.register({
+          email: formData.email,
+          password: formData.password,
+          full_name: formData.full_name,
+          organization_id: formData.organizationId ? Number(formData.organizationId) : undefined,
+          role: formData.role || undefined,
+          phone: undefined,
+          position: undefined
+        });
+
+        // Update local state for immediate UI feedback
+        const userForLocalState = {
+          email: formData.email,
+          password: formData.password,
+          full_name: formData.full_name,
+          role: formData.role,
+          organizationId: formData.organizationId,
+          locationId: formData.locationId,
+          is_active: formData.is_active,
+          send_invitation: formData.send_invitation
+        };
+        addUser(userForLocalState as Omit<User, 'id' | 'created_at' | 'last_sign_in'> & {password: string});
+      }
+      
+      onClose();
+    } catch (err: any) {
+      console.error('Error creating/updating user:', err);
+      if (err?.response?.data?.error) {
+        setError(err.response.data.error);
+      } else {
+        setError(err.message || 'Ошибка при создании пользователя');
+      }
+    } finally {
+      setLoading(false);
     }
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -220,6 +263,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
             </div>
           )}
 
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
           <div className="flex justify-end space-x-3 pt-4">
             <button
               type="button"
@@ -231,9 +276,22 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
             <button
               type="submit"
               className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 flex items-center gap-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+              disabled={loading}
             >
-              <Save size={16} />
-              {userToEdit ? 'Сохранить изменения' : 'Создать пользователя'}
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Создание...
+                </>
+              ) : (
+                <>
+                  <Save size={16} />
+                  {userToEdit ? 'Сохранить изменения' : 'Создать пользователя'}
+                </>
+              )}
             </button>
           </div>
         </form>

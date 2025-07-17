@@ -1,10 +1,16 @@
-// src/app.ts (простая, рабочая версия)
 
-import path from 'path';
+
 import 'dotenv/config';
+import path from 'path';
+import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
-// import xss from 'xss-clean';
+
+const envPath = path.resolve(process.cwd(), '.env');
+console.log('[DEBUG] process.cwd():', process.cwd());
+console.log('[DEBUG] .env exists:', fs.existsSync(envPath));
+console.log('[DEBUG] envPath:', envPath);
+console.log('[DEBUG] SUPABASE_JWT_SECRET:', process.env.SUPABASE_JWT_SECRET)// import xss from 'xss-clean';
 
 // Безопасная конфигурация CORS
 const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:5174,http://localhost:5173').split(',');

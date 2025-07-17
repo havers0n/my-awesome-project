@@ -1,6 +1,6 @@
 /// <reference path="../types/express.d.ts" />
 import { Request, Response } from 'express';
-import { supabaseAdmin } from '../supabaseAdminClient';
+import { supabaseAdmin } from '../supabaseClient';
 
 export const updateProfile = async (req: Request, res: Response): Promise<void> => {
   try {

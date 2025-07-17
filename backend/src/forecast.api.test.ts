@@ -7,7 +7,7 @@ import axios from 'axios';
 jest.mock('axios');
 
 // Mock Supabase admin client before importing it
-jest.mock('./supabaseAdminClient', () => ({
+jest.mock('./supabaseClient', () => ({
   supabaseAdmin: {
     auth: {
       getUser: jest.fn(),
@@ -60,7 +60,7 @@ jest.mock('./supabaseUserClient', () => ({
 
 // Now import app and supabaseAdmin after all mocks are set up
 import app from './app';
-import { supabaseAdmin } from './supabaseAdminClient';
+import { supabaseAdmin } from './supabaseClient';
 
 // The controller now expects only DaysCount, not the full payload
 const validPayload = { DaysCount: 5 };

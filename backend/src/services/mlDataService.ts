@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '../supabaseAdminClient';
+import { supabaseAdmin } from '../supabaseClient';
 import { subDays, format } from 'date-fns';
 
 interface MLFeatures {
@@ -70,7 +70,7 @@ export class MLDataService {
 
       // Группируем продажи по дням
       const salesByDate = new Map<string, number>();
-      operations.forEach(op => {
+      operations.forEach((op: any) => {
         const dateKey = format(new Date(op.operation_date), 'yyyy-MM-dd');
         salesByDate.set(dateKey, (salesByDate.get(dateKey) || 0) + op.quantity);
       });

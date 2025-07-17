@@ -1,9 +1,22 @@
 // backend/src/controllers/adminController.ts
 import { Request, Response } from 'express';
-import { logAdminAction } from '../utils/logger';
-import { supabaseAdmin } from '../supabaseAdminClient';
+import bcrypt from 'bcrypt';
+import { z } from 'zod';
 
-// Функция для проверки уникальности email
+import { supabaseAdmin } from '../supabaseClient';
+
+// Validation schema for user creation
+const createUserSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  full_name: z.string().optional().default(''),
+  organization_id: z.number().optional(),
+  role: z.string().optional().default('EMPLOYEE'),
+  phone: z.string().optional(),
+  position: z.string().optional()
+});
+
+// Function to check email uniqueness
 export const checkEmail = async (req: Request, res: Response): Promise<void> => {
   const { email } = req.query;
 
@@ -19,80 +32,120 @@ export const checkEmail = async (req: Request, res: Response): Promise<void> => 
       .eq('email', email)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116: no rows found
-      throw error;
+    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+      console.error('Email check error:', error.message);
+      res.status(500).json({ error: 'Database error checking email', details: error.message });
+      return;
     }
-    
-    // Если data не null, значит email найден и он не уникален
-    res.json({ unique: data === null });
 
+    const isUnique = !data; // Email is unique if no data found
+    res.json({ isUnique });
   } catch (err: any) {
-    logAdminAction('check_email_error', { adminId: req.user?.id, error: err.message, email });
+    console.error('Email check unhandled error:', err.message);
     res.status(500).json({ error: 'Failed to check email uniqueness' });
   }
 };
 
-
-export const createUser = async (req: Request, res: Response): Promise<void> => {
+export const createUser = async (req: Request, res: Response) => {
   try {
-    const { email, password, full_name, organization_id, role, phone, position } = req.body;
-    if (!email || !password || !role) {
-      res.status(400).json({ error: 'Email, password и роль обязательны' });
-      return;
-    }
-    
-    // 1. Создать пользователя в Supabase Auth
+    console.log('=== Creating new user ===');
+    const validatedData = createUserSchema.parse(req.body);
+    console.log('Validated data:', { ...validatedData, password: '[HIDDEN]' });
+
+        const { email, password, full_name, organization_id, role, phone, position } = validatedData;
+
+    // 1. First, create user in Supabase Auth
+    console.log('Creating user in Supabase Auth...');
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: true, // Сразу подтверждаем email
+      email_confirm: true, // Auto-confirm email
       user_metadata: {
         full_name,
-        // Мы не будем хранить organization_id и role в user_metadata,
-        // так как для этого есть наша таблица `users`.
-      },
+        role: role || 'EMPLOYEE'
+      }
     });
 
     if (authError) {
-      logAdminAction('create_user_auth_error', { adminId: req.user?.id, error: authError.message, email });
-      // Возвращаем более понятную ошибку на фронтенд
-      res.status(400).json({ error: authError.message.includes('unique constraint') ? 'Пользователь с таким email уже существует.' : authError.message });
-      return;
+      console.error('Supabase Auth error:', authError);
+      return res.status(400).json({ 
+        error: 'Failed to create authentication account',
+        details: authError.message 
+      });
     }
 
-    if (!authData.user) {
-        throw new Error("Supabase returned no user data.");
+    if (!authData?.user) {
+      console.error('No user data returned from Supabase Auth');
+      return res.status(500).json({ 
+        error: 'Authentication account created but no user data returned' 
+      });
     }
 
-    const newUser = authData.user;
+    const userId = authData.user.id;
+    console.log('User created in Supabase Auth with ID:', userId);
 
-    // 2. Сохранить пользователя в нашей публичной таблице `users`
-    const { data: dbUser, error: dbError } = await supabaseAdmin
+    // 2. Then, create user profile in users table
+    console.log('Creating user profile in database...');
+    const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
-      .insert({
-        id: newUser.id, // Используем ID из Supabase Auth
+      .insert([{
+        id: userId, // Use the Auth user ID
+        email,
+        full_name,
+        role: role || 'EMPLOYEE',
         organization_id: organization_id || null,
-        full_name: full_name,
-        role: role,
-        phone: phone,
-        position: position,
-      })
+        phone: phone || null,
+        position: position || null,
+        is_active: true,
+        created_at: new Date().toISOString()
+      }])
       .select()
       .single();
 
-    if (dbError) {
-      // Если не удалось вставить пользователя в нашу таблицу, нужно откатить создание в Auth
-      await supabaseAdmin.auth.admin.deleteUser(newUser.id);
-      logAdminAction('create_user_db_error', { adminId: req.user?.id, error: dbError.message, email });
-      res.status(500).json({ error: 'Failed to save user profile', details: dbError.message });
-      return;
+    if (userError) {
+      console.error('Database error creating user profile:', userError);
+      
+      // Rollback: Delete the auth user if profile creation failed
+      console.log('Rolling back - deleting auth user...');
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      
+      return res.status(500).json({ 
+        error: 'Failed to create user profile',
+        details: userError.message 
+      });
     }
 
-    logAdminAction('create_user_success', { adminId: req.user?.id, email, userId: newUser.id });
-    res.status(201).json({ message: 'Пользователь успешно создан', user: dbUser });
+    console.log('User profile created successfully:', userData);
 
-  } catch (err: any) {
-    logAdminAction('create_user_unhandled_error', { adminId: req.user?.id, error: err.message, email: req.body.email });
-    res.status(500).json({ error: 'Ошибка создания пользователя' });
+    // Return success response
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully',
+      user: {
+        id: userId,
+        email,
+        full_name,
+        role: role || 'EMPLOYEE',
+        organization_id: organization_id || null,
+        is_active: true
+      }
+    });
+
+    console.log('=== User creation completed successfully ===');
+
+  } catch (error: any) {
+    console.error('Error creating user:', error);
+    
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: 'Validation error',
+        details: error.errors
+      });
+    }
+
+    res.status(500).json({
+      error: 'Internal server error',
+      details: error.message
+    });
   }
 };

@@ -38,6 +38,11 @@ export const JWT_CONFIG = {
   expiresIn: process.env.JWT_EXPIRES_IN || '1d',
 };
 
+// Конфигурация для проверки JWT от Supabase
+export const SUPABASE_JWT_CONFIG = {
+  secret: getRequiredEnv('SUPABASE_JWT_SECRET'),
+};
+
 // Other configuration constants
 export const APP_NAME = 'LuckNiteShoots';
 export const APP_VERSION = '1.0.0';

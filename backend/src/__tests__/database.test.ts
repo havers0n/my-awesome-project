@@ -66,7 +66,7 @@ jest.mock('@supabase/supabase-js', () => ({
   }))
 }));
 
-// We'll handle supabaseAdminClient mocking dynamically in the tests
+// We'll handle supabaseClient mocking dynamically in the tests
 
 describe('Database Module', () => {
   // Mock console to prevent output during tests
@@ -161,8 +161,8 @@ describe('Supabase Admin Client', () => {
 
   describe('Client Initialization', () => {
     it('should create admin client with correct configuration', () => {
-      // Mock the supabaseAdminClient module for this specific test
-      jest.doMock('../supabaseAdminClient', () => {
+      // Mock the supabaseClient module for this specific test
+      jest.doMock('../supabaseClient', () => {
         const { createClient } = require('@supabase/supabase-js');
         const supabaseAdmin = createClient(
           process.env.SUPABASE_URL!,
@@ -178,7 +178,7 @@ describe('Supabase Admin Client', () => {
       process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
       
       const { createClient } = require('@supabase/supabase-js');
-      require('../supabaseAdminClient');
+      require('../supabaseClient');
       
       expect(createClient).toHaveBeenCalledWith(
         'https://test.supabase.co',
@@ -196,7 +196,7 @@ describe('Supabase Admin Client', () => {
     // at the top level, making it difficult to test in isolation
     it.skip('should throw error when environment variables are missing', () => {
       // Ensure we're not using any mocked version
-      jest.unmock('../supabaseAdminClient');
+      jest.unmock('../supabaseClient');
       
       // For this test, we don't need to mock the module since we want it to throw
       delete process.env.SUPABASE_URL;
@@ -204,7 +204,7 @@ describe('Supabase Admin Client', () => {
       
       expect(() => {
         jest.isolateModules(() => {
-          require('../supabaseAdminClient');
+          require('../supabaseClient');
         });
       }).toThrow('Missing required environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
     });
@@ -212,8 +212,8 @@ describe('Supabase Admin Client', () => {
 
   describe('Admin Operations', () => {
     it('should export supabaseAdmin instance', () => {
-      // Mock the supabaseAdminClient module for this test
-      jest.doMock('../supabaseAdminClient', () => {
+      // Mock the supabaseClient module for this test
+      jest.doMock('../supabaseClient', () => {
         return {
           supabaseAdmin: {
             auth: {
@@ -230,7 +230,7 @@ describe('Supabase Admin Client', () => {
       process.env.SUPABASE_URL = 'https://test.supabase.co';
       process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key';
       
-      const { supabaseAdmin } = require('../supabaseAdminClient');
+      const { supabaseAdmin } = require('../supabaseClient');
       
       expect(supabaseAdmin).toBeDefined();
       expect(supabaseAdmin.auth).toBeDefined();

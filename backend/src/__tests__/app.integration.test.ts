@@ -1,10 +1,9 @@
 import request from 'supertest';
 import app from '../app';
 import * as supabaseUserClient from '../supabaseUserClient';
-import * as dualAuthMiddleware from '../middleware/dualAuthMiddleware';
 
 jest.mock('../supabaseUserClient');
-jest.mock('../supabaseAdminClient', () => ({
+jest.mock('../supabaseClient', () => ({
   supabaseAdmin: {
     auth: {
       getUser: jest.fn(),
@@ -19,7 +18,7 @@ jest.mock('../supabaseAdminClient', () => ({
 
 describe('App Integration Tests', () => {
   // Import supabaseAdmin for mocking
-  const { supabaseAdmin } = require('../supabaseAdminClient');
+  const { supabaseAdmin } = require('../supabaseClient');
   
   beforeEach(() => {
     jest.clearAllMocks();

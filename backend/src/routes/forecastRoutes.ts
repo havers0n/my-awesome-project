@@ -1,7 +1,7 @@
 import express from 'express';
 import { getSupabaseUserClient } from '../supabaseUserClient';
 import { createMlPayload } from '../services/mlPayloadFormatter';
-import { supabaseAdmin } from '../supabaseAdminClient';
+import { supabaseAdmin } from '../supabaseClient';
 import { predictSales, getForecastData, getForecastHistory, getOverallMetrics } from '../controllers/forecastController';
 import { authenticate } from '../middleware/authenticate';
 import axios from 'axios';

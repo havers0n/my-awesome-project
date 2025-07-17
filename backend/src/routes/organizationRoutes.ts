@@ -10,12 +10,13 @@ import { checkAdminPermission } from '../middleware/permissionMiddleware';
 
 const router = express.Router();
 
-// Apply authentication middleware to all routes
+// Public routes (no authentication required)
+router.get('/', getOrganizations);
+
+// Protected routes (authentication required)
 router.use(authenticate);
 
-// Organization routes
 router.route('/')
-    .get(getOrganizations)
     .post(createOrganization);
 
 router.route('/:organizationId')

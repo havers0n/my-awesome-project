@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { supabaseAdmin } from '../supabaseAdminClient';
+import { supabaseAdmin } from '../supabaseClient';
 
 interface SidebarPreferences {
   order: string[];

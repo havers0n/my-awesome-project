@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { resetPassword, getProfile } from '../authController';
-import { supabaseAdmin } from '../../supabaseAdminClient';
+import { supabaseAdmin } from '../../supabaseClient';
 import { 
   mockRequest, 
   mockResponse, 
@@ -9,7 +9,7 @@ import {
 } from '../../__tests__/helpers/testHelpers';
 
 // Мокаем supabaseAdminClient
-jest.mock('../../supabaseAdminClient', () => ({
+jest.mock('../../supabaseClient', () => ({
   supabaseAdmin: {
     auth: {
       resetPasswordForEmail: jest.fn(),

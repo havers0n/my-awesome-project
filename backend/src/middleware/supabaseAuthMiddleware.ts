@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { supabaseAdmin } from '../supabaseAdminClient';
+import { supabaseAdmin } from '../supabaseClient';
 
 /**
  * Middleware для аутентификации через Supabase tokens

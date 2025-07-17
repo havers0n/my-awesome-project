@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { supabaseAdmin } from '../supabaseAdminClient';
-import { JWT_CONFIG } from '../config';
+import { supabaseAdmin } from '../supabaseClient';
+import { JWT_CONFIG, SUPABASE_JWT_CONFIG } from '../config';
 
 declare global {
   namespace Express {
@@ -33,37 +33,48 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     return;
   }
 
-  // 1. Попытка аутентификации через Supabase
+  // 1. Попытка аутентификации через Supabase JWT
   try {
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    const decoded = jwt.verify(token, SUPABASE_JWT_CONFIG.secret) as { sub: string, email: string, role: string, aud: string, iss: string };
 
-    if (user && !error) {
-      const { data: profile, error: profileError } = await supabaseAdmin
-        .from('users') // Используем 'users' как в supabaseAuthMiddleware
-        .select('role, location_id, organization_id')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
-        console.error('Error fetching user profile:', profileError);
-        res.status(500).json({ error: 'Failed to fetch user profile', details: profileError.message });
-        return;
-      }
-
-      req.user = {
-        id: user.id,
-        email: user.email,
-        role: profile?.role,
-        authType: 'supabase',
-        location_id: profile?.location_id || null,
-        organization_id: profile?.organization_id || null,
-      };
-      
-      return next();
+    // Валидация стандартных клеймов для Supabase
+    if (decoded.aud !== 'authenticated') {
+      throw new Error('Invalid token audience');
     }
-  } catch (e) {
-     // Игнорируем ошибку и переходим к проверке legacy JWT
-    console.log('Supabase auth failed, trying legacy JWT...');
+    // Здесь хорошо бы проверить и issuer (iss), если он вам известен и постоянен
+    // if (!decoded.iss.startsWith(process.env.SUPABASE_URL)) {
+    //   throw new Error('Invalid token issuer');
+    // }
+
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from('users')
+      .select('role, location_id, organization_id')
+      .eq('id', decoded.sub) // `sub` в JWT это user_id
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError);
+      res.status(500).json({ error: 'Failed to fetch user profile', details: profileError.message });
+      return;
+    }
+
+    req.user = {
+      id: decoded.sub,
+      email: decoded.email,
+      role: profile?.role,
+      authType: 'supabase',
+      organization_id: profile?.organization_id || null,
+      location_id: profile?.location_id || null,
+    };
+    
+    return next();
+
+  } catch (err) {
+    if (err instanceof Error) {
+      console.log('Supabase JWT verification failed, trying legacy JWT...', err.message);
+    } else {
+      console.log('Supabase JWT verification failed, trying legacy JWT...', err);
+    }
   }
 
   // 2. Попытка аутентификации через устаревший JWT

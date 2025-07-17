@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { supabaseAdmin } from '../supabaseAdminClient';
+import { supabaseAdmin } from '../supabaseClient';
 
 export const resetPassword = async (req: Request, res: Response): Promise<void> => {
   try {
