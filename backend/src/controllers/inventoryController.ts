@@ -1,6 +1,56 @@
 import { Request, Response } from 'express';
+
 import { getSupabaseUserClient } from '../supabaseUserClient';
 import { z } from 'zod';
+
+
+
+// !!! ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ getProducts НА ЭТУ !!!
+export const getProducts = async (req: Request, res: Response) => {
+    console.log('\n--- [START] getProducts CONTROLLER ---');
+    try {
+        const user = (req as any).user;
+        const organizationId = user?.organization_id;
+
+        console.log(`[1] User object from middleware:`, JSON.stringify(user, null, 2));
+        console.log(`[2] Extracted organization_id: |${organizationId}|`);
+
+        if (!organizationId) {
+            console.error('[ERROR] Organization ID is missing! Cannot fetch products.');
+            return res.status(400).json({ message: 'User is not associated with an organization.' });
+        }
+
+        // Используем ВАШ метод для получения клиента Supabase
+        const supabase = getSupabaseUserClient(req.headers['authorization']!.replace('Bearer ', ''));
+
+        console.log(`[3] Sending query to Supabase: SELECT * FROM products WHERE organization_id = ${organizationId}`);
+
+        const { data, error, status } = await supabase
+            .from('products')
+            .select('*')
+            .eq('organization_id', organizationId);
+
+        console.log('\n--- [DATABASE RESPONSE] ---');
+        console.log('Status Code:', status);
+        console.log('Returned Data (first 3 items):', data ? data.slice(0, 3) : 'null');
+        console.log('Returned Error:', error);
+        console.log('--- [END DATABASE RESPONSE] ---\n');
+
+        if (error) {
+            console.error('[ERROR] Supabase returned an error:', error.message);
+            return res.status(500).json({ message: 'Failed to fetch products', details: error.message });
+        }
+
+        console.log(`[4] Sending ${data?.length || 0} products to client.`);
+        res.status(200).json(data);
+
+    } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error('[FATAL ERROR] An unexpected error occurred in getProducts:', message);
+        res.status(500).json({ message: 'An unexpected error occurred.', details: message });
+    }
+    console.log('--- [END] getProducts CONTROLLER ---\n');
+};
 
 
 // Helper to get organization_id from user
@@ -23,61 +73,7 @@ const quantityUpdateSchema = z.object({
     type: z.enum(['Поступление', 'Списание', 'Коррекция', 'Отчет о нехватке']),
 });
 
-// GET /products - Get all products for an organization
-export const getProducts = async (req: Request, res: Response): Promise<void> => {
-    console.log('=== getProducts controller called ===');
-    console.log('Request path:', req.path);
-    console.log('Request method:', req.method);
-    console.log('Request headers:', JSON.stringify(req.headers, null, 2));
-    console.log('User object from request:', JSON.stringify((req as any).user, null, 2));
-    
-    const organizationId = getOrgId(req);
-    console.log(`Organization ID extracted from user: ${organizationId}`);
-    
-    if (!organizationId) {
-        console.error('ERROR: Failed to get organizationId from req.user');
-        console.error('User object details:', JSON.stringify((req as any).user, null, 2));
-        res.status(401).json({ error: 'User is not associated with an organization.' });
-        return;
-    }
 
-    console.log(`Fetching products for organizationId: ${organizationId}`);
-
-    const supabase = getSupabaseUserClient(req.headers['authorization']!.replace('Bearer ', ''));
-
-    try {
-        const { data, error } = await supabase
-            .from('products')
-            .select('*')
-            .eq('organization_id', organizationId)
-            .order('name', { ascending: true });
-
-        if (error) {
-            console.error('❌ Ошибка от Supabase при получении продуктов:', error);
-            throw error;
-        }
-
-        console.log(`✅ Найдено ${data.length} продуктов для организации ${organizationId}`); // <-- Супер полезный лог!
-        
-        // Even if no products are found, we should return an empty array, not an error
-        const productsWithHistory = (data || []).map(p => ({ ...p, history: [] }));
-
-        res.json(productsWithHistory);
-    } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error('❌ Ошибка в блоке catch контроллера getProducts:', message);
-        
-        // Provide more detailed error information
-        const errorResponse = {
-            error: 'Failed to fetch products',
-            details: message,
-            timestamp: new Date().toISOString(),
-            organizationId: organizationId
-        };
-        
-        res.status(500).json(errorResponse);
-    }
-};
 
 // POST /products - Create a new product
 export const createProduct = async (req: Request, res: Response): Promise<void> => {

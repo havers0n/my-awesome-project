@@ -21,6 +21,7 @@ declare global {
 }
 
 export const dualAuthenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  console.log(`\n--- [AUTH MIDDLEWARE START] --- Path: ${req.method} ${req.path}`);
   console.log(`[Auth] Authenticating request to ${req.method} ${req.path}`);
   
   const authHeader = req.headers['authorization'];
@@ -41,11 +42,18 @@ export const dualAuthenticateToken = async (req: Request, res: Response, next: N
       console.log(`[Auth] Attempting Supabase token validation`);
       const { data: { user: supabaseUser }, error: supabaseError } = await supabaseAdmin.auth.getUser(token);
       
-      if (supabaseError) {
-        console.log(`[Auth] Supabase validation error:`, supabaseError);
+            if (supabaseError) {
+        console.log(`[Auth] Supabase validation returned an error: ${supabaseError.name} | ${supabaseError.message}`);
+        // Если токен невалиден именно для Supabase, сразу же прекращаем работу.
+        // Это предотвращает попытку проверить невалидный Supabase токен как legacy JWT.
+        if (supabaseError.message.includes('invalid token') || supabaseError.message.includes('expired')) {
+            res.status(401).json({ error: 'Invalid or expired token', source: 'supabase' });
+            return;
+        }
+        // Для других ошибок (например, проблемы с сетью) мы можем продолжить и попробовать legacy метод.
       }
-      
-      if (!supabaseError && supabaseUser) {
+
+      if (supabaseUser) {
         console.log(`[Auth] Supabase token valid for user:`, supabaseUser.email);
         let userRole = 'employee';
         let locationId: number | null = null;
@@ -132,7 +140,7 @@ export const dualAuthenticateToken = async (req: Request, res: Response, next: N
     
     next();
   } catch (error: any) {
-    console.error('Dual auth token validation error:', error.message);
-    res.status(403).json({ error: 'Invalid token' });
+        console.error('[Auth] Token validation failed:', error.message);
+    res.status(403).json({ error: 'Invalid token', details: error.message });
   }
 }; 

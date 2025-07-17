@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { ICONS } from '@/helpers/icons';
+
 import { Icon } from '../common/Icon';
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
@@ -24,10 +24,10 @@ export default function SignInForm() {
     setError(null);
     try {
       await signIn(email, password);
-      // Если пользователь выбрал "Запомнить меня", можно реализовать логику хранения сессии через Supabase (persistSession)
       navigate('/');
-    } catch (e: any) {
-      setError(e.message || 'Произошла ошибка при входе');
+    } catch (error: any) {
+      console.error("Login Error in Form:", error);
+      setError(error.message || 'Произошла ошибка при входе');
     } finally {
       setLoading(false);
     }

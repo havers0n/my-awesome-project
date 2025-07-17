@@ -21,7 +21,24 @@ import mlRoutes from './routes/mlRoutes';
 const app = express();
 
 // Middleware
-app.use(cors());
+const allowedOrigins = [/^http:\/\/localhost:\d+$/];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Разрешаем запросы без origin (например, от мобильных приложений или curl)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.some(regex => regex.test(origin))) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Разрешаем передачу credentials (куки, заголовки авторизации)
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Enhanced request logger for debugging API endpoints
@@ -86,7 +103,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // Запуск сервера
-const PORT = process.env.PORT || 3001; // Changed to 3001 to avoid conflicts
+const PORT = process.env.PORT || 3000;//Changed to 3001 to avoid conflicts
 const server = app.listen(PORT, () => {
   console.log(`[SERVER START] 🚀 Сервер успешно запущен и слушает порт ${PORT}`);
   console.log(`[SERVER START] Время запуска: ${new Date().toISOString()}`);
