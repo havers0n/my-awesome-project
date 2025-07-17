@@ -1,10 +1,10 @@
 import * as express from 'express';
 import { updateProfile } from '../controllers/userController';
-import { authenticateSupabaseToken } from '../middleware/supabaseAuthMiddleware';
+import { authenticate } from '../middleware/authenticate';
 
 const router = express.Router();
 
 // PUT /api/users/profile - Update user profile
-router.put('/profile', authenticateSupabaseToken, updateProfile);
+router.put('/profile', authenticate, updateProfile);
 
 export default router; 

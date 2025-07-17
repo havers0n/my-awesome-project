@@ -6,14 +6,17 @@ import { DB_CONFIG } from './config';
 // Проверяем наличие DATABASE_URL
 const connectionString = process.env.DATABASE_URL;
 
-// ВРЕМЕННОЕ РЕШЕНИЕ: используем Transaction pooler connection string
-// Этот адрес всегда использует IPv4 и решает проблему с IPv6
-const POOLER_CONNECTION_STRING = `postgresql://postgres.uxcsziylmyogvcqyyuiw:${process.env.DB_PASSWORD}@aws-0-eu-north-1.pooler.supabase.com:5432/postgres`;
+// Формируем строку подключения для Pooler, используя переменные окружения
+// Это позволяет избежать хардкода учетных данных в коде
+const POOLER_CONNECTION_STRING = process.env.POOLER_CONNECTION_STRING || 
+  `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST_POOLER}:${process.env.DB_PORT_POOLER}/${process.env.DB_NAME_POOLER}`;
 
 // Создаем pool с расширенной конфигурацией для Supabase
 const pool = new Pool({
+  // Приоритет отдается DATABASE_URL, затем POOLER_CONNECTION_STRING
   connectionString: connectionString || POOLER_CONNECTION_STRING,
-  ssl: { rejectUnauthorized: false },
+  // ВАЖНО: Включаем SSL верификацию для безопасности в production
+  ssl: { rejectUnauthorized: process.env.NODE_ENV !== 'production' },
   connectionTimeoutMillis: 30000,
   keepAlive: true,
   // Важно: держим минимум 1 соединение активным

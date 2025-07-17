@@ -25,14 +25,14 @@ export default defineConfig({
     })
   ],
   server: {
-
+    port: 5174,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000', // Это уже правильно
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
-      },
-    },
+      }
+    }
   },
   build: {
     rollupOptions: {

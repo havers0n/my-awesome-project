@@ -1,25 +1,21 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-  },
+    'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
+  }
 });
 
+// Request interceptor for auth token
 api.interceptors.request.use(
   (config) => {
-    // Если заголовок Authorization УЖЕ установлен, ничего не делаем.
-    if (config.headers.Authorization) {
-      return config;
-    }
-
-    // Если заголовок не был установлен вручную, пытаемся взять его из localStorage
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!supabaseUrl) {
-      console.error("VITE_SUPABASE_URL is not defined in .env file");
-      return config;
-    }
+    if (!supabaseUrl) return config;
+    
     const projectRef = supabaseUrl.split('.')[0].replace('https://', '');
     const localStorageKey = `sb-${projectRef}-auth-token`;
     const supabaseAuthToken = localStorage.getItem(localStorageKey);
@@ -27,53 +23,17 @@ api.interceptors.request.use(
     if (supabaseAuthToken) {
       try {
         const tokenData = JSON.parse(supabaseAuthToken);
-        if (tokenData && tokenData.access_token) {
+        if (tokenData?.access_token) {
           config.headers.Authorization = `Bearer ${tokenData.access_token}`;
         }
-      } catch (e) {
-         console.error("Failed to parse Supabase auth token from localStorage", e);
+      } catch (error) {
+        console.error('Failed to parse auth token:', error);
       }
     }
     
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-export const authAPI = {
-  checkEmailUnique: async (email: string) => {
-    try {
-      const res = await api.get(`/admin/users/check-email?email=${encodeURIComponent(email)}`);
-      return res.data?.unique === true;
-    } catch {
-      return false;
-    }
-  },
-  getProfile: () => {
-    return api.get('/auth/me');
-  },
-  register: (userData: {
-    email: string;
-    password: string;
-    full_name?: string;
-    organization_id?: number;
-    role?: string;
-    phone?: string;
-    position?: string;
-  }) => {
-    return api.post('/admin/users', userData);
-  },
-  updateProfile: (userData: { fullName?: string; }) => {
-    return api.put('/users/profile', userData);
-  },
-  logout: () => {
-    return api.post('/auth/logout');
-  },
-  resetPassword: (email: string) => {
-    return api.post('/auth/reset-password', { email });
-  }
-};
-
-export default api; 
+export default api;

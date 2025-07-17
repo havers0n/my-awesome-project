@@ -1,23 +1,23 @@
 import express from 'express';
-import { authenticateSupabaseToken } from '../middleware/supabaseAuthMiddleware';
+import { authenticate } from '../middleware/authenticate';
 import { MLDataService } from '../services/mlDataService';
 import { getSupabaseUserClient } from '../supabaseUserClient';
 
 const router = express.Router();
 
-// Применяем аутентификацию ко всем роутам
-router.use(authenticateSupabaseToken);
+// Apply authentication to all routes
+router.use(authenticate);
 
 /**
  * GET /api/ml/features/:productId
- * Получить признаки для товара из БД
+ * Get product features from database
  */
 router.get('/features/:productId', async (req: express.Request, res: express.Response): Promise<void> => {
   try {
     const { productId } = req.params;
     const { targetDate } = req.query;
     
-    // Получаем organization_id из токена пользователя
+    // Get organization_id from user token
     const authHeader = req.headers['authorization'];
     if (!authHeader) {
       res.status(401).json({ error: 'No authorization header' });
@@ -52,63 +52,14 @@ router.get('/features/:productId', async (req: express.Request, res: express.Res
       profile.organization_id
     );
     
-    if (!features) {
-      res.status(404).json({ error: 'No data found for product' });
-      return;
-    }
-    
-    res.json(features);
+    res.json({ success: true, features });
   } catch (error) {
-    console.error('Error getting ML features:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error getting product features:', error);
+    res.status(500).json({ 
+      error: 'Failed to get product features',
+      details: error instanceof Error ? error.message : String(error)
+    });
   }
 });
 
-/**
- * GET /api/ml/metrics/:productId
- * Получить метрики точности для товара
- */
-router.get('/metrics/:productId', async (req: express.Request, res: express.Response): Promise<void> => {
-  try {
-    const { productId } = req.params;
-    
-    // Получаем organization_id (аналогично предыдущему роуту)
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) {
-      res.status(401).json({ error: 'No authorization header' });
-      return;
-    }
-    
-    const token = authHeader.replace('Bearer ', '');
-    const supabase = getSupabaseUserClient(token);
-    
-    const { data: userData } = await supabase.auth.getUser();
-    const { data: profile } = await supabase
-      .from('users')
-      .select('organization_id')
-      .eq('id', userData.user?.id)
-      .single();
-      
-    if (!profile?.organization_id) {
-      res.status(400).json({ error: 'User not associated with organization' });
-      return;
-    }
-    
-    const metrics = await MLDataService.getProductMetrics(
-      productId,
-      profile.organization_id
-    );
-    
-    if (!metrics) {
-      res.status(404).json({ error: 'No metrics found for product' });
-      return;
-    }
-    
-    res.json(metrics);
-  } catch (error) {
-    console.error('Error getting ML metrics:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-export default router; 
+export default router;

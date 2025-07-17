@@ -4,20 +4,14 @@ import {
   saveUserPreferences, 
   saveSidebarPreferences 
 } from '../controllers/userPreferencesController';
-import { authenticateSupabaseToken } from '../middleware/supabaseAuthMiddleware';
+import { authenticate } from '../middleware/authenticate';
 
 const router = Router();
 
-// Все маршруты требуют аутентификации
-router.use(authenticateSupabaseToken);
+router.use(authenticate);
 
-// Получить все настройки пользователя
-router.get('/', getUserPreferences);
+router.get('/preferences', getUserPreferences);
+router.post('/preferences', saveUserPreferences);
+router.post('/sidebar-preferences', saveSidebarPreferences);
 
-// Сохранить все настройки пользователя
-router.post('/', saveUserPreferences);
-
-// Сохранить настройки сайдбара
-router.post('/sidebar', saveSidebarPreferences);
-
-export default router; 
+export default router;

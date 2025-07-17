@@ -6,7 +6,7 @@ import path from 'path';
 export const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/test_db',
+      url: process.env.TEST_DATABASE_URL || `postgresql://${process.env.TEST_DB_USER || 'postgres'}:${process.env.TEST_DB_PASSWORD || 'postgres'}@${process.env.TEST_DB_HOST || 'localhost'}:${process.env.TEST_DB_PORT || '5432'}/${process.env.TEST_DB_NAME || 'test_db'}?schema=public`,
     },
   },
 });
@@ -18,7 +18,7 @@ beforeAll(async () => {
     execSync('npx prisma migrate deploy', {
       env: {
         ...process.env,
-        DATABASE_URL: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/test_db',
+        DATABASE_URL: process.env.TEST_DATABASE_URL || `postgresql://${process.env.TEST_DB_USER || 'postgres'}:${process.env.TEST_DB_PASSWORD || 'postgres'}@${process.env.TEST_DB_HOST || 'localhost'}:${process.env.TEST_DB_PORT || '5432'}/${process.env.TEST_DB_NAME || 'test_db'}?schema=public`,
       },
     });
 

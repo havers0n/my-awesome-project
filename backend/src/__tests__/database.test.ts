@@ -15,14 +15,19 @@ jest.mock('pg', () => {
 
 // Mock config module to prevent console logs during tests
 jest.mock('../config', () => {
-  // Return a function that dynamically creates the config based on current env vars
+  const getRequiredEnv = (key: string) => {
+    const value = process.env[key];
+    if (!value) throw new Error(`Missing ${key}`);
+    return value;
+  };
+
   return {
     get DB_CONFIG() {
       return {
-        user: process.env.DB_USER || 'postgres',
+        user: getRequiredEnv('DB_USER'),
         host: process.env.DB_HOST || 'localhost',
         database: process.env.DB_NAME || 'luckniteshoots',
-        password: process.env.DB_PASSWORD || 'postgres',
+        password: getRequiredEnv('DB_PASSWORD'),
         port: parseInt(process.env.DB_PORT || '5432'),
         family: 4,
       };
@@ -108,28 +113,7 @@ describe('Database Module', () => {
       });
     });
 
-    it('should use default configuration when env vars are not set', () => {
-      delete process.env.DB_USER;
-      delete process.env.DB_HOST;
-      delete process.env.DB_NAME;
-      delete process.env.DB_PASSWORD;
-      delete process.env.DB_PORT;
-      
-      // Import after clearing env
-      const db = require('../db');
-      
-      // Verify Pool was imported from the mock
-      const { Pool: MockedPool } = require('pg');
-      
-      expect(MockedPool).toHaveBeenCalledWith({
-        user: 'postgres',
-        host: 'localhost',
-        database: 'luckniteshoots',
-        password: 'postgres',
-        port: 5432,
-        family: 4
-      });
-    });
+
   });
 
   describe('Pool Instance', () => {

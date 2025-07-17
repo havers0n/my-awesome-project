@@ -4,42 +4,39 @@ import path from 'path';
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+// import xss from 'xss-clean';
 
-// Импорты роутов
-import authRoutes from './routes/authRoutes';
-import monetizationRoutes from './routes/monetizationRoutes';
-import forecastRoutes from './routes/forecastRoutes';
-import adminRoutes from './routes/adminRoutes';
-import healthRoutes from './routes/healthRoutes';
-import uploadRoutes from './routes/uploadRoutes';
-import userPreferencesRoutes from './routes/userPreferencesRoutes';
-import userRoutes from './routes/userRoutes';
-import inventoryRoutes from './routes/inventoryRoutes';
-import organizationRoutes from './routes/organizationRoutes';
-import mlRoutes from './routes/mlRoutes';
-
-const app = express();
-
-// Middleware
-const allowedOrigins = [/^http:\/\/localhost:\d+$/];
+// Безопасная конфигурация CORS
+const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:5174,http://localhost:5173').split(',');
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    // Разрешаем запросы без origin (например, от мобильных приложений или curl)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.some(regex => regex.test(origin))) {
+    // Разрешаем запросы без origin, например, от мобильных приложений или curl
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true, // Разрешаем передачу credentials (куки, заголовки авторизации)
-  optionsSuccessStatus: 200
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-supabase-auth'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+  exposedHeaders: ['Content-Length', 'Authorization'],
 };
 
+const app = express();
+
+// Apply CORS middleware
 app.use(cors(corsOptions));
+
+
 app.use(express.json());
+
+// Добавляем middleware для защиты от XSS-атак
+// Этот пакет очищает пользовательский ввод в req.body, req.query и req.params
+// app.use(xss());
 
 // Enhanced request logger for debugging API endpoints
 app.use((req, res, next) => {
@@ -79,22 +76,48 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Simple test route directly in app.ts
 app.get('/api/test', (req, res) => {
   console.log('=== Direct test route called ===');
   res.json({ success: true, message: 'Direct test route works', timestamp: new Date().toISOString() });
 });
 
-// Регистрация роутов
-app.use('/api/health', healthRoutes);
+// Import all route files
+import authRoutes from './routes/authRoutes';
+import healthRoutes from './routes/healthRoutes';
+import monetizationRoutes from './routes/monetizationRoutes';
+import forecastRoutes from './routes/forecastRoutes';
+import adminRoutes from './routes/adminRoutes';
+import uploadRoutes from './routes/uploadRoutes';
+import userPreferencesRoutes from './routes/userPreferencesRoutes';
+import userRoutes from './routes/userRoutes';
+import inventoryRoutes from './routes/inventoryRoutes';
+import organizationRoutes from './routes/organizationRoutes';
+import mlRoutes from './routes/mlRoutes';
+
+// Mount all routes with explicit paths
 app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/health', healthRoutes);
+app.use('/api/monetization', monetizationRoutes);
 app.use('/api/forecast', forecastRoutes);
-app.use('/api/user-preferences', userPreferencesRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/preferences', userPreferencesRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/ml', mlRoutes);
+
+// Error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
 
 // Простой обработчик ошибок
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

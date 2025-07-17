@@ -13,19 +13,28 @@ console.log('Attempting to read DB_PASSWORD from process.env (exists?):', !!proc
 console.log('-------------------------------------------');
 // --- КОНЕЦ ОТЛАДОЧНЫХ CONSOLE.LOG ---
 
-// Database Configuration
+// Функция для получения обязательных переменных окружения
+const getRequiredEnv = (key: string): string => {
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(`[FATAL] Missing required environment variable: ${key}`);
+  }
+  return value;
+};
+
+// Безопасная конфигурация БД: требует наличия переменных окружения
 export const DB_CONFIG = {
-  user: process.env.DB_USER || 'postgres',
+  user: getRequiredEnv('DB_USER'),
   host: process.env.DB_HOST || 'localhost',
   database: process.env.DB_NAME || 'luckniteshoots',
-  password: process.env.DB_PASSWORD || 'postgres',
+  password: getRequiredEnv('DB_PASSWORD'),
   port: parseInt(process.env.DB_PORT || '5432'),
   family: 4, // Force IPv4 to avoid ENETUNREACH errors
 };
 
-// JWT Configuration
+// Безопасная конфигурация JWT: требует наличия секрета
 export const JWT_CONFIG = {
-  secret: process.env.JWT_SECRET || 'your_jwt_secret_key_here',
+  secret: getRequiredEnv('JWT_SECRET'),
   expiresIn: process.env.JWT_EXPIRES_IN || '1d',
 };
 

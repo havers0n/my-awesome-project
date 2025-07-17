@@ -5,30 +5,21 @@ import {
     updateOrganization,
     deleteOrganization
 } from '../controllers/organizationController';
-import { authenticateSupabaseToken } from '../middleware/supabaseAuthMiddleware';
+import { authenticate } from '../middleware/authenticate';
 import { checkAdminPermission } from '../middleware/permissionMiddleware';
-
-
 
 const router = express.Router();
 
 // Apply authentication middleware to all routes
-router.use(authenticateSupabaseToken);
+router.use(authenticate);
 
-// Apply admin permission check to all routes. 
-// This ensures only users with 'admin' role can manage organizations.
-//router.use(checkAdminPermission); 
-
-// Handle empty path for GET and POST (no trailing slash)
-router.get('', getOrganizations);
-router.post('', createOrganization);
-
+// Organization routes
 router.route('/')
     .get(getOrganizations)
     .post(createOrganization);
 
-router.route('/:id')
+router.route('/:organizationId')
     .put(updateOrganization)
     .delete(deleteOrganization);
 
-export default router; 
+export default router;

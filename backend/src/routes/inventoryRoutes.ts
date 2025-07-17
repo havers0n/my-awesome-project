@@ -6,18 +6,16 @@ import {
     deleteProduct,
     updateProductQuantity
 } from '../controllers/inventoryController';
-import { dualAuthenticateToken } from '../middleware/dualAuthMiddleware';
+import { authenticate } from '../middleware/authenticate';
 
 const router = express.Router();
 
-// Test routes for debugging
+// Test routes (no auth)
 router.get('/hello', (req, res) => {
-    console.log('!!!!!!!!!! HELLO ROUTE WAS CALLED !!!!!!!!!!');
     res.status(200).json({ message: 'Hello from inventory routes!' });
 });
 
 router.get('/test-no-auth', (req, res) => {
-    console.log('=== Inventory test route called (no auth) ===');
     res.json({
         success: true,
         message: 'This test route works without authentication',
@@ -25,10 +23,9 @@ router.get('/test-no-auth', (req, res) => {
     });
 });
 
-// Apply authentication middleware to all subsequent routes
-router.use(dualAuthenticateToken);
+// Protected routes
+router.use(authenticate);
 
-// Define routes using router.route() for cleaner structure
 router.route('/products')
     .get(getProducts)
     .post(createProduct);

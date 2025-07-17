@@ -7,23 +7,28 @@ import {
   getSavingsPercentageDetails,
   getPayPerUseDetails
 } from '../controllers/monetizationController';
+import { rbacMiddleware } from '../middleware/rbacMiddleware';
 
 const router = express.Router();
-
-
-import { rbacMiddleware } from '../middleware/rbacMiddleware';
 
 // Get monetization details for the current user's organization
 router.get('/me/monetization', rbacMiddleware(['admin', 'owner', 'employee']), getUserMonetization);
 
 // Get monetization details for a specific organization (admin only)
-router.get('/organizations/:organizationId/monetization', rbacMiddleware(['admin', 'superadmin']), getOrganizationMonetization);
+router.get('/organizations/:organizationId/monetization', 
+  rbacMiddleware(['admin', 'superadmin']), 
+  getOrganizationMonetization
+);
 
 // Update subscription settings
-router.put('/monetization/subscription/:subscriptionId', updateSubscriptionSettings);
+router.put('/monetization/subscription/:subscriptionId', 
+  updateSubscriptionSettings
+);
 
 // Cancel subscription
-router.post('/monetization/subscription/:subscriptionId/cancel', cancelSubscription);
+router.post('/monetization/subscription/:subscriptionId/cancel', 
+  cancelSubscription
+);
 
 // Get savings percentage details
 router.get('/monetization/savings', getSavingsPercentageDetails);
@@ -31,4 +36,4 @@ router.get('/monetization/savings', getSavingsPercentageDetails);
 // Get pay-per-use details
 router.get('/monetization/pay-per-use', getPayPerUseDetails);
 
-export default router; 
+export default router;

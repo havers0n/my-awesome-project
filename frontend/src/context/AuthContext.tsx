@@ -1,8 +1,8 @@
 // ... existing code ...
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient'; // Fixed import path
 import api from '../services/api'; // Import API service separately
-import { User } from '../types';
+import { User } from '../types.admin';
 
 interface AuthContextType {
   user: User | null;
@@ -35,11 +35,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => authListener.subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (token?: string) => {
+  const fetchProfile = useCallback(async (token?: string) => {
     try {
       let authToken = token;
       if (!authToken) {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Supabase session error:', error);
+          setUser(null);
+          return;
+        }
         authToken = session?.access_token;
       }
 
@@ -48,16 +53,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      console.log('Using token:', authToken); // Add this line
-      const { data } = await api.get('/auth/me', {
-        headers: { Authorization: `Bearer ${authToken}` },
+      // Add proper headers to API request
+      const response = await api.get('/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
       });
-      setUser(data);
+
+      setUser(response.data);
     } catch (error) {
-      console.error("Failed to fetch profile", error);
+      console.error('Profile fetch error:', error);
       setUser(null);
+      // Consider adding error state handling here
     }
-  };
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
