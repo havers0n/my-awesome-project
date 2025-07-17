@@ -13,8 +13,12 @@ const api = axios.create({
 // Request interceptor for auth token
 api.interceptors.request.use(
   (config) => {
+    console.log('[API Interceptor] Running for request:', config.method?.toUpperCase(), config.url);
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!supabaseUrl) return config;
+    if (!supabaseUrl) {
+      console.warn('[API Interceptor] VITE_SUPABASE_URL is not set. Cannot get auth token.');
+      return config;
+    }
     
     const projectRef = supabaseUrl.split('.')[0].replace('https://', '');
     const localStorageKey = `sb-${projectRef}-auth-token`;
@@ -24,11 +28,16 @@ api.interceptors.request.use(
       try {
         const tokenData = JSON.parse(supabaseAuthToken);
         if (tokenData?.access_token) {
+          console.log('[API Interceptor] Auth token found. Setting Authorization header.');
           config.headers.Authorization = `Bearer ${tokenData.access_token}`;
+        } else {
+          console.warn('[API Interceptor] Auth token found in localStorage, but access_token is missing.');
         }
       } catch (error) {
-        console.error('Failed to parse auth token:', error);
+        console.error('[API Interceptor] Failed to parse auth token from localStorage:', error);
       }
+    } else {
+      console.warn(`[API Interceptor] No auth token found in localStorage (key: ${localStorageKey}). Request will be unauthenticated.`);
     }
     
     return config;

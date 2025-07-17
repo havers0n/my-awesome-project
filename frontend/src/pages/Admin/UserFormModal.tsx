@@ -13,10 +13,8 @@ interface UserFormModalProps {
 
 const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEdit }) => {
   const { addUser, updateUser, organizations, getLocationsByOrgId } = useData();
-  const [formData, setFormData] = useState<Omit<User, 'id' | 'created_at' | 'last_sign_in'>>(() => 
-    userToEdit 
-    ? { ...userToEdit, password: '' } // Clear password for editing
-    : EMPTY_USER
+  const [formData, setFormData] = useState<Omit<User, 'id' | 'created_at' | 'last_sign_in'>>(() =>
+    userToEdit ? { ...userToEdit, password: '' } : EMPTY_USER
   );
   const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,9 +22,9 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
 
   useEffect(() => {
     if (userToEdit) {
-      setFormData({ ...userToEdit, password: '' }); // Reset password field on edit
-      if (userToEdit.organizationId) {
-        setAvailableLocations(getLocationsByOrgId(userToEdit.organizationId));
+      setFormData({ ...userToEdit, password: '' });
+      if (userToEdit.organization_id) {
+        setAvailableLocations(getLocationsByOrgId(String(userToEdit.organization_id)));
       } else {
         setAvailableLocations([]);
       }
@@ -38,26 +36,24 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
   }, [userToEdit, isOpen, getLocationsByOrgId]);
 
   useEffect(() => {
-    if (formData.organizationId && formData.organizationId !== ALL_OPTION_VALUE) {
-      setAvailableLocations(getLocationsByOrgId(formData.organizationId));
-       // If current locationId is not in new availableLocations, reset it
-      if (formData.locationId && !getLocationsByOrgId(formData.organizationId).find(loc => loc.id === formData.locationId)) {
-        setFormData(prev => ({...prev, locationId: null}));
+    if (formData.organization_id && formData.organization_id !== ALL_OPTION_VALUE) {
+      setAvailableLocations(getLocationsByOrgId(String(formData.organization_id)));
+      if (formData.location_id && !getLocationsByOrgId(String(formData.organization_id)).find(loc => loc.id === formData.location_id)) {
+        setFormData(prev => ({ ...prev, location_id: null }));
       }
     } else {
       setAvailableLocations([]);
-      setFormData(prev => ({...prev, locationId: null}));
+      setFormData(prev => ({ ...prev, location_id: null }));
     }
-  }, [formData.organizationId, getLocationsByOrgId]);
-
+  }, [formData.organization_id, getLocationsByOrgId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     if (type === 'checkbox') {
-        const { checked } = e.target as HTMLInputElement;
-        setFormData(prev => ({ ...prev, [name]: checked }));
+      const { checked } = e.target as HTMLInputElement;
+      setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-        setFormData(prev => ({ ...prev, [name]: value === ALL_OPTION_VALUE ? null : value }));
+      setFormData(prev => ({ ...prev, [name]: value === ALL_OPTION_VALUE ? null : value }));
     }
   };
   
@@ -72,53 +68,42 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
         return;
       }
 
+      // Standardize the data before submission
+      const dataToSubmit = { ...formData };
+      if ('organizationId' in dataToSubmit) {
+        delete (dataToSubmit as any).organizationId;
+      }
+      if ('locationId' in dataToSubmit) {
+        delete (dataToSubmit as any).locationId;
+      }
+
       if (userToEdit) {
-        // For editing, ensure password is only updated if provided
-        const finalUserData: User = { ...userToEdit, ...formData };
-        if (!formData.password) { // If password field is empty, don't change it
+        const finalUserData: User = { ...userToEdit, ...dataToSubmit };
+        if (!dataToSubmit.password) {
           delete finalUserData.password;
         }
         updateUser(finalUserData);
       } else {
-        // Ensure password exists for new user
-        if (!formData.password) {
+        if (!dataToSubmit.password) {
           setError('Пароль обязателен для нового пользователя.');
           return;
         }
         
-        // Call backend API to create user
         await authAPI.register({
-          email: formData.email,
-          password: formData.password,
-          full_name: formData.full_name,
-          organization_id: formData.organizationId ? Number(formData.organizationId) : undefined,
-          role: formData.role || undefined,
-          phone: undefined,
-          position: undefined
+          email: dataToSubmit.email,
+          password: dataToSubmit.password,
+          full_name: dataToSubmit.full_name,
+          organization_id: dataToSubmit.organization_id ? Number(dataToSubmit.organization_id) : undefined,
+          role: dataToSubmit.role || undefined,
         });
 
-        // Update local state for immediate UI feedback
-        const userForLocalState = {
-          email: formData.email,
-          password: formData.password,
-          full_name: formData.full_name,
-          role: formData.role,
-          organizationId: formData.organizationId,
-          locationId: formData.locationId,
-          is_active: formData.is_active,
-          send_invitation: formData.send_invitation
-        };
-        addUser(userForLocalState as Omit<User, 'id' | 'created_at' | 'last_sign_in'> & {password: string});
+        addUser(dataToSubmit);
       }
       
       onClose();
     } catch (err: any) {
       console.error('Error creating/updating user:', err);
-      if (err?.response?.data?.error) {
-        setError(err.response.data.error);
-      } else {
-        setError(err.message || 'Ошибка при создании пользователя');
-      }
+      setError(err?.response?.data?.error || err.message || 'Ошибка при создании пользователя');
     } finally {
       setLoading(false);
     }
@@ -205,8 +190,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
             <label htmlFor="user_organization" className="block text-sm font-medium text-gray-700 mb-1">Организация</label>
             <select
               id="user_organization"
-              name="organizationId"
-              value={formData.organizationId || ALL_OPTION_VALUE}
+              name="organization_id"
+              value={formData.organization_id || ALL_OPTION_VALUE}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             >
@@ -221,18 +206,18 @@ const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, userToEd
             <label htmlFor="user_location" className="block text-sm font-medium text-gray-700 mb-1">Точка/Локация</label>
             <select
               id="user_location"
-              name="locationId"
-              value={formData.locationId || ALL_OPTION_VALUE}
+              name="location_id"
+              value={formData.location_id || ALL_OPTION_VALUE}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-              disabled={!formData.organizationId || formData.organizationId === ALL_OPTION_VALUE || availableLocations.length === 0}
+              disabled={!formData.organization_id || formData.organization_id === ALL_OPTION_VALUE || availableLocations.length === 0}
             >
               <option value={ALL_OPTION_VALUE}>Выберите локацию</option>
               {availableLocations.map(loc => (
                 <option key={loc.id} value={loc.id}>{loc.name}</option>
               ))}
             </select>
-             {formData.organizationId && formData.organizationId !== ALL_OPTION_VALUE && availableLocations.length === 0 && (
+             {formData.organization_id && formData.organization_id !== ALL_OPTION_VALUE && availableLocations.length === 0 && (
                 <p className="text-xs text-gray-500 mt-1">Для выбранной организации нет доступных локаций.</p>
             )}
           </div>

@@ -130,8 +130,8 @@ export const EMPTY_USER = {
   full_name: '',
   role: 'EMPLOYEE',
   role_id: 'role-1', // ID роли сотрудника по умолчанию
-  organizationId: null,
-  locationId: null,
+  organization_id: null,
+  location_id: null,
   is_active: true,
   created_at: '',
   last_sign_in: null,

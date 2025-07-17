@@ -2,6 +2,35 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin } from '../supabaseClient';
 
+export const getUsers = async (req: Request, res: Response): Promise<void> => {
+  console.log('--- Entering getUsers controller ---');
+  try {
+    const { data, error, count, status, statusText } = await supabaseAdmin
+      .from('users')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false });
+
+    console.log('Supabase response:', {
+      status,
+      statusText,
+      count,
+      data: data ? `Found ${data.length} users.` : 'No data returned.',
+      error: error ? error.message : null
+    });
+
+    if (error) {
+      console.error('Error fetching users from Supabase:', error);
+      res.status(500).json({ error: 'Failed to fetch users', details: error.message });
+      return;
+    }
+
+    res.status(200).json(data || []);
+  } catch (err: any) {
+    console.error('Unhandled exception in getUsers:', err);
+    res.status(500).json({ error: 'An unexpected error occurred', details: err.message });
+  }
+};
+
 export const updateProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user) {

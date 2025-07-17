@@ -66,7 +66,7 @@ interface DataContextType {
 export const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [users, setUsers] = useState<User[]>(INITIAL_USERS);
+  const [users, setUsers] = useState<User[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [locations, setLocations] = useState<Location[]>(INITIAL_LOCATIONS);
   const [suppliers, setSuppliers] = useState<Supplier[]>(INITIAL_SUPPLIERS);
@@ -84,9 +84,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const orgsResponse = await api.get('/organizations');
         setOrganizations(orgsResponse.data);
 
-        // TODO: Добавить загрузку пользователей, ролей и т.д.
-        // const usersResponse = await api.get('/users');
-        // setUsers(usersResponse.data);
+        // Загружаем пользователей
+        const usersResponse = await api.get('/users');
+        setUsers(usersResponse.data);
 
       } catch (error) {
         console.error("Failed to fetch initial data", error);
@@ -98,22 +98,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchData();
   }, []);
 
-  const addUser = useCallback((userData: Omit<User, 'id' | 'created_at' | 'last_sign_in'>): User => {
-    const newUser: User = {
-      ...userData,
-      id: `user-${Date.now()}`,
-      created_at: new Date().toISOString(),
-      last_sign_in: null,
-    };
+  const addUser = useCallback(async (userData: Omit<User, 'id' | 'created_at' | 'last_sign_in'>): Promise<User> => {
+    const response = await api.post('/users', userData);
+    const newUser = response.data.user;
     setUsers(prev => [...prev, newUser]);
     return newUser;
   }, []);
 
-  const updateUser = useCallback((updatedUser: User) => {
-    setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+  const updateUser = useCallback(async (updatedUser: User) => {
+    const response = await api.put(`/users/${updatedUser.id}`, updatedUser);
+    const savedUser = response.data.user;
+    setUsers(prev => prev.map(u => u.id === savedUser.id ? savedUser : u));
   }, []);
 
-  const deleteUser = useCallback((userId: string) => {
+  const deleteUser = useCallback(async (userId: string) => {
+    await api.delete(`/users/${userId}`);
     setUsers(prev => prev.filter(u => u.id !== userId));
   }, []);
 

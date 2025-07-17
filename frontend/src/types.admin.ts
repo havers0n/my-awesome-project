@@ -27,8 +27,8 @@ export interface User {
   full_name: string;
   role_id?: string; // ID роли
   role?: string; // Для обратной совместимости
-  organizationId: string | null;
-  locationId: string | null;
+  organization_id: string | number | null; // Стандартизируем на snake_case
+  location_id: string | number | null; // Стандартизируем на snake_case
   is_active: boolean;
   created_at: string; // ISO date string
   last_sign_in: string | null; // ISO date string
@@ -94,8 +94,8 @@ export interface Filters {
   search: string;
   role: string; // 'all' or role value
   status: string; // 'all', 'active', 'inactive'
-  organizationId: string; // 'all' or org ID
-  locationId: string; // 'all' or loc ID
+  organization_id: string | number | null; // 'all' or org ID
+  location_id: string | number | null; // 'all' or loc ID
 }
 
 export interface OrganizationFilters {
