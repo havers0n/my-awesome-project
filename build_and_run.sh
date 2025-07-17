@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
 
-# Собрать контейнеры
-docker compose build
+apt install npm
+npm install
 
-# Запустить контейнеры
-docker compose up -d 
+npm run build
+
+npm run preview -- --host 0.0.0.0 --port 7999

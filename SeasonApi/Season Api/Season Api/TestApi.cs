@@ -1,5 +1,0 @@
-namespace Season_Api
-{
-    
-
-}
