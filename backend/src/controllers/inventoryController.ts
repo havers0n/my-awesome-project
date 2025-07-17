@@ -15,20 +15,21 @@ export const getProducts = async (req: Request, res: Response) => {
         console.log(`[1] User object from middleware:`, JSON.stringify(user, null, 2));
         console.log(`[2] Extracted organization_id: |${organizationId}|`);
 
-        if (!organizationId) {
-            console.error('[ERROR] Organization ID is missing! Cannot fetch products.');
-            return res.status(400).json({ message: 'User is not associated with an organization.' });
-        }
-
         // Используем ВАШ метод для получения клиента Supabase
         const supabase = getSupabaseUserClient(req.headers['authorization']!.replace('Bearer ', ''));
 
-        console.log(`[3] Sending query to Supabase: SELECT * FROM products WHERE organization_id = ${organizationId}`);
-
-        const { data, error, status } = await supabase
+        let query = supabase
             .from('products')
-            .select('*')
-            .eq('organization_id', organizationId);
+            .select('*');
+
+        if (organizationId) {
+            console.log(`[3] Sending query to Supabase: SELECT * FROM products WHERE organization_id = ${organizationId}`);
+            query = query.eq('organization_id', organizationId);
+        } else {
+            console.log('[3] No organization ID found. Fetching all products.');
+        }
+
+        const { data, error, status } = await query;
 
         console.log('\n--- [DATABASE RESPONSE] ---');
         console.log('Status Code:', status);

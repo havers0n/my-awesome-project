@@ -14,7 +14,22 @@ router.get('/test', (req, res) => {
 });
 
 // Protected routes
-router.get('/me', authenticate, getProfile);
+router.get('/me', authenticate, (req, res) => {
+  // Теперь req.user гарантированно существует благодаря middleware
+  if (req.user) {
+    res.json({
+      id: req.user.id,
+      email: req.user.email,
+      role: req.user.role,
+      organization_id: req.user.organization_id,
+      location_id: req.user.location_id,
+      authType: req.user.authType,
+    });
+  } else {
+    // Эта ветка по идее не должна выполниться, если authenticate работает правильно
+    res.status(401).json({ error: 'Authentication failed' });
+  }
+});
 router.put('/profile', authenticate, updateProfile);
 
 console.log('🔍 authRoutes.ts: About to register profile route...');

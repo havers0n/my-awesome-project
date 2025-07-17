@@ -53,10 +53,10 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       req.user = {
         id: user.id,
         email: user.email,
-        role: profile.role,
+        role: profile?.role,
         authType: 'supabase',
-        location_id: profile.location_id,
-        organization_id: profile.organization_id,
+        location_id: profile?.location_id || null,
+        organization_id: profile?.organization_id || null,
       };
       
       return next();
@@ -76,8 +76,8 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       id: decoded.id,
       role: decoded.role,
       authType: 'legacy',
-      organization_id: decoded.organization_id,
-      location_id: decoded.location_id,
+      organization_id: decoded.organization_id || null,
+      location_id: decoded.location_id || null,
     };
 
     return next();

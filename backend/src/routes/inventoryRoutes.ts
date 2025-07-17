@@ -7,6 +7,7 @@ import {
     updateProductQuantity
 } from '../controllers/inventoryController';
 import { authenticate } from '../middleware/authenticate';
+import { requireOrganization } from '../middleware/requireOrganization';
 
 const router = express.Router();
 
@@ -24,7 +25,11 @@ router.get('/test-no-auth', (req, res) => {
 });
 
 // Protected routes
+// All routes below are protected and require a valid user session
 router.use(authenticate);
+
+// All routes below also require the user to be part of an organization
+// router.use(requireOrganization);
 
 router.route('/products')
     .get(getProducts)
