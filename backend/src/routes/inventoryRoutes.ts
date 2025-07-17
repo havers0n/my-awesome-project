@@ -28,7 +28,7 @@ router.get('/test-no-auth', (req, res) => {
 // All routes below are protected and require a valid user session
 router.use(authenticate);
 
-// All routes below also require the user to be part of an organization
+// ВРЕМЕННО ОТКЛЮЧЕНО для диагностики - включить после исправления
 // router.use(requireOrganization);
 
 router.route('/products')

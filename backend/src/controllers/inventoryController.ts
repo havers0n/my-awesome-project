@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 
 
-// !!! ЗАМЕНИТЕ ВАШУ ФУНКЦИЮ getProducts НА ЭТУ !!!
+// ИСПРАВЛЕНО: Восстановлена безопасная проверка organization_id
 export const getProducts = async (req: Request, res: Response) => {
     console.log('\n--- [START] getProducts CONTROLLER ---');
     try {
@@ -15,21 +15,24 @@ export const getProducts = async (req: Request, res: Response) => {
         console.log(`[1] User object from middleware:`, JSON.stringify(user, null, 2));
         console.log(`[2] Extracted organization_id: |${organizationId}|`);
 
+        // КРИТИЧЕСКАЯ ПРОВЕРКА БЕЗОПАСНОСТИ
+        if (!organizationId) {
+            console.error('[SECURITY] User attempted to access products without organization_id');
+            return res.status(403).json({ 
+                error: 'User is not associated with an organization',
+                details: 'Access denied: organization membership required' 
+            });
+        }
+
         // Используем ВАШ метод для получения клиента Supabase
         const supabase = getSupabaseUserClient(req.headers['authorization']!.replace('Bearer ', ''));
 
-        let query = supabase
+        // БЕЗОПАСНЫЙ ЗАПРОС - только продукты пользователя's организации
+        console.log(`[3] Sending SECURE query to Supabase: SELECT * FROM products WHERE organization_id = ${organizationId}`);
+        const { data, error, status } = await supabase
             .from('products')
-            .select('*');
-
-        if (organizationId) {
-            console.log(`[3] Sending query to Supabase: SELECT * FROM products WHERE organization_id = ${organizationId}`);
-            query = query.eq('organization_id', organizationId);
-        } else {
-            console.log('[3] No organization ID found. Fetching all products.');
-        }
-
-        const { data, error, status } = await query;
+            .select('*')
+            .eq('organization_id', organizationId);
 
         console.log('\n--- [DATABASE RESPONSE] ---');
         console.log('Status Code:', status);
@@ -42,7 +45,7 @@ export const getProducts = async (req: Request, res: Response) => {
             return res.status(500).json({ message: 'Failed to fetch products', details: error.message });
         }
 
-        console.log(`[4] Sending ${data?.length || 0} products to client.`);
+        console.log(`[4] SECURITY: Sending ${data?.length || 0} products from organization ${organizationId} to user ${user.id}`);
         res.status(200).json(data);
 
     } catch (err) {
