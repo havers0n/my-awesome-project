@@ -29,14 +29,13 @@ export default defineConfig({
     })
   ],
   server: {
-    port: 5174,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001', // real_data_server с правильной структурой данных
+        target: 'http://localhost:3000',  // Переключаемся обратно на основной backend на порту 3000
         changeOrigin: true,
         secure: false,
-      }
-    }
+      },
+    },
   },
   build: {
     rollupOptions: {
