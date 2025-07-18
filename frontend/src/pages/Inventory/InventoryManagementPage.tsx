@@ -130,6 +130,10 @@ const QuickActions: React.FC<{
   const { t } = useTranslation();
   
   const data = useMemo(() => {
+    if (!products || !Array.isArray(products)) {
+      return [];
+    }
+    
     const counts = {
       'inStock': 0,
       'lowStock': 0,
@@ -153,7 +157,7 @@ const QuickActions: React.FC<{
     ].filter(item => item.value > 0);
   }, [products]);
 
-  const totalProducts = useMemo(() => products.length, [products]);
+  const totalProducts = useMemo(() => products?.length || 0, [products]);
 
   const handleFilter = (status: string) => {
     if (activeFilter === status) {
@@ -648,9 +652,18 @@ const InventoryManagementPage: React.FC = () => {
       try {
         setError(null);
         const apiProducts = await fetchAllProducts();
-        setProducts(apiProducts);
+        
+        // Проверяем что получили массив
+        if (Array.isArray(apiProducts)) {
+          setProducts(apiProducts);
+        } else {
+          console.warn('API returned non-array data:', apiProducts);
+          throw new Error('API вернул некорректные данные');
+        }
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Ошибка загрузки данных');
+        console.error('Failed to load products:', error);
+        
         // Моковые данные для fallback
         setProducts([
           {
@@ -691,6 +704,10 @@ const InventoryManagementPage: React.FC = () => {
 
   // Статистика
   const stats = useMemo(() => {
+    if (!products || !Array.isArray(products)) {
+      return { total: 0, inStock: 0, lowStock: 0, outOfStock: 0 };
+    }
+    
     return products.reduce((acc, product) => {
       const totalStock = product.stock_by_location 
         ? product.stock_by_location.reduce((sum, loc) => sum + Number(loc.stock), 0)
@@ -767,6 +784,10 @@ const InventoryManagementPage: React.FC = () => {
 
   // Фильтрация и сортировка
   const filteredProducts = useMemo(() => {
+    if (!products || !Array.isArray(products)) {
+      return [];
+    }
+    
     let result = [...products];
     
     // Фильтрация по поиску
