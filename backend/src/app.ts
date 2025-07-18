@@ -92,10 +92,111 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ТЕСТОВЫЙ МАРШРУТ: Проверка БД без аутентификации (ДОБАВЛЕН ПЕРВЫМ!)
+app.get('/api/test-db', async (req, res) => {
+  try {
+    console.log('=== Testing database connection (no auth) ===');
+    
+    // Импорт supabaseAdmin для прямого доступа
+    const { supabaseAdmin } = require('./supabaseClient');
+    
+    // Простой запрос к таблице products
+    const { data: products, error } = await supabaseAdmin
+      .from('products')
+      .select(`
+        id,
+        name,
+        sku,
+        price,
+        organization_id
+      `)
+      .limit(5);
+    
+    if (error) {
+      console.error('Database error:', error);
+      return res.status(500).json({ error: 'Database query failed', details: error.message });
+    }
+    
+    // Преобразуем в нужный формат
+    const formattedProducts = products?.map((product: any) => ({
+      product_id: product.id,
+      product_name: product.name,
+      sku: product.sku || `SKU-${product.id}`,
+      price: product.price || 0,
+      stock_by_location: [
+        // Временно добавляем моковые остатки, так как для получения реальных остатков нужен сложный JOIN
+        { location_id: 1, location_name: 'Основной склад', stock: Math.floor(Math.random() * 50) }
+      ]
+    })) || [];
+    
+    console.log(`✅ Found ${formattedProducts.length} products in database:`, formattedProducts.map((p: any) => p.product_name));
+    res.json(formattedProducts);
+    
+  } catch (error) {
+    console.error('❌ Route error:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch products from database', 
+      details: error instanceof Error ? error.message : String(error) 
+    });
+  }
+});
+
 // Simple test route directly in app.ts
 app.get('/api/test', (req, res) => {
   console.log('=== Direct test route called ===');
   res.json({ success: true, message: 'Direct test route works', timestamp: new Date().toISOString() });
+});
+
+// ВРЕМЕННЫЙ ТЕСТОВЫЙ МАРШРУТ: для проверки реальных данных из БД
+app.get('/api/inventory/products-direct', async (req, res) => {
+  try {
+    console.log('=== Testing direct database connection ===');
+    
+    // Импорт getSupabaseUserClient
+    const { getSupabaseUserClient } = require('./supabaseUserClient');
+    
+    // Создаем временный токен или используем service role (НЕ для продакшена!)
+    const supabase = getSupabaseUserClient(process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+    
+    // Простой запрос к таблице products
+    const { data: products, error } = await supabase
+      .from('products')
+      .select(`
+        id,
+        name,
+        sku,
+        price,
+        organization_id
+      `)
+      .limit(10);
+    
+    if (error) {
+      console.error('Database error:', error);
+      return res.status(500).json({ error: 'Database query failed', details: error.message });
+    }
+    
+    // Преобразуем в нужный формат
+    const formattedProducts = products?.map((product: any) => ({
+      product_id: product.id,
+      product_name: product.name,
+      sku: product.sku || `SKU-${product.id}`,
+      price: product.price || 0,
+      stock_by_location: [
+        // Временно добавляем моковые остатки, так как для получения реальных остатков нужен сложный JOIN
+        { location_id: 1, location_name: 'Основной склад', stock: Math.floor(Math.random() * 50) }
+      ]
+    })) || [];
+    
+    console.log(`Found ${formattedProducts.length} products in database`);
+    res.json(formattedProducts);
+    
+  } catch (error) {
+    console.error('Route error:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch products from database', 
+      details: error instanceof Error ? error.message : String(error) 
+    });
+  }
 });
 
 // Import all route files

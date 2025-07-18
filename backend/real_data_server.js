@@ -1,7 +1,7 @@
-import express from 'express';
-import cors from 'cors';
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
 
-// Create a simple Express app
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -12,25 +12,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Test endpoint
-app.get('/api/test', (req, res) => {
-  console.log('Test endpoint called');
-  res.json({ success: true, message: 'Test endpoint works', timestamp: new Date().toISOString() });
-});
-
-// Inventory test endpoint
-app.get('/api/inventory/test', (req, res) => {
-  console.log('Inventory test endpoint called');
-  res.json({ 
-    success: true, 
-    message: 'Inventory test endpoint works', 
-    timestamp: new Date().toISOString() 
-  });
-});
-
 // Inventory products endpoint (РЕАЛЬНЫЕ ДАННЫЕ ИЗ БД)
 app.get('/api/inventory/products', async (req, res) => {
-  console.log('📦 Inventory products endpoint called - fetching REAL data from database');
+  console.log('📦 Fetching REAL data from database...');
   
   try {
     // Импорт supabase для подключения к БД
@@ -55,8 +39,7 @@ app.get('/api/inventory/products', async (req, res) => {
         name,
         sku,
         price,
-        organization_id,
-        created_at
+        organization_id
       `)
       .limit(10);
     
@@ -66,7 +49,7 @@ app.get('/api/inventory/products', async (req, res) => {
     }
     
     if (!products || products.length === 0) {
-      console.log('⚠️ No products found in database, returning empty array');
+      console.log('⚠️ No products found in database');
       return res.json([]);
     }
     
@@ -78,7 +61,6 @@ app.get('/api/inventory/products', async (req, res) => {
       price: product.price || 0,
       stock_by_location: [
         // Временно добавляем случайные остатки
-        // В реальности нужен JOIN с таблицами operations и locations
         { 
           location_id: 1, 
           location_name: 'Основной склад', 
@@ -101,23 +83,15 @@ app.get('/api/inventory/products', async (req, res) => {
   }
 });
 
-// Forecast metrics endpoint (mock)
-app.get('/api/forecast/metrics', (req, res) => {
-  console.log('Forecast metrics endpoint called');
-  res.json({
-    totalPredictions: 25,
-    averageAccuracy: 85.7,
-    lastUpdated: new Date().toISOString(),
-    avgMAPE: 14.3,
-    avgMAE: 5.2,
-    accuracyTrend: 'improving',
-    predictionCount: 25
-  });
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  console.log('Test endpoint called');
+  res.json({ success: true, message: 'Real data server works', timestamp: new Date().toISOString() });
 });
 
 // Start the server
-const PORT = 3001;
+const PORT = 3000; // Изменено с 3001 на 3000 для совместимости с frontend
 app.listen(PORT, () => {
-  console.log(`Quick fix server running on port ${PORT}`);
+  console.log(`✅ Real data server running on port ${PORT}`);
   console.log(`📊 Products endpoint: http://localhost:${PORT}/api/inventory/products`);
-});
+}); 
