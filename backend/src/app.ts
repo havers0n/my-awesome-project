@@ -13,7 +13,7 @@ console.log('[DEBUG] envPath:', envPath);
 console.log('[DEBUG] SUPABASE_JWT_SECRET:', process.env.SUPABASE_JWT_SECRET)// import xss from 'xss-clean';
 
 // Безопасная конфигурация CORS
-const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:5174,http://localhost:5173').split(',');
+const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:5174,http://localhost:5173,http://158.160.190.103:5174').split(',');
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
