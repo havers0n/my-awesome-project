@@ -44,40 +44,129 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
         // Получаем Supabase клиент
         const supabase = getSupabaseUserClient(req.headers['authorization']?.replace('Bearer ', '') || process.env.SUPABASE_SERVICE_ROLE_KEY || '');
 
-        // ИСПРАВЛЕНО: Получаем данные из current_stock_view
-        const { data: stockData, error } = await supabase
-            .from('current_stock_view')
-            .select('*')
+        // ИСПРАВЛЕНО: Правильный запрос - JOIN products с current_stock_view как в рабочем SQL
+        console.log('🔧 Using correct JOIN approach like working SQL query');
+        
+        // Сначала получаем продукты с их остатками через JOIN
+        const { data: productsWithStock, error: productsError } = await supabase
+            .from('products')
+            .select(`
+                id,
+                name,
+                sku,
+                code,
+                price,
+                organization_id,
+                created_at,
+                updated_at,
+                current_stock_view!inner(current_stock)
+            `)
             .eq('organization_id', organizationId)
-            .order('product_name');
+            .order('name');
 
-        if (error) {
-            console.error('❌ Database error:', error);
-            res.status(500).json({ error: 'Database query failed', details: error.message });
-            return;
+        if (productsError) {
+            console.error('❌ Products JOIN error:', productsError);
+            // Fallback: попробуем через RPC или raw SQL если JOIN не работает
+            console.log('🔄 Trying fallback approach...');
+            
+            // Получаем все продукты
+            const { data: allProducts, error: allProductsError } = await supabase
+                .from('products')
+                .select('*')
+                .eq('organization_id', organizationId)
+                .order('name');
+
+            if (allProductsError) {
+                console.error('❌ Products fallback error:', allProductsError);
+                res.status(500).json({ error: 'Database query failed', details: allProductsError.message });
+                return;
+            }
+
+            // Получаем остатки отдельно
+            const { data: stockView, error: stockViewError } = await supabase
+                .from('current_stock_view')
+                .select('*')
+                .eq('organization_id', organizationId);
+
+            if (stockViewError) {
+                console.warn('⚠️ Stock view error:', stockViewError.message);
+            }
+
+            // Объединяем данные вручную
+            const stockData = (allProducts || []).map(product => {
+                const stockInfo = (stockView || []).find(s => s.product_id === product.id);
+                return {
+                    product_id: product.id,
+                    product_name: product.name,
+                    sku: product.sku,
+                    code: product.code,
+                    price: product.price,
+                    organization_id: product.organization_id,
+                    created_at: product.created_at,
+                    updated_at: product.updated_at,
+                    current_stock: stockInfo?.current_stock || 0,
+                    stock_status: stockInfo?.stock_status || 'Нет данных',
+                    locations_with_stock: stockInfo?.locations_with_stock || 0
+                };
+            });
+
+            console.log(`📦 Fallback: Found ${stockData.length} products with stock data`);
+            
+            // Получаем детализацию по локациям
+            const { data: locationStockData, error: locationError } = await supabase
+                .from('stock_by_location_view')
+                .select('*')
+                .eq('organization_id', organizationId);
+
+            if (locationError) {
+                console.warn('⚠️ Could not fetch location details:', locationError.message);
+            }
+
+            // Используем fallback данные
+            var finalStockData: any[] = stockData;
+            var finalLocationData: any[] = locationStockData || [];
+        } else {
+            console.log(`✅ JOIN successful: Found ${productsWithStock?.length || 0} products`);
+            
+            // Преобразуем JOIN результат в нужный формат
+            const joinStockData = (productsWithStock || []).map(item => ({
+                product_id: item.id,
+                product_name: item.name,
+                sku: item.sku,
+                code: item.code,
+                price: item.price,
+                organization_id: item.organization_id,
+                created_at: item.created_at,
+                updated_at: item.updated_at,
+                current_stock: (item.current_stock_view as any)?.current_stock || 0,
+                stock_status: 'Есть данные', // Будет пересчитано позже
+                locations_with_stock: 1 // Будет пересчитано позже
+            }));
+
+            // Получаем детализацию по локациям
+            const { data: joinLocationStockData, error: locationError } = await supabase
+                .from('stock_by_location_view')
+                .select('*')
+                .eq('organization_id', organizationId);
+
+            if (locationError) {
+                console.warn('⚠️ Could not fetch location details:', locationError.message);
+            }
+
+            finalStockData = joinStockData;
+            finalLocationData = joinLocationStockData || [];
         }
 
-        if (!stockData || stockData.length === 0) {
+        if (!finalStockData || finalStockData.length === 0) {
             console.log('⚠️ No stock data found, returning empty result');
             res.json({ data: [], pagination: { page: 1, limit: 100, total: 0 } });
             return;
         }
 
-        // ИСПРАВЛЕНО: Получаем детализацию по локациям из stock_by_location_view
-        console.log(`📍 Fetching location details from stock_by_location_view...`);
-        const { data: locationStockData, error: locationError } = await supabase
-            .from('stock_by_location_view')
-            .select('*')
-            .eq('organization_id', organizationId);
-
-        if (locationError) {
-            console.warn('⚠️ Could not fetch location details:', locationError.message);
-        }
-
         // ИСПРАВЛЕНО: Адаптируем данные под формат frontend (Product с stock_by_location)
-        const formattedProducts = stockData.map((item: any) => {
+        const formattedProducts = finalStockData.map((item: any) => {
             // Находим остатки по локациям для этого продукта
-            const stockByLocation = (locationStockData || [])
+            const stockByLocation = (finalLocationData || [])
                 .filter((loc: any) => loc.product_id === item.product_id)
                 .map((loc: any) => ({
                     location_id: loc.location_id,
