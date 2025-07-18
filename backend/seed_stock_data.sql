@@ -76,7 +76,7 @@ BEGIN
             shelf_price
         ) VALUES (
             org_id,
-            'приход',
+            'incoming'::operation_type,
             NOW() - INTERVAL '30 days' + (p_id % 10) * INTERVAL '1 day',
             p_id,
             loc_id,
@@ -108,7 +108,7 @@ BEGIN
                 shelf_price
             ) VALUES (
                 org_id,
-                'продажа',
+                'outgoing'::operation_type,
                 NOW() - INTERVAL '7 days' + (p_id % 5) * INTERVAL '1 day',
                 p_id,
                 loc_id,

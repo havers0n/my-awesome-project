@@ -227,8 +227,8 @@ export const getProducts = async (req: Request, res: Response) => {
             `)
             .eq('organization_id', organizationId);
 
-        // Если представление не существует, используем запасной запрос к products
-        if (error && error.message.includes('does not exist')) {
+        // Если представление не существует или произошла ошибка, используем запасной запрос
+        if (error && (error.message.includes('does not exist') || error.message.includes('relation') || status !== 200)) {
             console.log(`[3.5] current_stock_view doesn't exist, falling back to products table`);
             const { data: productsData, error: productsError } = await supabase
                 .from('products')
