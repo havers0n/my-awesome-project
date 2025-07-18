@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Warehouse, Zap, Search, Plus, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Product } from '@/types/warehouse';
-import { fetchProducts, addProduct, deleteProduct } from '@/services/warehouseApi';
+import { fetchAllProducts, addProduct, deleteProduct } from '@/services/warehouseApi';
 
 // Компоненты
 const StatCard: React.FC<{ label: string; value: number; color?: string }> = ({ label, value, color = "text-gray-800" }) => (
@@ -647,7 +647,7 @@ const InventoryManagementPage: React.FC = () => {
     const loadProducts = async () => {
       try {
         setError(null);
-        const apiProducts = await fetchProducts();
+        const apiProducts = await fetchAllProducts();
         setProducts(apiProducts);
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Ошибка загрузки данных');

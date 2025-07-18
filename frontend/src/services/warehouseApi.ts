@@ -86,8 +86,15 @@ async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
 
 // --- API Functions ---
 
-export const fetchProducts = (): Promise<Product[]> => {
-  return apiFetch('/inventory/products');
+export const fetchProducts = async (page: number = 1, limit: number = 50): Promise<{data: Product[], pagination: any}> => {
+  const response = await apiFetch<{data: Product[], pagination: any}>(`/inventory/products?page=${page}&limit=${limit}`);
+  return response;
+};
+
+// Для обратной совместимости - функция которая возвращает только данные
+export const fetchAllProducts = async (): Promise<Product[]> => {
+  const response = await fetchProducts(1, 1000); // Получаем до 1000 продуктов на одной странице
+  return response.data;
 };
 
 export const addProduct = (productData: Omit<Product, 'product_id' | 'stock_by_location'>): Promise<Product> => {
