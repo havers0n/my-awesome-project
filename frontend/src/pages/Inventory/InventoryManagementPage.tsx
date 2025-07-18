@@ -621,14 +621,14 @@ const AddProductModal: React.FC<{
               onClick={handleClose}
               className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              Отмена
+              {t('inventory.management.addProductModal.cancel')}
             </button>
             <button
               type="submit"
               disabled={isLoading || !formData.name.trim()}
               className="flex-1 py-3 px-4 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? 'Добавление...' : 'Добавить'}
+              {isLoading ? t('inventory.management.addProductModal.adding') : t('inventory.management.addProductModal.add')}
             </button>
           </div>
         </form>
