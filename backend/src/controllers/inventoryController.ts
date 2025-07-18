@@ -26,9 +26,9 @@ const getOrgId = (req: Request): number | null => {
 // УБРАНО: initializeStockView - VIEW должны создаваться миграциями, а не через API
 
 
-// ИСПРАВЛЕНО: Работа ТОЛЬКО с правильными VIEW через эффективные параллельные запросы
+// ИСПРАВЛЕНО: Стандартный и правильный JOIN в Supabase
 export const getProducts = async (req: Request, res: Response): Promise<void> => {
-    console.log('\n--- [START] getProducts CONTROLLER (CLEAN VERSION) ---');
+    console.log('\n--- [START] getProducts CONTROLLER (CORRECT JOIN) ---');
     try {
         const user = (req as any).user;
         let organizationId = user?.organization_id;
@@ -42,65 +42,30 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 
         const supabase = getSupabaseUserClient(req.headers['authorization']?.replace('Bearer ', '') || process.env.SUPABASE_SERVICE_ROLE_KEY || '');
 
-        // ИСПРАВЛЕНО: Эффективное получение данных через параллельные запросы
-        console.log('🔧 Using efficient parallel queries approach');
+        // ИСПРАВЛЕНО: Простой и надежный запрос к current_stock_view (содержит ВСЕ нужные данные)
+        console.log('🔧 Using direct query to current_stock_view (contains all product data)');
         
-        // Получаем продукты и остатки параллельно для максимальной производительности
-        console.log(`📊 Fetching products and stock data in parallel for organization_id: ${organizationId}`);
-        
-        const [productsResult, stockViewResult] = await Promise.all([
-            supabase
-                .from('products')
-                .select('*')
-                .eq('organization_id', organizationId)
-                .order('name'),
-            supabase
-                .from('current_stock_view')
-                .select('*')
-                .eq('organization_id', organizationId)
-        ]);
+        const { data, error } = await supabase
+            .from('current_stock_view')
+            .select('*')
+            .eq('organization_id', organizationId)
+            .order('product_name');
 
-        if (productsResult.error) {
-            console.error('❌ Products query error:', productsResult.error);
-            res.status(500).json({ error: 'Failed to fetch products', details: productsResult.error.message });
+        if (error) {
+            console.error('❌ current_stock_view query error:', error);
+            res.status(500).json({ error: 'Failed to fetch products with stock', details: error.message });
             return;
         }
 
-        if (stockViewResult.error) {
-            console.warn('⚠️ Stock view query error:', stockViewResult.error);
-            // Продолжаем без остатков если VIEW недоступен
-        }
-
-        const allProducts = productsResult.data || [];
-        const stockViewData = stockViewResult.data || [];
-
-        if (allProducts.length === 0) {
-            console.log('⚠️ No products found, returning empty result');
+        if (!data || data.length === 0) {
+            console.log('⚠️ No stock data found, returning empty result');
             res.json({ data: [], pagination: { page: 1, limit: 100, total: 0 } });
             return;
         }
 
-        console.log(`✅ Parallel queries successful: ${allProducts.length} products, ${stockViewData.length} stock records`);
+        console.log(`✅ Direct query successful: Found ${data.length} products with stock data`);
 
-        // Объединяем данные эффективно
-        const stockData = allProducts.map(product => {
-            const stockInfo = stockViewData.find(s => s.product_id === product.id);
-            return {
-                product_id: product.id,
-                product_name: product.name,
-                sku: product.sku,
-                code: product.code,
-                price: product.price,
-                organization_id: product.organization_id,
-                created_at: product.created_at,
-                updated_at: product.updated_at,
-                current_stock: Number(stockInfo?.current_stock) || 0,
-                stock_status: stockInfo?.stock_status || 'Нет данных',
-                locations_with_stock: Number(stockInfo?.locations_with_stock) || 0
-            };
-        });
-
-        // Получаем детализацию по локациям
+        // Получаем детализацию по локациям отдельно
         const { data: locationStockData, error: locationError } = await supabase
             .from('stock_by_location_view')
             .select('*')
@@ -110,8 +75,8 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
             console.warn('⚠️ Could not fetch location details:', locationError.message);
         }
 
-        // ИСПРАВЛЕНО: Адаптируем данные под формат frontend (Product с stock_by_location)
-        const formattedProducts = stockData.map((item: any) => {
+        // ИСПРАВЛЕНО: current_stock_view уже содержит ВСЕ данные (продукты + остатки)
+        const formattedProducts = data.map((item: any) => {
             // Находим остатки по локациям для этого продукта
             const stockByLocation = (locationStockData || [])
                 .filter((loc: any) => loc.product_id === item.product_id)
@@ -130,14 +95,22 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
                 stock_by_location: stockByLocation,
                 created_at: item.created_at,
                 updated_at: item.updated_at,
-                // Дополнительные поля для совместимости
+                // Поля остатков уже есть в current_stock_view
                 current_stock: Number(item.current_stock) || 0,
-                stock_status: item.stock_status || 'Неизвестно',
+                stock_status: item.stock_status || 'Нет данных',
                 locations_with_stock: Number(item.locations_with_stock) || 0
             };
         });
 
-        console.log(`✅ Successfully formatted ${formattedProducts.length} products with location details`);
+        console.log(`✅ Successfully formatted ${formattedProducts.length} products with direct query data`);
+
+        // Логируем первые несколько товаров для проверки
+        if (formattedProducts.length > 0) {
+            console.log('📦 Sample products with stock:');
+            formattedProducts.slice(0, 3).forEach((product, index) => {
+                console.log(`  ${index + 1}. ${product.product_name}: stock=${product.current_stock}, status=${product.stock_status}`);
+            });
+        }
 
         res.json({
             data: formattedProducts,
