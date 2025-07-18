@@ -31,6 +31,7 @@ api.interceptors.request.use(
         if (tokenData?.access_token) {
           console.log('[API Interceptor] Auth token found. Setting Authorization header.');
           config.headers.Authorization = `Bearer ${tokenData.access_token}`;
+          config.headers['x-supabase-auth'] = tokenData.access_token;
         } else {
           console.warn('[API Interceptor] Auth token found in localStorage, but access_token is missing.');
         }

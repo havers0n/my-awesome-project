@@ -131,6 +131,11 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     res.status(500).json({ error: 'Что-то пошло не так!', details: err.message });
 });
 
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "http://158.160.190.103:5174");
+  next();
+});
+
 // Запуск сервера
 const PORT = process.env.PORT || 3000;//Changed to 3001 to avoid conflicts
 const server = app.listen(PORT, () => {
