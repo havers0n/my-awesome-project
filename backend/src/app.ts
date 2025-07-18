@@ -139,7 +139,7 @@ app.get('/api/inventory/products', async (req, res) => {
     }
     
     // Получаем реальные остатки из таблицы operations для каждого продукта
-    const productIds = products.map(p => p.id);
+    const productIds = products.map((p: any) => p.id);
     
     const { data: stockData, error: stockError } = await supabaseAdmin
       .from('operations')

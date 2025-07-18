@@ -216,12 +216,24 @@ const ReportForm: React.FC<{
   const [selectedProductId, setSelectedProductId] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [time, setTime] = useState(new Date().toTimeString().slice(0,5));
+  const [productSearchQuery, setProductSearchQuery] = useState('');
 
   useEffect(() => {
     if (selectedProductId && !products.find(p => p.product_id === parseInt(selectedProductId))) {
       setSelectedProductId('');
     }
   }, [products, selectedProductId]);
+
+  // Фильтрация товаров по поисковому запросу
+  const filteredProducts = useMemo(() => {
+    if (!productSearchQuery) return products;
+    
+    const lowerCaseQuery = productSearchQuery.toLowerCase().trim();
+    return products.filter(product =>
+      product.product_name.toLowerCase().includes(lowerCaseQuery) ||
+      product.sku.toLowerCase().includes(lowerCaseQuery)
+    );
+  }, [products, productSearchQuery]);
 
   const handleSetNow = () => {
     const now = new Date();
@@ -231,6 +243,7 @@ const ReportForm: React.FC<{
 
   const resetForm = () => {
     setSelectedProductId('');
+    setProductSearchQuery('');
     handleSetNow();
   };
 
@@ -257,6 +270,31 @@ const ReportForm: React.FC<{
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="productSelect">Выберите товар</label>
+          
+          {/* Поле поиска товаров */}
+          <div className="mb-2 relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Поиск товара по названию или SKU..."
+              value={productSearchQuery}
+              onChange={(e) => setProductSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-amber-600 focus:border-amber-600 text-sm"
+            />
+            {productSearchQuery && (
+              <button
+                type="button"
+                onClick={() => setProductSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+              </button>
+            )}
+          </div>
+          
+          {/* Выпадающий список товаров */}
           <select 
             id="productSelect"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-600 focus:border-amber-600"
@@ -265,12 +303,19 @@ const ReportForm: React.FC<{
             required
           >
             <option value="" disabled>Выберите товар</option>
-            {products.map(product => (
+            {filteredProducts.map(product => (
               <option key={product.product_id} value={product.product_id}>
                 {product.product_name}
               </option>
             ))}
           </select>
+          
+          {/* Показ количества найденных товаров */}
+          {productSearchQuery && (
+            <p className="text-xs text-gray-500 mt-1">
+              Найдено товаров: {filteredProducts.length} из {products.length}
+            </p>
+          )}
         </div>
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">Дата обнаружения</label>
