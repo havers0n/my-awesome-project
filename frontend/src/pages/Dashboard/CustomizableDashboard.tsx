@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import PageMeta from "@/components/common/PageMeta";
 import { useDashboardPersistence } from '@/features/dashboard/hooks/useDashboardPersistence';
 import { useDashboardLayout } from '@/features/dashboard/hooks/useDashboardLayout';
@@ -9,6 +10,7 @@ import { WIDGET_REGISTRY } from '@/features/dashboard/widgetRegistry';
 import { DEFAULT_DASHBOARD_CONFIG } from '@/features/dashboard/types/dashboard.types';
 
 export default function CustomizableDashboard() {
+  const { t } = useTranslation();
   console.log('🚀 [CustomizableDashboard] Component rendered');
   
   const [isEditMode, setIsEditMode] = useState(false);
@@ -104,13 +106,13 @@ export default function CustomizableDashboard() {
   }, []);
 
   const handleResetLayout = useCallback(() => {
-    if (confirm('Вы уверены, что хотите сбросить дашборд к настройкам по умолчанию? Все изменения будут потеряны.')) {
+    if (confirm(t('dashboard.reset_confirm'))) {
       console.log('🔄 [CustomizableDashboard] Reset layout to default');
       resetConfig();
       setHasUnsavedChanges(false);
       setIsEditMode(false);
     }
-  }, [resetConfig]);
+  }, [resetConfig, t]);
 
   const handleConfigWidget = useCallback((widgetId: string) => {
     console.log('⚙️ [CustomizableDashboard] Configure widget:', widgetId);
@@ -131,13 +133,13 @@ export default function CustomizableDashboard() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-red-600 text-lg mb-2">Ошибка загрузки дашборда</p>
+          <p className="text-red-600 text-lg mb-2">{t('dashboard.load_error.title')}</p>
           <p className="text-gray-500 text-sm mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors"
           >
-            Перезагрузить
+            {t('dashboard.load_error.reload')}
           </button>
         </div>
       </div>
@@ -147,8 +149,8 @@ export default function CustomizableDashboard() {
   return (
     <>
       <PageMeta
-        title="Кастомизируемый дашборд | Система управления"
-        description="Настраиваемый дашборд с виджетами аналитики, продаж и управления запасами"
+        title={t('dashboard.page_meta.title')}
+        description={t('dashboard.page_meta.description')}
       />
       
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -169,11 +171,10 @@ export default function CustomizableDashboard() {
             <div className="p-4">
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                 <h3 className="text-blue-900 dark:text-blue-100 font-medium mb-2">
-                  Начните настройку дашборда
+                  {t('dashboard.setup_instructions.title')}
                 </h3>
                 <p className="text-blue-700 dark:text-blue-300 text-sm">
-                  Нажмите кнопку "Добавить виджет" чтобы добавить первый виджет на дашборд. 
-                  Вы можете перетаскивать виджеты для изменения их порядка.
+                  {t('dashboard.setup_instructions.description')}
                 </p>
               </div>
             </div>

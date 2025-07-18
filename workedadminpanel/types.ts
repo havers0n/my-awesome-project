@@ -56,14 +56,27 @@ export enum LocationType {
   OTHER = 'other'
 }
 
-export const LocationTypeLabels: Record<LocationType, string> = {
-  [LocationType.OFFICE]: 'Офис',
-  [LocationType.WAREHOUSE]: 'Склад',
-  [LocationType.SHOP]: 'Магазин',
-  [LocationType.PRODUCTION]: 'Производство',
-  [LocationType.OTHER]: 'Другое',
+export const LocationTypeName: Record<LocationType, string> = {
+  [LocationType.OFFICE]: 'Office',
+  [LocationType.WAREHOUSE]: 'Warehouse',
+  [LocationType.SHOP]: 'Shop',
+  [LocationType.PRODUCTION]: 'Production',
+  [LocationType.OTHER]: 'Other',
 };
 
+export enum LocationStatus {
+  OPERATING = 'operating',
+  CLOSED_TEMP = 'closed_temp',
+  CLOSED_PERM = 'closed_perm',
+  RENOVATION = 'renovation',
+}
+
+export const LocationStatusName: Record<LocationStatus, string> = {
+  'operating': 'Operating',
+  'closed_temp': 'Temporarily Closed',
+  'closed_perm': 'Permanently Closed',
+  'renovation': 'Under Renovation',
+};
 
 export interface Location {
   id: string;
@@ -79,14 +92,6 @@ export interface Location {
   status: 'operating' | 'closed_temp' | 'closed_perm' | 'renovation';
   createdAt: string; // ISO date string
 }
-
-export const LocationStatusLabels: Record<Location['status'], string> = {
-  'operating': 'Работает',
-  'closed_temp': 'Временно закрыта',
-  'closed_perm': 'Закрыта',
-  'renovation': 'На реконструкции',
-};
-
 
 export interface Filters {
   search: string;

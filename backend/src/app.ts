@@ -1,22 +1,18 @@
 
 
 import 'dotenv/config';
-import path from 'path';
-import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
-const envPath = path.resolve(process.cwd(), '.env');
-console.log('[DEBUG] process.cwd():', process.cwd());
-console.log('[DEBUG] .env exists:', fs.existsSync(envPath));
-console.log('[DEBUG] envPath:', envPath);
-console.log('[DEBUG] SUPABASE_JWT_SECRET:', process.env.SUPABASE_JWT_SECRET)// import xss from 'xss-clean';
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Безопасная конфигурация CORS
 const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:5174,http://localhost:5173').split(',');
 
 const corsOptions: cors.CorsOptions = {
-  origin: (origin, callback) => {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Разрешаем запросы без origin, например, от мобильных приложений или curl
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -37,50 +33,59 @@ const app = express();
 // Apply CORS middleware
 app.use(cors(corsOptions));
 
+// Helmet для базовых заголовков безопасности
+app.use(helmet());
+
+// Ограничение скорости запросов для предотвращения брутфорс-атак
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 минут
+  max: 100, // Ограничение каждого IP до 100 запросов за 15 минут
+  message: 'Слишком много запросов с этого IP, пожалуйста, попробуйте снова через 15 минут',
+});
+app.use(limiter);
+
 
 app.use(express.json());
 
-// Добавляем middleware для защиты от XSS-атак
-// Этот пакет очищает пользовательский ввод в req.body, req.query и req.params
-// app.use(xss());
-
 // Enhanced request logger for debugging API endpoints
-app.use((req, res, next) => {
-  const requestId = Date.now().toString(36) + Math.random().toString(36).substring(2);
-  console.log(`[${requestId}] === REQUEST === ${req.method} ${req.path}`);
-  console.log(`[${requestId}] Headers: ${JSON.stringify(req.headers)}`);
-  
-  // Only log body for non-GET requests and if it exists
-  if (req.method !== 'GET' && req.body && Object.keys(req.body).length > 0) {
-    console.log(`[${requestId}] Body: ${JSON.stringify(req.body)}`);
-  }
-  
-  // Log query parameters if they exist
-  if (Object.keys(req.query).length > 0) {
-    console.log(`[${requestId}] Query params: ${JSON.stringify(req.query)}`);
-  }
+if (!isProduction) {
+  app.use((req, res, next) => {
+    const requestId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+    console.log(`[${requestId}] === REQUEST === ${req.method} ${req.path}`);
+    console.log(`[${requestId}] Headers: ${JSON.stringify(req.headers)}`);
 
-  // Add response logging
-  const originalSend = res.send;
-  res.send = function(body) {
-    console.log(`[${requestId}] === RESPONSE === Status: ${res.statusCode}`);
-    // Don't log large response bodies to avoid console clutter
-    if (body && typeof body === 'string' && body.length < 1000) {
-      try {
-        const parsedBody = JSON.parse(body);
-        console.log(`[${requestId}] Response body: ${JSON.stringify(parsedBody, null, 2)}`);
-      } catch (e) {
-        // If not JSON, don't log the body
-        console.log(`[${requestId}] Response sent (non-JSON or too large to display)`);
-      }
-    } else {
-      console.log(`[${requestId}] Response sent (too large to display)`);
+    // Only log body for non-GET requests and if it exists
+    if (req.method !== 'GET' && req.body && Object.keys(req.body).length > 0) {
+      console.log(`[${requestId}] Body: ${JSON.stringify(req.body)}`);
     }
-    return originalSend.call(this, body);
-  };
-  
-  next();
-});
+
+    // Log query parameters if they exist
+    if (Object.keys(req.query).length > 0) {
+      console.log(`[${requestId}] Query params: ${JSON.stringify(req.query)}`);
+    }
+
+    // Add response logging
+    const originalSend = res.send;
+    res.send = function(body) {
+      console.log(`[${requestId}] === RESPONSE === Status: ${res.statusCode}`);
+      // Don't log large response bodies to avoid console clutter
+      if (body && typeof body === 'string' && body.length < 1000) {
+        try {
+          const parsedBody = JSON.parse(body);
+          console.log(`[${requestId}] Response body: ${JSON.stringify(parsedBody, null, 2)}`);
+        } catch (e) {
+          // If not JSON, don't log the body
+          console.log(`[${requestId}] Response sent (non-JSON or too large to display)`);
+        }
+      } else {
+        console.log(`[${requestId}] Response sent (too large to display)`);
+      }
+      return originalSend.call(this, body);
+    };
+
+    next();
+  });
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -121,32 +126,37 @@ app.use('/api/ml', mlRoutes);
 
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Internal Server Error' });
+  console.error("--- ERROR ---", err); // Always log the full error
+
+  if (isProduction) {
+    // In production, send a generic message
+    res.status(500).json({ error: 'Internal Server Error' });
+  } else {
+    // In development, send detailed error
+    res.status(500).json({ error: 'Something went wrong!', details: err.message, stack: err.stack });
+  }
 });
 
-// Простой обработчик ошибок
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    console.error("--- ОШИБКА ---", err);
-    res.status(500).json({ error: 'Что-то пошло не так!', details: err.message });
-});
-
-// Запуск сервера
+// Start server
 const PORT = process.env.PORT || 3000;//Changed to 3001 to avoid conflicts
-const server = app.listen(PORT, () => {
-  console.log(`[SERVER START] 🚀 Сервер успешно запущен и слушает порт ${PORT}`);
-  console.log(`[SERVER START] Время запуска: ${new Date().toISOString()}`);
-});
+if (isProduction) {
+  // In a production environment, we expect the server to be run via a process manager (like PM2)
+  // that handles clustering and restarts.
+  app.listen(PORT, () => {
+    console.log(`[SERVER START] 🚀 Server successfully started and listening on port ${PORT}`);
+    console.log(`[SERVER START] Start time: ${new Date().toISOString()}`);
+  });
+} else {
+  // In a development environment, we can simply listen on the port.
+  app.listen(PORT, () => {
+    console.log(`[SERVER START] 🚀 Server successfully started and listening on port ${PORT}`);
+    console.log(`[SERVER START] Start time: ${new Date().toISOString()}`);
+  }).on('error', (error) => {
+    console.error('[SERVER ERROR] ❌ Failed to start server:', error);
+    process.exit(1);
+  });
+}
 
-server.on('error', (error) => {
-  console.error('[SERVER ERROR] ❌ Не удалось запустить сервер:', error);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('[FATAL] Unhandled Rejection at:', promise, 'reason:', reason);
-  // Application specific logging, throwing an error, or other logic here
-});
-
-console.log('[APP END] Скрипт app.ts завершил свое выполнение.');
+console.log('[APP END] app.ts script has finished execution.');
 
 export default app;

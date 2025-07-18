@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Clock, XCircle, Bell, Package, TrendingDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface InventoryAlert {
   id: string;
@@ -24,16 +26,17 @@ interface AlertsSummary {
 const InventoryAlertsWidget: React.FC = () => {
   const [alerts, setAlerts] = useState<AlertsSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   // Генерация моковых данных для демонстрации
-  const generateAlertsData = (): AlertsSummary => {
+  const generateAlertsData = (translate: (key: string) => string): AlertsSummary => {
     const recentAlerts: InventoryAlert[] = [
       {
         id: '1',
         type: 'critical',
-        title: 'Критический недостаток',
-        message: 'Товар отсутствует уже 2 дня',
-        productName: 'Молоко "Домик в деревне" 3.2%',
+        title: translate('inventoryAlerts.criticalShortageTitle'),
+        message: translate('inventoryAlerts.criticalShortageMessage'),
+        productName: translate('inventoryAlerts.criticalShortageProduct'),
         severity: 'high',
         timestamp: '2024-01-20T14:30:00Z',
         isRead: false,
@@ -42,9 +45,9 @@ const InventoryAlertsWidget: React.FC = () => {
       {
         id: '2',
         type: 'warning',
-        title: 'Низкий остаток',
-        message: 'Осталось менее 10% от нормы',
-        productName: 'Хлеб "Дарницкий"',
+        title: translate('inventoryAlerts.lowStockTitle'),
+        message: translate('inventoryAlerts.lowStockMessage'),
+        productName: translate('inventoryAlerts.lowStockProduct'),
         severity: 'medium',
         timestamp: '2024-01-20T13:15:00Z',
         isRead: false,
@@ -53,9 +56,9 @@ const InventoryAlertsWidget: React.FC = () => {
       {
         id: '3',
         type: 'critical',
-        title: 'Просроченный товар',
-        message: 'Обнаружен товар с истекшим сроком',
-        productName: 'Йогурт "Активия"',
+        title: translate('inventoryAlerts.expiredProductTitle'),
+        message: translate('inventoryAlerts.expiredProductMessage'),
+        productName: translate('inventoryAlerts.expiredProduct'),
         severity: 'high',
         timestamp: '2024-01-20T12:00:00Z',
         isRead: true,
@@ -64,9 +67,9 @@ const InventoryAlertsWidget: React.FC = () => {
       {
         id: '4',
         type: 'warning',
-        title: 'Медленные продажи',
-        message: 'Товар продается медленнее обычного',
-        productName: 'Сыр "Российский"',
+        title: translate('inventoryAlerts.slowSalesTitle'),
+        message: translate('inventoryAlerts.slowSalesMessage'),
+        productName: translate('inventoryAlerts.slowSalesProduct'),
         severity: 'low',
         timestamp: '2024-01-20T10:45:00Z',
         isRead: false,
@@ -75,9 +78,9 @@ const InventoryAlertsWidget: React.FC = () => {
       {
         id: '5',
         type: 'info',
-        title: 'Пополнение запланировано',
-        message: 'Поставка ожидается завтра',
-        productName: 'Масло сливочное',
+        title: translate('inventoryAlerts.plannedReplenishmentTitle'),
+        message: translate('inventoryAlerts.plannedReplenishmentMessage'),
+        productName: translate('inventoryAlerts.plannedReplenishmentProduct'),
         severity: 'low',
         timestamp: '2024-01-20T09:30:00Z',
         isRead: true,
@@ -98,12 +101,12 @@ const InventoryAlertsWidget: React.FC = () => {
     const loadData = async () => {
       setLoading(true);
       await new Promise(resolve => setTimeout(resolve, 600));
-      setAlerts(generateAlertsData());
+      setAlerts(generateAlertsData(t));
       setLoading(false);
     };
 
     loadData();
-  }, []);
+  }, [t]);
 
   const getAlertIcon = (type: InventoryAlert['type']) => {
     switch (type) {
@@ -139,9 +142,9 @@ const InventoryAlertsWidget: React.FC = () => {
     const diffHours = Math.floor(diffMins / 60);
     
     if (diffMins < 60) {
-      return `${diffMins} мин назад`;
+      return `${diffMins} ${t('inventoryAlerts.minutesAgo')}`;
     } else if (diffHours < 24) {
-      return `${diffHours} ч назад`;
+      return `${diffHours} ${t('inventoryAlerts.hoursAgo')}`;
     } else {
       return date.toLocaleDateString('ru-RU', { 
         month: 'short', 
@@ -163,7 +166,7 @@ const InventoryAlertsWidget: React.FC = () => {
       <div className="h-full flex items-center justify-center text-gray-500">
         <div className="text-center">
           <AlertTriangle className="w-8 h-8 mx-auto mb-2" />
-          <p className="text-sm">Не удалось загрузить уведомления</p>
+          <p className="text-sm">{t('inventoryAlerts.failedToLoad')}</p>
         </div>
       </div>
     );
@@ -175,7 +178,7 @@ const InventoryAlertsWidget: React.FC = () => {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center">
           <Bell className="w-5 h-5 mr-2 text-amber-600" />
-          Критические уведомления
+          {t('inventoryAlerts.criticalNotificationsTitle')}
         </h3>
         <div className="flex items-center space-x-2">
           {alerts.unreadAlerts > 0 && (
@@ -191,7 +194,7 @@ const InventoryAlertsWidget: React.FC = () => {
         <div className="bg-red-50 rounded-lg p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-red-600">Критические</p>
+              <p className="text-xs text-red-600">{t('inventoryAlerts.critical')}</p>
               <p className="text-lg font-bold text-red-700">{alerts.criticalAlerts}</p>
             </div>
             <XCircle className="w-5 h-5 text-red-600" />
@@ -201,7 +204,7 @@ const InventoryAlertsWidget: React.FC = () => {
         <div className="bg-yellow-50 rounded-lg p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-yellow-600">Предупреждения</p>
+              <p className="text-xs text-yellow-600">{t('inventoryAlerts.warnings')}</p>
               <p className="text-lg font-bold text-yellow-700">{alerts.warningAlerts}</p>
             </div>
             <AlertTriangle className="w-5 h-5 text-yellow-600" />
@@ -211,7 +214,7 @@ const InventoryAlertsWidget: React.FC = () => {
         <div className="bg-blue-50 rounded-lg p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-blue-600">Всего</p>
+              <p className="text-xs text-blue-600">{t('inventoryAlerts.total')}</p>
               <p className="text-lg font-bold text-blue-700">{alerts.totalAlerts}</p>
             </div>
             <Bell className="w-5 h-5 text-blue-600" />
@@ -221,7 +224,7 @@ const InventoryAlertsWidget: React.FC = () => {
         <div className="bg-gray-50 rounded-lg p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-600">Непрочитанные</p>
+              <p className="text-xs text-gray-600">{t('inventoryAlerts.unread')}</p>
               <p className="text-lg font-bold text-gray-700">{alerts.unreadAlerts}</p>
             </div>
             <TrendingDown className="w-5 h-5 text-gray-600" />
@@ -232,7 +235,7 @@ const InventoryAlertsWidget: React.FC = () => {
       {/* Последние уведомления */}
       <div>
         <h4 className="text-sm font-medium text-gray-700 mb-2">
-          Последние уведомления:
+          {t('inventoryAlerts.recentNotifications')}
         </h4>
         <div className="space-y-2 max-h-48 overflow-y-auto">
           {alerts.recentAlerts.slice(0, 4).map((alert) => (
@@ -249,23 +252,25 @@ const InventoryAlertsWidget: React.FC = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h5 className="text-sm font-medium text-gray-900 truncate">
-                        {alert.title}
-                      </h5>
+                      <p className="text-sm font-medium text-gray-800 truncate">{alert.title}</p>
                       {!alert.isRead && (
                         <div className="w-2 h-2 bg-blue-600 rounded-full ml-2"></div>
                       )}
                     </div>
-                    <p className="text-xs text-gray-600 mb-1">{alert.productName}</p>
-                    <p className="text-xs text-gray-500">{alert.message}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs text-gray-400">
-                        <Clock className="w-3 h-3 inline mr-1" />
-                        {formatTime(alert.timestamp)}
-                      </span>
+                    <p className="text-sm text-gray-600">{alert.message}</p>
+                    <div className="flex items-center mt-1">
+                      <Package className="w-3.5 h-3.5 mr-1.5 text-gray-500" />
+                      <p className="text-xs text-gray-500 truncate">{alert.productName}</p>
+                    </div>
+                    <div className="mt-1.5 flex items-center">
+                      {!alert.isRead && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded mr-2">
+                          {t('inventoryAlerts.new')}
+                        </span>
+                      )}
                       {alert.actionRequired && (
                         <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
-                          Требует действий
+                          {t('inventoryAlerts.actionRequired')}
                         </span>
                       )}
                     </div>

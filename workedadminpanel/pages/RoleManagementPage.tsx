@@ -4,95 +4,92 @@ import { Role, Permission } from '../types';
 import RoleFormModal from '../components/RoleFormModal';
 import RolePermissionsModal from '../components/RolePermissionsModal';
 
-const RoleManagementPage: React.FC = () => {
+function RoleManagementPage() {
   const { roles, permissions, deleteRole, getRolePermissions } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Модальные окна
-  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  // Modal windows
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
-  const [currentRole, setCurrentRole] = useState<Role | null>(null);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
-  // Фильтрация ролей
+  // Filter roles
   const filteredRoles = roles.filter(role =>
     role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (role.description && role.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // Обработчики
+  // Handlers
   const handleAddRole = () => {
-    setCurrentRole(null);
-    setIsRoleModalOpen(true);
+    setSelectedRole(null);
+    setIsFormModalOpen(true);
   };
 
   const handleEditRole = (role: Role) => {
-    setCurrentRole(role);
-    setIsRoleModalOpen(true);
+    setSelectedRole(role);
+    setIsFormModalOpen(true);
   };
 
-  const handleManagePermissions = (role: Role) => {
-    setCurrentRole(role);
+  const handleEditPermissions = (role: Role) => {
+    setSelectedRole(role);
     setIsPermissionsModalOpen(true);
   };
 
   const handleDeleteRole = (roleId: string) => {
-    if (window.confirm('Вы уверены, что хотите удалить эту роль? Все пользователи с этой ролью будут переназначены на роль по умолчанию.')) {
+    if (window.confirm('Are you sure you want to delete this role? All users with this role will be reassigned to the default role.')) {
       deleteRole(roleId);
     }
   };
 
   const handleCloseRoleModal = () => {
-    setIsRoleModalOpen(false);
-    setCurrentRole(null);
+    setIsFormModalOpen(false);
+    setSelectedRole(null);
   };
 
   const handleClosePermissionsModal = () => {
     setIsPermissionsModalOpen(false);
-    setCurrentRole(null);
+    setSelectedRole(null);
   };
 
-  // Получение количества разрешений для роли
-  const getPermissionCount = (roleId: string): number => {
-    const rolePermissions = getRolePermissions(roleId);
-    return rolePermissions.length;
+  // Get the number of permissions for a role
+  const getPermissionsCount = (roleId: string) => {
+    return getRolePermissions(roleId).length;
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Роли и разрешения</h1>
+        <h1 className="text-2xl font-bold">Roles and Permissions</h1>
         <button
           onClick={handleAddRole}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
-          Добавить роль
+          Add Role
         </button>
       </div>
 
-      {/* Поиск */}
-      <div className="bg-white p-4 rounded shadow mb-6">
-        <div className="max-w-md">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Поиск</label>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Название или описание роли"
-            className="w-full p-2 border rounded"
-          />
-        </div>
+      {/* Search */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Role name or description"
+          className="w-full p-2 border rounded"
+        />
       </div>
 
-      {/* Таблица ролей */}
+      {/* Roles table */}
       <div className="bg-white rounded shadow overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Название</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Описание</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Разрешения</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата создания</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Permissions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -103,11 +100,11 @@ const RoleManagementPage: React.FC = () => {
                     {role.name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {role.description || 'Нет описания'}
+                    {role.description || 'No description'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {getPermissionCount(role.id)}
+                      {getPermissionsCount(role.id)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -115,23 +112,23 @@ const RoleManagementPage: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
-                      onClick={() => handleManagePermissions(role)}
+                      onClick={() => handleEditPermissions(role)}
                       className="text-blue-600 hover:text-blue-900 mr-4"
                     >
-                      Разрешения
+                      Permissions
                     </button>
                     <button
                       onClick={() => handleEditRole(role)}
                       className="text-indigo-600 hover:text-indigo-900 mr-4"
                     >
-                      Редактировать
+                      Edit
                     </button>
                     <button
                       onClick={() => handleDeleteRole(role.id)}
                       className="text-red-600 hover:text-red-900"
                       disabled={role.name.toLowerCase() === 'superadmin'}
                     >
-                      Удалить
+                      Delete
                     </button>
                   </td>
                 </tr>
@@ -139,7 +136,7 @@ const RoleManagementPage: React.FC = () => {
             ) : (
               <tr>
                 <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                  Роли не найдены
+                  No roles found
                 </td>
               </tr>
             )}
@@ -147,18 +144,18 @@ const RoleManagementPage: React.FC = () => {
         </table>
       </div>
 
-      {/* Модальное окно для добавления/редактирования роли */}
-      {isRoleModalOpen && (
+      {/* Modal for adding/editing roles */}
+      {isFormModalOpen && (
         <RoleFormModal
-          role={currentRole}
+          role={selectedRole}
           onClose={handleCloseRoleModal}
         />
       )}
 
-      {/* Модальное окно для управления разрешениями */}
-      {isPermissionsModalOpen && currentRole && (
+      {/* Modal for managing permissions */}
+      {isPermissionsModalOpen && selectedRole && (
         <RolePermissionsModal
-          role={currentRole}
+          role={selectedRole}
           onClose={handleClosePermissionsModal}
         />
       )}

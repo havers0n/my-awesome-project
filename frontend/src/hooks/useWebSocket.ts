@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ProcessingStatus } from '../types/forecast';
+
+interface UseWebSocketOptions {
+  enabled?: boolean;
+}
 
 interface UseWebSocketReturn {
   status: ProcessingStatus;
@@ -8,10 +13,12 @@ interface UseWebSocketReturn {
   reconnect: () => void;
 }
 
-export const useWebSocket = (url: string): UseWebSocketReturn => {
+export const useWebSocket = (url: string, options: UseWebSocketOptions = {}): UseWebSocketReturn => {
+  const { enabled = true } = options;
+  const { t } = useTranslation();
   const [status, setStatus] = useState<ProcessingStatus>({
     stage: 'idle',
-    message: 'Ожидание...',
+    message: t('websocket.status.idle'),
     progress: 0,
     timestamp: Date.now()
   });
@@ -23,12 +30,16 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
   const maxReconnectAttempts = 5;
 
   const connect = useCallback(() => {
+    if (!enabled || !url) {
+      console.log('WebSocket connection disabled or URL not provided.');
+      return;
+    }
+
     try {
-      // Создаем WebSocket соединение
       wsRef.current = new WebSocket(url);
 
       wsRef.current.onopen = () => {
-        console.log('WebSocket соединение установлено');
+        console.log('WebSocket connection established');
         setIsConnected(true);
         setError(null);
         reconnectAttempts.current = 0;
@@ -42,37 +53,36 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
             timestamp: Date.now()
           });
         } catch (parseError) {
-          console.error('Ошибка парсинга WebSocket сообщения:', parseError);
+          console.error('Error parsing WebSocket message:', parseError);
         }
       };
 
       wsRef.current.onclose = (event) => {
-        console.log('WebSocket соединение закрыто', event.code, event.reason);
+        console.log('WebSocket connection closed', event.code, event.reason);
         setIsConnected(false);
         
-        // Попытка переподключения, если соединение было закрыто неожиданно
-        if (event.code !== 1000 && reconnectAttempts.current < maxReconnectAttempts) {
+        if (enabled && event.code !== 1000 && reconnectAttempts.current < maxReconnectAttempts) {
           reconnectAttempts.current++;
           const timeout = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
           
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log(`Попытка переподключения ${reconnectAttempts.current}/${maxReconnectAttempts}`);
+            console.log(`Attempting to reconnect ${reconnectAttempts.current}/${maxReconnectAttempts}`);
             connect();
           }, timeout);
         }
       };
 
       wsRef.current.onerror = (error) => {
-        console.error('WebSocket ошибка:', error);
-        setError('Ошибка соединения с сервером');
+        console.error('WebSocket error:', error);
+        setError(t('websocket.error.connectionFailed'));
         setIsConnected(false);
       };
 
     } catch (connectionError) {
-      console.error('Ошибка создания WebSocket соединения:', connectionError);
-      setError('Не удалось установить соединение');
+      console.error('Error creating WebSocket connection:', connectionError);
+      setError(t('websocket.error.setupFailed'));
     }
-  }, [url]);
+  }, [url, enabled, t]);
 
   const reconnect = useCallback(() => {
     if (wsRef.current) {
@@ -86,19 +96,19 @@ export const useWebSocket = (url: string): UseWebSocketReturn => {
   }, [connect]);
 
   useEffect(() => {
-    // Подключаемся при монтировании компонента
-    connect();
+    if (enabled) {
+      connect();
+    }
 
-    // Cleanup при размонтировании
     return () => {
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
       if (wsRef.current) {
-        wsRef.current.close(1000, 'Компонент размонтирован');
+        wsRef.current.close(1000, 'Component unmounted');
       }
     };
-  }, [connect]);
+  }, [connect, enabled]);
 
   return {
     status,

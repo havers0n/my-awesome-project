@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { 
   Home, 
   BarChart3, 
@@ -36,6 +36,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useTranslation, Trans } from 'react-i18next';
 
 interface MenuItem {
   id: string;
@@ -80,6 +81,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
     transition,
     opacity: isDragging ? 0.5 : item.isVisible === false ? 0.6 : 1,
   };
+  const { t } = useTranslation();
 
   // Don't render hidden items when not in edit mode
   if (!isEditing && item.isVisible === false) {
@@ -114,7 +116,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
                 p-1 rounded hover:bg-gray-200 transition-colors
                 ${item.isVisible === false ? 'text-gray-400' : 'text-gray-600'}
               `}
-              title={item.isVisible === false ? 'Показать элемент' : 'Скрыть элемент'}
+              title={item.isVisible === false ? t('sidebar.controls.show_item') : t('sidebar.controls.hide_item')}
             >
               {item.isVisible === false ? <EyeOff size={14} /> : <Eye size={14} />}
             </button>
@@ -131,7 +133,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
               <span className={`ml-3 font-medium text-sm flex-1 min-w-0 ${item.isVisible === false ? 'opacity-50 line-through' : ''}`}>
                 {item.title}
                 {item.isVisible === false && (
-                  <span className="ml-2 text-xs text-gray-400">(скрыт)</span>
+                  <span className="ml-2 text-xs text-gray-400">({t('sidebar.hidden_label')})</span>
                 )}
               </span>
               
@@ -175,233 +177,181 @@ const AdaptiveNewSidebar: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [hiddenItems, setHiddenItems] = useState<Set<string>>(new Set());
+  const { t, ready } = useTranslation();
 
-  // Default menu items - restored from original sidebar
-  const defaultMenuItems: MenuItem[] = [
-    {
-      id: 'dashboard',
-      title: 'Dashboard',
-      icon: <Home size={20} />,
-      color: 'text-blue-600',
-      subItems: [
-        { id: 'overview', title: 'Общий обзор', icon: <BarChart3 size={16} />, path: '/dashboard', color: 'text-blue-400' },
-        { id: 'widgets', title: 'Настройка виджетов', icon: <Package size={16} />, path: '/dashboard/widgets', color: 'text-blue-400' }
-      ]
-    },
-    {
-      id: 'sales-forecast',
-      title: 'Прогнозирование продаж',
-      icon: <BarChart3 size={20} />,
-      color: 'text-purple-600',
-      subItems: [
-        { id: 'current-forecast', title: 'Текущий прогноз', icon: <BarChart3 size={16} />, path: '/sales-forecast', color: 'text-purple-400' },
-        { id: 'new-forecast', title: 'Новый прогноз', icon: <BarChart3 size={16} />, path: '/sales-forecast-new', color: 'text-purple-400' }
-      ]
-    },
-    {
-      id: 'api-test',
-      title: 'Тест API прогноза',
-      icon: <Settings size={20} />,
-      color: 'text-green-600',
-      path: '/test-forecast-api'
-    },
-    {
-      id: 'inventory-management',
-      title: 'Управление запасами',
-      icon: <Package size={20} />,
-      color: 'text-orange-600',
-      path: '/inventory/management'
-    },
-    {
-      id: 'shelf-availability',
-      title: 'Доступность товаров на полке',
-      icon: <Package size={20} />,
-      color: 'text-orange-600',
-      path: '/inventory/shelf-availability'
-    },
-    {
-      id: 'warehouse-analytics',
-      title: 'Аналитика склада',
-      icon: <BarChart3 size={20} />,
-      color: 'text-indigo-600',
-      path: '/analytics/warehouse'
-    },
-    {
-      id: 'monitoring',
-      title: 'Мониторинг системы',
-      icon: <Settings size={20} />,
-      color: 'text-red-600',
-      subItems: [
-        { id: 'system-events', title: 'Системные события', icon: <Settings size={16} />, path: '/monitoring/events', color: 'text-red-400' },
-        { id: 'performance', title: 'Производительность', icon: <BarChart3 size={16} />, path: '/monitoring/performance', color: 'text-red-400' },
-        { id: 'notifications', title: 'Уведомления', icon: <Settings size={16} />, path: '/monitoring/notifications', color: 'text-red-400' },
-        { id: 'system-logs', title: 'Логи системы', icon: <Settings size={16} />, path: '/monitoring/logs', color: 'text-red-400' }
-      ]
-    },
-    {
-      id: 'planning',
-      title: 'Планирование',
-      icon: <Settings size={20} />,
-      color: 'text-blue-600',
-      subItems: [
-        { id: 'tasks', title: 'Задачи и проекты', icon: <Settings size={16} />, path: '/planning/tasks', color: 'text-blue-400' },
-        { id: 'calendar', title: 'Календарь событий', icon: <Settings size={16} />, path: '/planning/calendar', color: 'text-blue-400' },
-        { id: 'procurement', title: 'Планы закупок', icon: <ShoppingCart size={16} />, path: '/planning/procurement', color: 'text-blue-400' },
-        { id: 'budget', title: 'Бюджетирование', icon: <Settings size={16} />, path: '/planning/budget', color: 'text-blue-400' }
-      ]
-    },
-    {
-      id: 'quality-control',
-      title: 'Контроль качества',
-      icon: <Settings size={20} />,
-      color: 'text-green-600',
-      subItems: [
-        { id: 'inspections', title: 'Проверки качества', icon: <Settings size={16} />, path: '/quality/inspections', color: 'text-green-400' },
-        { id: 'certificates', title: 'Сертификаты', icon: <Settings size={16} />, path: '/quality/certificates', color: 'text-green-400' },
-        { id: 'complaints', title: 'Жалобы и возвраты', icon: <Settings size={16} />, path: '/quality/complaints', color: 'text-green-400' },
-        { id: 'standards', title: 'Стандарты качества', icon: <Settings size={16} />, path: '/quality/standards', color: 'text-green-400' }
-      ]
-    },
-    {
-      id: 'finance',
-      title: 'Финансы',
-      icon: <Settings size={20} />,
-      color: 'text-emerald-600',
-      subItems: [
-        { id: 'budget-planning', title: 'Бюджет и планирование', icon: <Settings size={16} />, path: '/finance/budget', color: 'text-emerald-400' },
-        { id: 'expenses', title: 'Расходы и доходы', icon: <BarChart3 size={16} />, path: '/finance/expenses', color: 'text-emerald-400' },
-        { id: 'payments', title: 'Платежи', icon: <ShoppingCart size={16} />, path: '/finance/payments', color: 'text-emerald-400' },
-        { id: 'financial-reports', title: 'Финансовые отчеты', icon: <BarChart3 size={16} />, path: '/finance/reports', color: 'text-emerald-400' }
-      ]
-    },
-    {
-      id: 'reports',
-      title: 'Отчеты',
-      icon: <BarChart3 size={20} />,
-      color: 'text-indigo-600',
-      subItems: [
-        { id: 'sales-reports', title: 'По продажам', icon: <ShoppingCart size={16} />, path: '/reports/sales', color: 'text-indigo-400' },
-        { id: 'warehouse-reports', title: 'История операций', icon: <Package size={16} />, path: '/reports/warehouse', color: 'text-indigo-400' },
-        { id: 'product-reports', title: 'По товарам', icon: <Package size={16} />, path: '/reports/products', color: 'text-indigo-400' },
-        { id: 'location-reports', title: 'По локациям', icon: <Settings size={16} />, path: '/reports/locations', color: 'text-indigo-400' }
-      ]
-    },
-    {
-      id: 'products',
-      title: 'Товары',
-      icon: <ShoppingCart size={20} />,
-      color: 'text-pink-600',
-      subItems: [
-        { id: 'product-management', title: 'Управление товарами', icon: <ShoppingCart size={16} />, path: '/products', color: 'text-pink-400' },
-        { id: 'categories', title: 'Категории', icon: <Settings size={16} />, path: '/product-categories', color: 'text-pink-400' },
-        { id: 'groups', title: 'Группы', icon: <Settings size={16} />, path: '/product-groups', color: 'text-pink-400' },
-        { id: 'kinds', title: 'Виды', icon: <Settings size={16} />, path: '/product-kinds', color: 'text-pink-400' },
-        { id: 'manufacturers', title: 'Производители', icon: <Settings size={16} />, path: '/manufacturers', color: 'text-pink-400' }
-      ]
-    },
-    {
-      id: 'organizations',
-      title: 'Организации / Точки',
-      icon: <Users size={20} />,
-      color: 'text-cyan-600',
-      subItems: [
-        { id: 'organization-management', title: 'Управление организациями', icon: <Users size={16} />, path: '/organizations', color: 'text-cyan-400' },
-        { id: 'location-management', title: 'Управление точками', icon: <Settings size={16} />, path: '/locations', color: 'text-cyan-400' },
-        { id: 'suppliers', title: 'Поставщики', icon: <Users size={16} />, path: '/suppliers', color: 'text-cyan-400' }
-      ]
-    },
-    {
-      id: 'admin-panel',
-      title: 'Административная панель',
-      icon: <Settings size={20} />,
-      color: 'text-red-600',
-      subItems: [
-        { id: 'user-management', title: 'Управление пользователями', icon: <Users size={16} />, path: '/admin/users', color: 'text-red-400' },
-        { id: 'admin-organizations', title: 'Управление организациями', icon: <Users size={16} />, path: '/admin/organizations', color: 'text-red-400' },
-        { id: 'role-management', title: 'Управление ролями', icon: <Settings size={16} />, path: '/admin/roles', color: 'text-red-400' },
-        { id: 'admin-suppliers', title: 'Управление поставщиками', icon: <Users size={16} />, path: '/admin/suppliers', color: 'text-red-400' }
-      ]
-    },
-    {
-      id: 'security',
-      title: 'Безопасность',
-      icon: <Settings size={20} />,
-      color: 'text-red-600',
-      subItems: [
-        { id: 'security-audit', title: 'Аудит безопасности', icon: <Settings size={16} />, path: '/security/audit', color: 'text-red-400' },
-        { id: 'access-management', title: 'Управление доступом', icon: <Settings size={16} />, path: '/security/access', color: 'text-red-400' },
-        { id: 'security-events', title: 'Журнал событий', icon: <Settings size={16} />, path: '/security/events', color: 'text-red-400' },
-        { id: 'backup', title: 'Резервное копирование', icon: <Settings size={16} />, path: '/security/backup', color: 'text-red-400' }
-      ]
-    },
-    {
-      id: 'automation',
-      title: 'Автоматизация',
-      icon: <Settings size={20} />,
-      color: 'text-yellow-600',
-      subItems: [
-        { id: 'workflows', title: 'Рабочие процессы', icon: <Settings size={16} />, path: '/automation/workflows', color: 'text-yellow-400' },
-        { id: 'scheduler', title: 'Планировщик задач', icon: <Settings size={16} />, path: '/automation/scheduler', color: 'text-yellow-400' },
-        { id: 'auto-notifications', title: 'Автоматические уведомления', icon: <Settings size={16} />, path: '/automation/notifications', color: 'text-yellow-400' },
-        { id: 'scripts', title: 'Скрипты и макросы', icon: <Settings size={16} />, path: '/automation/scripts', color: 'text-yellow-400' }
-      ]
-    },
-    {
-      id: 'communication',
-      title: 'Коммуникации',
-      icon: <Settings size={20} />,
-      color: 'text-blue-600',
-      subItems: [
-        { id: 'internal-messages', title: 'Внутренние сообщения', icon: <Settings size={16} />, path: '/communication/messages', color: 'text-blue-400' },
-        { id: 'team-notifications', title: 'Уведомления команды', icon: <Settings size={16} />, path: '/communication/team-notifications', color: 'text-blue-400' },
-        { id: 'announcements', title: 'Объявления', icon: <Settings size={16} />, path: '/communication/announcements', color: 'text-blue-400' },
-        { id: 'support-chat', title: 'Чат поддержки', icon: <Settings size={16} />, path: '/communication/support-chat', color: 'text-blue-400' }
-      ]
-    },
-    {
-      id: 'integrations',
-      title: 'Интеграции',
-      icon: <Settings size={20} />,
-      color: 'text-emerald-600',
-      subItems: [
-        { id: 'api-connections', title: 'API подключения', icon: <Settings size={16} />, path: '/integrations/api', color: 'text-emerald-400' },
-        { id: 'import-export', title: 'Импорт/экспорт данных', icon: <Settings size={16} />, path: '/integrations/import-export', color: 'text-emerald-400' },
-        { id: 'external-services', title: 'Внешние сервисы', icon: <Settings size={16} />, path: '/integrations/external', color: 'text-emerald-400' },
-        { id: 'webhooks', title: 'Webhook настройки', icon: <Settings size={16} />, path: '/integrations/webhooks', color: 'text-emerald-400' }
-      ]
-    },
-    {
-      id: 'settings',
-      title: 'Настройки',
-      icon: <Settings size={20} />,
-      color: 'text-gray-600',
-      subItems: [
-        { id: 'organization-settings', title: 'Настройки организации', icon: <Settings size={16} />, path: '/settings/organization', color: 'text-gray-400' },
-        { id: 'system-settings', title: 'Настройки системы', icon: <Settings size={16} />, path: '/settings/system', color: 'text-gray-400' },
-        { id: 'general-settings', title: 'Общие настройки', icon: <Settings size={16} />, path: '/settings/general', color: 'text-gray-400' },
-        { id: 'profile-settings', title: 'Профиль пользователя', icon: <Users size={16} />, path: '/settings/profile', color: 'text-gray-400' },
-        { id: 'notification-settings', title: 'Уведомления', icon: <Settings size={16} />, path: '/settings/notifications', color: 'text-gray-400' },
-        { id: 'security-settings', title: 'Безопасность', icon: <Settings size={16} />, path: '/settings/security', color: 'text-gray-400' }
-      ]
-    },
-    {
-      id: 'help',
-      title: 'Помощь',
-      icon: <HelpCircle size={20} />,
-      color: 'text-amber-600',
-      subItems: [
-        { id: 'documentation', title: 'Документация', icon: <HelpCircle size={16} />, path: '/help/documentation', color: 'text-amber-400' },
-        { id: 'support', title: 'Поддержка', icon: <HelpCircle size={16} />, path: '/help/support', color: 'text-amber-400' },
-        { id: 'training', title: 'Обучающие материалы', icon: <HelpCircle size={16} />, path: '/help/training', color: 'text-amber-400' },
-        { id: 'faq', title: 'FAQ', icon: <HelpCircle size={16} />, path: '/help/faq', color: 'text-amber-400' }
-      ]
+  // Default menu items - мемоизируем с зависимостью от t и ready
+  const defaultMenuItems = useMemo((): MenuItem[] => {
+    if (!ready) {
+      return []; // Возвращаем пустой массив пока переводы не загружены
     }
-  ];
 
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(defaultMenuItems);
+    return [
+      {
+        id: 'dashboard',
+        title: t('sidebar.nav.dashboard.title'),
+        icon: <Home size={20} />,
+        color: 'text-blue-600',
+        subItems: [
+          { id: 'overview', title: t('sidebar.nav.dashboard.overview'), icon: <BarChart3 size={16} />, path: '/dashboard', color: 'text-blue-400' },
+          { id: 'widgets', title: t('sidebar.nav.dashboard.widgets'), icon: <Package size={16} />, path: '/dashboard/widgets', color: 'text-blue-400' }
+        ]
+      },
+      {
+        id: 'sales-forecast',
+        title: t('sidebar.nav.salesForecast.title'),
+        icon: <BarChart3 size={20} />,
+        color: 'text-purple-600',
+        subItems: [
+          { id: 'current-forecast', title: t('sidebar.nav.salesForecast.current'), icon: <BarChart3 size={16} />, path: '/sales-forecast', color: 'text-purple-400' },
+          { id: 'new-forecast', title: t('sidebar.nav.salesForecast.new'), icon: <BarChart3 size={16} />, path: '/sales-forecast-new', color: 'text-purple-400' }
+        ]
+      },
+      {
+        id: 'api-test',
+        title: t('sidebar.nav.testApi.title'),
+        icon: <Settings size={20} />,
+        color: 'text-green-600',
+        path: '/test-forecast-api'
+      },
+      {
+        id: 'inventory-management',
+        title: t('sidebar.nav.inventory.title'),
+        icon: <Package size={20} />,
+        color: 'text-orange-600',
+        path: '/inventory/management'
+      },
+      {
+        id: 'shelf-availability',
+        title: t('sidebar.nav.shelfAvailability.title'),
+        icon: <Package size={20} />,
+        color: 'text-orange-600',
+        path: '/inventory/shelf-availability'
+      },
+      {
+        id: 'warehouse-analytics',
+        title: t('sidebar.nav.warehouseAnalytics.title'),
+        icon: <BarChart3 size={20} />,
+        color: 'text-indigo-600',
+        path: '/analytics/warehouse'
+      },
+      {
+        id: 'monitoring',
+        title: t('sidebar.nav.monitoring.title'),
+        icon: <Settings size={20} />,
+        color: 'text-red-600',
+        subItems: [
+          { id: 'system-events', title: t('sidebar.nav.monitoring.events'), icon: <Settings size={16} />, path: '/monitoring/events', color: 'text-red-400' },
+          { id: 'performance', title: t('sidebar.nav.monitoring.performance'), icon: <BarChart3 size={16} />, path: '/monitoring/performance', color: 'text-red-400' },
+          { id: 'notifications', title: t('sidebar.nav.monitoring.notifications'), icon: <Settings size={16} />, path: '/monitoring/notifications', color: 'text-red-400' },
+          { id: 'system-logs', title: t('sidebar.nav.monitoring.logs'), icon: <Settings size={16} />, path: '/monitoring/logs', color: 'text-red-400' }
+        ]
+      },
+      {
+        id: 'planning',
+        title: t('sidebar.nav.planning.title'),
+        icon: <Settings size={20} />,
+        color: 'text-blue-600',
+        subItems: [
+          { id: 'tasks', title: t('sidebar.nav.planning.tasks'), icon: <Settings size={16} />, path: '/planning/tasks', color: 'text-blue-400' },
+          { id: 'calendar', title: t('sidebar.nav.planning.calendar'), icon: <Settings size={16} />, path: '/planning/calendar', color: 'text-blue-400' },
+          { id: 'procurement', title: t('sidebar.nav.planning.procurement'), icon: <ShoppingCart size={16} />, path: '/planning/procurement', color: 'text-blue-400' },
+          { id: 'budget', title: t('sidebar.nav.planning.budgeting'), icon: <Settings size={16} />, path: '/planning/budget', color: 'text-blue-400' }
+        ]
+      },
+      {
+        id: 'quality-control',
+        title: t('sidebar.nav.qualityControl.title'),
+        icon: <Cake size={20} />,
+        color: 'text-pink-600',
+        subItems: [
+          { id: 'inspections', title: t('sidebar.nav.qualityControl.inspections'), icon: <Cake size={16} />, path: '/quality/inspections', color: 'text-pink-400' },
+          { id: 'certificates', title: t('sidebar.nav.qualityControl.certificates'), icon: <Cake size={16} />, path: '/quality/certificates', color: 'text-pink-400' },
+          { id: 'complaints', title: t('sidebar.nav.qualityControl.complaints'), icon: <Cake size={16} />, path: '/quality/complaints', color: 'text-pink-400' },
+          { id: 'standards', title: t('sidebar.nav.qualityControl.standards'), icon: <Cake size={16} />, path: '/quality/standards', color: 'text-pink-400' }
+        ]
+      },
+      {
+        id: 'finance',
+        title: t('sidebar.nav.finance.title'),
+        icon: <Users size={20} />,
+        color: 'text-cyan-600',
+        subItems: [
+          { id: 'budget-planning', title: t('sidebar.nav.finance.budget'), icon: <Users size={16} />, path: '/finance/budget', color: 'text-cyan-400' },
+          { id: 'expenses-income', title: t('sidebar.nav.finance.expenses'), icon: <Users size={16} />, path: '/finance/expenses', color: 'text-cyan-400' },
+          { id: 'payments', title: t('sidebar.nav.finance.payments'), icon: <Users size={16} />, path: '/finance/payments', color: 'text-cyan-400' },
+          { id: 'financial-reports', title: t('sidebar.nav.finance.reports'), icon: <BarChart3 size={16} />, path: '/finance/reports', color: 'text-cyan-400' }
+        ]
+      },
+      {
+        id: 'reports',
+        title: t('sidebar.nav.reports.title'),
+        icon: <BarChart3 size={20} />,
+        color: 'text-teal-600',
+        subItems: [
+          { id: 'sales-reports', title: t('sidebar.nav.reports.sales'), icon: <BarChart3 size={16} />, path: '/reports/sales', color: 'text-teal-400' },
+          { id: 'warehouse-reports', title: t('sidebar.nav.reports.warehouse'), icon: <Package size={16} />, path: '/reports/warehouse', color: 'text-teal-400' },
+          { id: 'product-reports', title: t('sidebar.nav.reports.products'), icon: <ShoppingCart size={16} />, path: '/reports/products', color: 'text-teal-400' },
+          { id: 'location-reports', title: t('sidebar.nav.reports.locations'), icon: <Users size={16} />, path: '/reports/locations', color: 'text-teal-400' }
+        ]
+      },
+      {
+        id: 'products',
+        title: t('sidebar.nav.products.title'),
+        icon: <ShoppingCart size={20} />,
+        color: 'text-lime-600',
+        subItems: [
+          { id: 'manage-products', title: t('sidebar.nav.products.manage'), icon: <ShoppingCart size={16} />, path: '/products/management', color: 'text-lime-400' },
+          { id: 'categories', title: t('sidebar.nav.products.categories'), icon: <ShoppingCart size={16} />, path: '/products/categories', color: 'text-lime-400' },
+          { id: 'groups', title: t('sidebar.nav.products.groups'), icon: <ShoppingCart size={16} />, path: '/products/groups', color: 'text-lime-400' },
+          { id: 'kinds', title: t('sidebar.nav.products.kinds'), icon: <ShoppingCart size={16} />, path: '/products/kinds', color: 'text-lime-400' },
+          { id: 'manufacturers', title: t('sidebar.nav.products.manufacturers'), icon: <ShoppingCart size={16} />, path: '/products/manufacturers', color: 'text-lime-400' }
+        ]
+      },
+      {
+        id: 'organizations',
+        title: t('sidebar.nav.organizations.title'),
+        icon: <Users size={20} />,
+        color: 'text-emerald-600',
+        subItems: [
+          { id: 'manage-orgs', title: t('sidebar.nav.organizations.manageOrgs'), icon: <Users size={16} />, path: '/organizations/management', color: 'text-emerald-400' },
+          { id: 'manage-locs', title: t('sidebar.nav.organizations.manageLocs'), icon: <Users size={16} />, path: '/locations/management', color: 'text-emerald-400' },
+          { id: 'suppliers', title: t('sidebar.nav.organizations.suppliers'), icon: <Users size={16} />, path: '/suppliers/management', color: 'text-emerald-400' }
+        ]
+      },
+      {
+        id: 'admin',
+        title: t('sidebar.nav.admin.title'),
+        icon: <Settings size={20} />,
+        color: 'text-gray-600',
+        subItems: [
+          { id: 'admin-users', title: t('sidebar.nav.admin.users'), icon: <Users size={16} />, path: '/admin/users', color: 'text-gray-400' },
+          { id: 'admin-orgs', title: t('sidebar.nav.admin.orgs'), icon: <Users size={16} />, path: '/admin/organizations', color: 'text-gray-400' },
+          { id: 'admin-roles', title: t('sidebar.nav.admin.roles'), icon: <Users size={16} />, path: '/admin/roles', color: 'text-gray-400' },
+          { id: 'admin-suppliers', title: t('sidebar.nav.admin.suppliers'), icon: <Users size={16} />, path: '/admin/suppliers', color: 'text-gray-400' }
+        ]
+      },
+      {
+        id: 'settings',
+        title: t('sidebar.nav.settings.title'),
+        icon: <Settings size={20} />,
+        color: 'text-gray-600',
+        subItems: [
+          { id: 'org-settings', title: t('sidebar.nav.settings.organization'), icon: <Settings size={16} />, path: '/settings/organization', color: 'text-gray-400' },
+          { id: 'system-settings', title: t('sidebar.nav.settings.system'), icon: <Settings size={16} />, path: '/settings/system', color: 'text-gray-400' }
+        ]
+      }
+    ];
+  }, [t, ready]);
+
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   // Load saved order and hidden items from server
   useEffect(() => {
+    // Не загружаем настройки пока переводы не готовы
+    if (!ready || defaultMenuItems.length === 0) {
+      return;
+    }
+
     const loadUserPreferences = async () => {
       try {
         const { getUserPreferencesAuth } = await import('@/services/userPreferencesService');
@@ -421,12 +371,16 @@ const AdaptiveNewSidebar: React.FC = () => {
             const newItems = defaultMenuItems.filter(item => !savedIds.has(item.id));
             
             setMenuItems([...reorderedItems, ...newItems]);
+          } else {
+            setMenuItems(defaultMenuItems);
           }
           
           // Restore hidden items
           if (hiddenItems && hiddenItems.length > 0) {
             setHiddenItems(new Set(hiddenItems));
           }
+        } else {
+          setMenuItems(defaultMenuItems);
         }
       } catch (error) {
         console.error('Error loading user preferences:', error);
@@ -449,6 +403,8 @@ const AdaptiveNewSidebar: React.FC = () => {
             console.error('Error loading saved order:', error);
             setMenuItems(defaultMenuItems);
           }
+        } else {
+          setMenuItems(defaultMenuItems);
         }
         
         if (savedHiddenItems) {
@@ -463,7 +419,7 @@ const AdaptiveNewSidebar: React.FC = () => {
     };
 
     loadUserPreferences();
-  }, []);
+  }, [defaultMenuItems, ready]);
 
   // Save order to server and localStorage as fallback
   const saveOrder = async (items: MenuItem[]) => {
@@ -678,11 +634,11 @@ const AdaptiveNewSidebar: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-gray-700">
-                    {isEditing ? 'Редактирование меню' : 'Настройка меню'}
+                    {isEditing ? t('sidebar.controls.edit_mode') : t('sidebar.controls.setup_menu')}
                   </span>
                   {hiddenItems.size > 0 && (
                     <span className="text-xs text-gray-500 mt-1">
-                      Скрыто элементов: {hiddenItems.size}
+                      {t('sidebar.controls.hidden_items_count', { count: hiddenItems.size })}
                     </span>
                   )}
                 </div>
@@ -697,15 +653,15 @@ const AdaptiveNewSidebar: React.FC = () => {
                       }
                     `}
                   >
-                    {isEditing ? 'Готово' : <Edit3 size={12} />}
+                    {isEditing ? t('sidebar.controls.done') : <Edit3 size={12} />}
                   </button>
                   {isEditing && (
                     <button
                       onClick={resetOrder}
                       className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-                      title="Сбросить все настройки"
+                      title={t('sidebar.controls.reset_all_settings')}
                     >
-                      Сброс
+                      {t('sidebar.controls.reset')}
                     </button>
                   )}
                 </div>
@@ -713,15 +669,22 @@ const AdaptiveNewSidebar: React.FC = () => {
               {isEditing && (
                 <div className="mt-3 p-2 bg-blue-50 rounded-md">
                   <p className="text-xs text-blue-700">
-                    💡 <strong>Подсказка:</strong> Используйте <GripVertical size={12} className="inline" /> для перетаскивания и <Eye size={12} className="inline" /> для скрытия элементов
+                    <Trans i18nKey="sidebar.controls.hint">
+                      💡 <strong>Подсказка:</strong> Используйте <GripVertical size={12} className="inline" /> для перетаскивания и <Eye size={12} className="inline" /> для скрытия элементов
+                    </Trans>
                   </p>
                 </div>
               )}
             </div>
           )}
 
-          {/* Menu Items */}
-          <div className="flex-1 overflow-y-auto p-4">
+                  {/* Menu Items */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {!ready ? (
+            <div className="flex items-center justify-center p-4">
+              <div className="text-gray-500">Загрузка меню...</div>
+            </div>
+          ) : (
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -759,7 +722,8 @@ const AdaptiveNewSidebar: React.FC = () => {
                 </div>
               </SortableContext>
             </DndContext>
-          </div>
+          )}
+        </div>
         </div>
       </div>
     </>

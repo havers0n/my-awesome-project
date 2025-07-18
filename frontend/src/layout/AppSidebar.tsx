@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { ICONS } from "@/helpers/icons";
 import { useSidebar } from "../context/SidebarContext";
@@ -12,188 +13,190 @@ type NavItem = {
   new?: boolean;
 };
 
-const navItems: NavItem[] = [
-  {
-    icon: <img src={ICONS.GRID} alt="Dashboard icon" className="menu-item-icon-size" />,
-    name: "Dashboard",
-    subItems: [
-      { name: "Общий обзор", path: "/dashboard", pro: false },
-      { name: "Настройка виджетов", path: "/dashboard/widgets", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.PIE_CHART} alt="Sales Forecast icon" className="menu-item-icon-size" />,
-    name: "Прогнозирование продаж",
-    subItems: [
-      { name: "Текущий прогноз", path: "/sales-forecast", pro: false },
-      { name: "Новый прогноз", path: "/sales-forecast-new", pro: false, new: true },
-    ],
-  },
-  {
-    icon: <img src={ICONS.TASK_ICON} alt="Test API icon" className="menu-item-icon-size" />,
-    name: "Тест API прогноза",
-    path: "/test-forecast-api",
-  },
-  {
-    icon: <img src={ICONS.BOX} alt="Inventory icon" className="menu-item-icon-size" />,
-    name: "Управление запасами",
-    path: "/inventory/management",
-    new: true,
-  },
-  {
-    icon: <img src={ICONS.BOX} alt="Shelf Availability icon" className="menu-item-icon-size" />,
-    name: "Доступность товаров на полке",
-    path: "/inventory/shelf-availability",
-  },
-  {
-    icon: <img src={ICONS.PIE_CHART} alt="Analytics icon" className="menu-item-icon-size" />,
-    name: "Аналитика склада",
-    path: "/analytics/warehouse",
-  },
-  {
-    icon: <img src={ICONS.BOLT} alt="Monitoring icon" className="menu-item-icon-size" />,
-    name: "Мониторинг системы",
-    subItems: [
-      { name: "Системные события", path: "/monitoring/events", pro: false },
-      { name: "Производительность", path: "/monitoring/performance", pro: false },
-      { name: "Уведомления", path: "/monitoring/notifications", pro: false },
-      { name: "Логи системы", path: "/monitoring/logs", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.CALENDAR} alt="Planning icon" className="menu-item-icon-size" />,
-    name: "Планирование",
-    subItems: [
-      { name: "Задачи и проекты", path: "/planning/tasks", pro: false },
-      { name: "Календарь событий", path: "/planning/calendar", pro: false },
-      { name: "Планы закупок", path: "/planning/procurement", pro: false },
-      { name: "Бюджетирование", path: "/planning/budget", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.CHECK_CIRCLE} alt="Quality icon" className="menu-item-icon-size" />,
-    name: "Контроль качества",
-    subItems: [
-      { name: "Проверки качества", path: "/quality/inspections", pro: false },
-      { name: "Сертификаты", path: "/quality/certificates", pro: false },
-      { name: "Жалобы и возвраты", path: "/quality/complaints", pro: false },
-      { name: "Стандарты качества", path: "/quality/standards", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.DOLLAR_LINE} alt="Finance icon" className="menu-item-icon-size" />,
-    name: "Финансы",
-    subItems: [
-      { name: "Бюджет и планирование", path: "/finance/budget", pro: false },
-      { name: "Расходы и доходы", path: "/finance/expenses", pro: false },
-      { name: "Платежи", path: "/finance/payments", pro: false },
-      { name: "Финансовые отчеты", path: "/finance/reports", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.FILE} alt="Reports icon" className="menu-item-icon-size" />,
-    name: "Отчеты",
-    subItems: [
-      { name: "По продажам", path: "/reports/sales", pro: false },
-      { name: "История операций", path: "/reports/warehouse", pro: false },
-      { name: "По товарам", path: "/reports/products", pro: false },
-      { name: "По локациям", path: "/reports/locations", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.BOX} alt="Products icon" className="menu-item-icon-size" />,
-    name: "Товары",
-    subItems: [
-      { name: "Управление товарами", path: "/products", pro: false },
-      { name: "Категории", path: "/product-categories", pro: false },
-      { name: "Группы", path: "/product-groups", pro: false },
-      { name: "Виды", path: "/product-kinds", pro: false },
-      { name: "Производители", path: "/manufacturers", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.FOLDER} alt="Organizations icon" className="menu-item-icon-size" />,
-    name: "Организации / Точки",
-    subItems: [
-      { name: "Управление организациями", path: "/organizations", pro: false },
-      { name: "Управление точками", path: "/locations", pro: false },
-      { name: "Поставщики", path: "/suppliers", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.USER_CIRCLE} alt="Admin icon" className="menu-item-icon-size" />,
-    name: "Административная панель",
-    subItems: [
-      { name: "Управление пользователями", path: "/admin/users", pro: false },
-      { name: "Управление организациями", path: "/admin/organizations", pro: false },
-      { name: "Управление ролями", path: "/admin/roles", pro: false },
-      { name: "Управление поставщиками", path: "/admin/suppliers", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.TASK_ICON} alt="Settings icon" className="menu-item-icon-size" />,
-    name: "Настройки",
-    subItems: [
-      { name: "Настройки организации", path: "/settings/organization", pro: false },
-      { name: "Настройки системы", path: "/settings/system", pro: false },
-    ],
-  },
-];
-
-const othersItems: NavItem[] = [
-  {
-    icon: <img src={ICONS.LOCK} alt="Security icon" className="menu-item-icon-size" />,
-    name: "Безопасность",
-    subItems: [
-      { name: "Аудит безопасности", path: "/security/audit", pro: false },
-      { name: "Управление доступом", path: "/security/access", pro: false },
-      { name: "Журнал событий", path: "/security/events", pro: false },
-      { name: "Резервное копирование", path: "/security/backup", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.SHOOTING_STAR} alt="Automation icon" className="menu-item-icon-size" />,
-    name: "Автоматизация",
-    subItems: [
-      { name: "Рабочие процессы", path: "/automation/workflows", pro: false },
-      { name: "Планировщик задач", path: "/automation/scheduler", pro: false },
-      { name: "Автоматические уведомления", path: "/automation/notifications", pro: false },
-      { name: "Скрипты и макросы", path: "/automation/scripts", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.CHAT} alt="Communication icon" className="menu-item-icon-size" />,
-    name: "Коммуникации",
-    subItems: [
-      { name: "Внутренние сообщения", path: "/communication/messages", pro: false },
-      { name: "Уведомления команды", path: "/communication/team-notifications", pro: false },
-      { name: "Объявления", path: "/communication/announcements", pro: false },
-      { name: "Чат поддержки", path: "/communication/support-chat", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.PLUG_IN} alt="Integrations icon" className="menu-item-icon-size" />,
-    name: "Интеграции",
-    subItems: [
-      { name: "API подключения", path: "/integrations/api", pro: false },
-      { name: "Импорт/экспорт данных", path: "/integrations/import-export", pro: false },
-      { name: "Внешние сервисы", path: "/integrations/external", pro: false, new: true },
-      { name: "Webhook настройки", path: "/integrations/webhooks", pro: false },
-    ],
-  },
-  {
-    icon: <img src={ICONS.INFO} alt="Help icon" className="menu-item-icon-size" />,
-    name: "Помощь",
-    subItems: [
-      { name: "Документация", path: "/help/documentation", pro: false },
-      { name: "Поддержка", path: "/help/support", pro: false },
-      { name: "Обучающие материалы", path: "/help/training", pro: false, new: true },
-      { name: "FAQ", path: "/help/faq", pro: false },
-    ],
-  },
-];
-
 const AppSidebar: React.FC = () => {
+  const { t } = useTranslation();
+
+  const navItems: NavItem[] = useMemo(() => [
+    {
+      icon: <img src={ICONS.GRID} alt="Dashboard icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.dashboard.title'),
+      subItems: [
+        { name: t('sidebar.nav.dashboard.overview'), path: "/dashboard", pro: false },
+        { name: t('sidebar.nav.dashboard.widgets'), path: "/dashboard/widgets", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.PIE_CHART} alt="Sales Forecast icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.salesForecast.title'),
+      subItems: [
+        { name: t('sidebar.nav.salesForecast.current'), path: "/sales-forecast", pro: false },
+        { name: t('sidebar.nav.salesForecast.new'), path: "/sales-forecast-new", pro: false, new: true },
+      ],
+    },
+    {
+      icon: <img src={ICONS.TASK_ICON} alt="Test API icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.testApi.title'),
+      path: "/test-forecast-api",
+    },
+    {
+      icon: <img src={ICONS.BOX} alt="Inventory icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.inventory.title'),
+      path: "/inventory/management",
+      new: true,
+    },
+    {
+      icon: <img src={ICONS.BOX} alt="Shelf Availability icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.shelfAvailability.title'),
+      path: "/inventory/shelf-availability",
+    },
+    {
+      icon: <img src={ICONS.PIE_CHART} alt="Analytics icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.warehouseAnalytics.title'),
+      path: "/analytics/warehouse",
+    },
+    {
+      icon: <img src={ICONS.BOLT} alt="Monitoring icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.monitoring.title'),
+      subItems: [
+        { name: t('sidebar.nav.monitoring.events'), path: "/monitoring/events", pro: false },
+        { name: t('sidebar.nav.monitoring.performance'), path: "/monitoring/performance", pro: false },
+        { name: t('sidebar.nav.monitoring.notifications'), path: "/monitoring/notifications", pro: false },
+        { name: t('sidebar.nav.monitoring.logs'), path: "/monitoring/logs", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.CALENDAR} alt="Planning icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.planning.title'),
+      subItems: [
+        { name: t('sidebar.nav.planning.tasks'), path: "/planning/tasks", pro: false },
+        { name: t('sidebar.nav.planning.calendar'), path: "/planning/calendar", pro: false },
+        { name: t('sidebar.nav.planning.procurement'), path: "/planning/procurement", pro: false },
+        { name: t('sidebar.nav.planning.budgeting'), path: "/planning/budget", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.CHECK_CIRCLE} alt="Quality icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.qualityControl.title'),
+      subItems: [
+        { name: t('sidebar.nav.qualityControl.inspections'), path: "/quality/inspections", pro: false },
+        { name: t('sidebar.nav.qualityControl.certificates'), path: "/quality/certificates", pro: false },
+        { name: t('sidebar.nav.qualityControl.complaints'), path: "/quality/complaints", pro: false },
+        { name: t('sidebar.nav.qualityControl.standards'), path: "/quality/standards", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.DOLLAR_LINE} alt="Finance icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.finance.title'),
+      subItems: [
+        { name: t('sidebar.nav.finance.budget'), path: "/finance/budget", pro: false },
+        { name: t('sidebar.nav.finance.expenses'), path: "/finance/expenses", pro: false },
+        { name: t('sidebar.nav.finance.payments'), path: "/finance/payments", pro: false },
+        { name: t('sidebar.nav.finance.reports'), path: "/finance/reports", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.FILE} alt="Reports icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.reports.title'),
+      subItems: [
+        { name: t('sidebar.nav.reports.sales'), path: "/reports/sales", pro: false },
+        { name: t('sidebar.nav.reports.warehouse'), path: "/reports/warehouse", pro: false },
+        { name: t('sidebar.nav.reports.products'), path: "/reports/products", pro: false },
+        { name: t('sidebar.nav.reports.locations'), path: "/reports/locations", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.BOX} alt="Products icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.products.title'),
+      subItems: [
+        { name: t('sidebar.nav.products.manage'), path: "/products", pro: false },
+        { name: t('sidebar.nav.products.categories'), path: "/product-categories", pro: false },
+        { name: t('sidebar.nav.products.groups'), path: "/product-groups", pro: false },
+        { name: t('sidebar.nav.products.kinds'), path: "/product-kinds", pro: false },
+        { name: t('sidebar.nav.products.manufacturers'), path: "/manufacturers", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.FOLDER} alt="Organizations icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.organizations.title'),
+      subItems: [
+        { name: t('sidebar.nav.organizations.manageOrgs'), path: "/organizations", pro: false },
+        { name: t('sidebar.nav.organizations.manageLocs'), path: "/locations", pro: false },
+        { name: t('sidebar.nav.organizations.suppliers'), path: "/suppliers", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.USER_CIRCLE} alt="Admin icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.admin.title'),
+      subItems: [
+        { name: t('sidebar.nav.admin.users'), path: "/admin/users", pro: false },
+        { name: t('sidebar.nav.admin.orgs'), path: "/admin/organizations", pro: false },
+        { name: t('sidebar.nav.admin.roles'), path: "/admin/roles", pro: false },
+        { name: t('sidebar.nav.admin.suppliers'), path: "/admin/suppliers", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.TASK_ICON} alt="Settings icon" className="menu-item-icon-size" />,
+      name: t('sidebar.nav.settings.title'),
+      subItems: [
+        { name: t('sidebar.nav.settings.organization'), path: "/settings/organization", pro: false },
+        { name: t('sidebar.nav.settings.system'), path: "/settings/system", pro: false },
+      ],
+    },
+  ], [t]);
+
+  const othersItems: NavItem[] = useMemo(() => [
+    {
+      icon: <img src={ICONS.LOCK} alt="Security icon" className="menu-item-icon-size" />,
+      name: t('sidebar.others.security.title'),
+      subItems: [
+        { name: t('sidebar.others.security.audit'), path: "/security/audit", pro: false },
+        { name: t('sidebar.others.security.access'), path: "/security/access", pro: false },
+        { name: t('sidebar.others.security.events'), path: "/security/events", pro: false },
+        { name: t('sidebar.others.security.backup'), path: "/security/backup", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.SHOOTING_STAR} alt="Automation icon" className="menu-item-icon-size" />,
+      name: t('sidebar.others.automation.title'),
+      subItems: [
+        { name: t('sidebar.others.automation.workflows'), path: "/automation/workflows", pro: false },
+        { name: t('sidebar.others.automation.scheduler'), path: "/automation/scheduler", pro: false },
+        { name: t('sidebar.others.automation.notifications'), path: "/automation/notifications", pro: false },
+        { name: t('sidebar.others.automation.scripts'), path: "/automation/scripts", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.CHAT} alt="Communication icon" className="menu-item-icon-size" />,
+      name: t('sidebar.others.communication.title'),
+      subItems: [
+        { name: t('sidebar.others.communication.messages'), path: "/communication/messages", pro: false },
+        { name: t('sidebar.others.communication.teamNotifications'), path: "/communication/team-notifications", pro: false },
+        { name: t('sidebar.others.communication.announcements'), path: "/communication/announcements", pro: false },
+        { name: t('sidebar.others.communication.supportChat'), path: "/communication/support-chat", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.PLUG_IN} alt="Integrations icon" className="menu-item-icon-size" />,
+      name: t('sidebar.others.integrations.title'),
+      subItems: [
+        { name: t('sidebar.others.integrations.api'), path: "/integrations/api", pro: false },
+        { name: t('sidebar.others.integrations.importExport'), path: "/integrations/import-export", pro: false },
+        { name: t('sidebar.others.integrations.external'), path: "/integrations/external", pro: false, new: true },
+        { name: t('sidebar.others.integrations.webhooks'), path: "/integrations/webhooks", pro: false },
+      ],
+    },
+    {
+      icon: <img src={ICONS.INFO} alt="Help icon" className="menu-item-icon-size" />,
+      name: t('sidebar.others.help.title'),
+      subItems: [
+        { name: t('sidebar.others.help.documentation'), path: "/help/documentation", pro: false },
+        { name: t('sidebar.others.help.support'), path: "/help/support", pro: false },
+        { name: t('sidebar.others.help.training'), path: "/help/training", pro: false, new: true },
+        { name: t('sidebar.others.help.faq'), path: "/help/faq", pro: false },
+      ],
+    },
+  ], [t]);
+
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
 
@@ -308,7 +311,13 @@ const AppSidebar: React.FC = () => {
               <Link
                 to={nav.path}
                 className={`menu-item group ${
-                  isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
+                  isActive(nav.path)
+                    ? "menu-item-active"
+                    : "menu-item-inactive"
+                } cursor-pointer ${
+                  !isExpanded && !isHovered
+                    ? "lg:justify-center"
+                    : "lg:justify-start"
                 }`}
               >
                 <span
@@ -323,69 +332,37 @@ const AppSidebar: React.FC = () => {
                 {(isExpanded || isHovered || isMobileOpen) && (
                   <span className="menu-item-text">{nav.name}</span>
                 )}
-                {(isExpanded || isHovered || isMobileOpen) && nav.new && (
-                  <span
-                    className={`ml-auto ${
-                      isActive(nav.path)
-                        ? "menu-dropdown-badge-active"
-                        : "menu-dropdown-badge-inactive"
-                    } menu-dropdown-badge`}
-                  >
-                    new
-                  </span>
-                )}
               </Link>
             )
           )}
-          {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
+          {nav.subItems && (
             <div
               ref={(el) => {
-                subMenuRefs.current[`${menuType}-${index}`] = el;
+                const key = `${menuType}-${index}`;
+                if (el) subMenuRefs.current[key] = el;
               }}
-              className="overflow-hidden transition-all duration-300"
+              className="overflow-hidden transition-all duration-200"
               style={{
                 height:
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? `${subMenuHeight[`${menuType}-${index}`]}px`
-                    : "0px",
+                  openSubmenu?.type === menuType &&
+                  openSubmenu?.index === index
+                    ? subMenuHeight[`${menuType}-${index}`] || 0
+                    : 0,
               }}
             >
-              <ul className="mt-2 space-y-1 ml-9">
+              <ul className="flex flex-col gap-2 py-2 pl-8">
                 {nav.subItems.map((subItem) => (
                   <li key={subItem.name}>
                     <Link
                       to={subItem.path}
-                      className={`menu-dropdown-item ${
+                      className={`menu-sub-item ${
                         isActive(subItem.path)
-                          ? "menu-dropdown-item-active"
-                          : "menu-dropdown-item-inactive"
+                          ? "menu-sub-item-active"
+                          : "menu-sub-item-inactive"
                       }`}
                     >
                       {subItem.name}
-                      <span className="flex items-center gap-1 ml-auto">
-                        {subItem.new && (
-                          <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge`}
-                          >
-                            new
-                          </span>
-                        )}
-                        {subItem.pro && (
-                          <span
-                            className={`ml-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge`}
-                          >
-                            pro
-                          </span>
-                        )}
-                      </span>
+                      {subItem.new && <span className="new-badge">New</span>}
                     </Link>
                   </li>
                 ))}
@@ -399,89 +376,25 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
-        ${
-          isExpanded || isMobileOpen
-            ? "w-[290px]"
-            : isHovered
-            ? "w-[290px]"
-            : "w-[90px]"
-        }
-        ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0`}
-      onMouseEnter={() => !isExpanded && setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className={`bg-sidebar-bg text-sidebar-text flex flex-col transition-width duration-300 ${
+        isExpanded ? 'w-64' : 'w-20'
+      } ${(isMobileOpen && isExpanded) ? 'absolute h-full z-20' : 'relative'}`}
+      onMouseEnter={() => !isMobileOpen && setIsHovered(true)}
+      onMouseLeave={() => !isMobileOpen && setIsHovered(false)}
     >
-      <div
-        className={`py-8 flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-        }`}
-      >
-        <Link to="/">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <img
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-            </>
-          ) : (
-            <img
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
-          )}
-        </Link>
-      </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-        <nav className="mb-6">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "Основное меню"
-                ) : (
-                  <img src={ICONS.HORIZONTAL_DOTS} alt="HorizontaLDots" className="size-6" />
-                )}
-              </h2>
-              {renderMenuItems(navItems, "main")}
-            </div>
-            <div className="">
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "Дополнительно"
-                ) : (
-                  <img src={ICONS.HORIZONTAL_DOTS} alt="HorizontaLDots" />
-                )}
-              </h2>
-              {renderMenuItems(othersItems, "others")}
-            </div>
-          </div>
-        </nav>
+      <div className="flex-grow p-4 overflow-y-auto">
+        <div className="mb-8">
+          <span className="text-gray-500 uppercase text-xs tracking-wider">
+            {isExpanded || isHovered || isMobileOpen ? t('sidebar.nav.title') : ''}
+          </span>
+          {renderMenuItems(navItems, "main")}
+        </div>
+        <div>
+          <span className="text-gray-500 uppercase text-xs tracking-wider">
+            {isExpanded || isHovered || isMobileOpen ? t('sidebar.others.title') : ''}
+          </span>
+          {renderMenuItems(othersItems, "others")}
+        </div>
       </div>
     </aside>
   );

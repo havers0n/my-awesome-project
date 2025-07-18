@@ -1,4 +1,5 @@
 import { Edit3, Eye, Plus, RotateCcw, Save } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface DashboardControlsProps {
   isEditMode: boolean;
@@ -17,16 +18,18 @@ export default function DashboardControls({
   onSaveLayout,
   hasUnsavedChanges = false,
 }: DashboardControlsProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       {/* Левая часть - заголовок */}
       <div className="flex items-center gap-3">
         <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Дашборд
+          {t('dashboard.controls.title')}
         </h1>
         {hasUnsavedChanges && (
           <span className="px-2 py-1 text-xs font-medium text-amber-600 bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400 rounded-full">
-            Есть несохраненные изменения
+            {t('dashboard.controls.unsaved_changes')}
           </span>
         )}
       </div>
@@ -47,12 +50,12 @@ export default function DashboardControls({
           {isEditMode ? (
             <>
               <Eye className="w-4 h-4" />
-              Просмотр
+              {t('dashboard.controls.view_mode')}
             </>
           ) : (
             <>
               <Edit3 className="w-4 h-4" />
-              Редактировать
+              {t('dashboard.controls.edit_mode')}
             </>
           )}
         </button>
@@ -66,7 +69,7 @@ export default function DashboardControls({
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30 rounded-lg transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Добавить виджет
+              {t('dashboard.controls.add_widget')}
             </button>
 
             {/* Кнопка сохранения */}
@@ -75,17 +78,17 @@ export default function DashboardControls({
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
             >
               <Save className="w-4 h-4" />
-              Сохранить
+              {t('dashboard.controls.save')}
             </button>
 
             {/* Кнопка сброса */}
             <button
               onClick={onResetLayout}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-              title="Сбросить макет к настройкам по умолчанию"
+              title={t('dashboard.controls.reset_tooltip')}
             >
               <RotateCcw className="w-4 h-4" />
-              Сбросить
+              {t('dashboard.controls.reset')}
             </button>
           </>
         )}

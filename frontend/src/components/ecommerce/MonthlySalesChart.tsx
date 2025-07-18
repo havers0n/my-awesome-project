@@ -1,5 +1,6 @@
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
+import { useTranslation } from "react-i18next";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 // import { ICONS } from "@/helpers/icons";
@@ -7,6 +8,8 @@ import { Icon } from '../common/Icon';
 import { useState } from "react";
 
 export default function MonthlySalesChart() {
+  const { t } = useTranslation();
+
   const options: ApexOptions = {
     colors: ["#465fff"],
     chart: {
@@ -35,18 +38,18 @@ export default function MonthlySalesChart() {
     },
     xaxis: {
       categories: [
-        "Янв",
-        "Фев",
-        "Мар",
-        "Апр",
-        "Май",
-        "Июн",
-        "Июл",
-        "Авг",
-        "Сен",
-        "Окт",
-        "Ноя",
-        "Дек",
+        t('months.short.jan'),
+        t('months.short.feb'),
+        t('months.short.mar'),
+        t('months.short.apr'),
+        t('months.short.may'),
+        t('months.short.jun'),
+        t('months.short.jul'),
+        t('months.short.aug'),
+        t('months.short.sep'),
+        t('months.short.oct'),
+        t('months.short.nov'),
+        t('months.short.dec'),
       ],
       axisBorder: {
         show: false,
@@ -88,7 +91,7 @@ export default function MonthlySalesChart() {
   };
   const series = [
     {
-      name: "Продажи",
+      name: t('charts.monthly_sales.series_name'),
       data: [168, 385, 201, 298, 187, 195, 291, 110, 215, 390, 280, 112],
     },
   ];
@@ -105,7 +108,7 @@ export default function MonthlySalesChart() {
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Продажи по месяцам
+          {t('charts.monthly_sales.title')}
         </h3>
         <div className="relative inline-block">
           <button className="dropdown-toggle" onClick={toggleDropdown}>
@@ -120,13 +123,13 @@ export default function MonthlySalesChart() {
               onItemClick={closeDropdown}
               className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
-              Подробнее
+              {t('common.details')}
             </DropdownItem>
             <DropdownItem
               onItemClick={closeDropdown}
               className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
-              Удалить
+              {t('common.delete')}
             </DropdownItem>
           </Dropdown>
         </div>

@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/services/supabaseClient";
+import { useTranslation } from "react-i18next";
 
 // Eager load critical components
 import AppLayout from "@/layout/AppLayout";
@@ -79,25 +80,34 @@ const LoadingFallback = () => (
 );
 
 // Placeholder components for missing pages
-const PlaceholderPage = ({ title, description }: { title: string; description: string }) => (
-  <div className="p-6">
-    <div className="mb-6">
-      <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-      <p className="text-gray-600 mt-2">{description}</p>
-    </div>
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="text-center py-12">
-        <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
+const PlaceholderPage = ({ title, description }: { title: string; description: string }) => {
+  const { t, i18n } = useTranslation();
+
+  return (
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">{t(title)}</h1>
+        <p className="text-gray-600 mt-2">{t(description)}</p>
+        <div className="mt-4 p-2 bg-yellow-100 border border-yellow-300 rounded">
+          <p className="text-sm text-yellow-800">
+            Current language: <strong>{i18n.language}</strong>. If this changes but the text does not, the issue is with loading translations.
+          </p>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-500">{description}</p>
+      </div>
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="text-center py-12">
+          <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t(title)}</h3>
+          <p className="text-gray-500">{t(description)}</p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default function App() {
   const navigate = useNavigate();
@@ -115,6 +125,17 @@ export default function App() {
       subscription.unsubscribe();
     };
   }, [navigate]);
+
+  useEffect(() => {
+    // This effect should only run once, or when the language needs to be set initially.
+    // An empty dependency array ensures it runs only on mount.
+    // If you have logic to set a default language, it should be here.
+    // For now, we remove the forced 'en' to allow user selection.
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
     <>
@@ -160,46 +181,46 @@ export default function App() {
 
             {/* Quality Control */}
             <Route path="/quality/inspections" element={<QualityControlPage />} />
-            <Route path="/quality/certificates" element={<PlaceholderPage title="Сертификаты" description="Управление сертификатами качества" />} />
-            <Route path="/quality/complaints" element={<PlaceholderPage title="Жалобы и возвраты" description="Обработка жалоб и возвратов" />} />
-            <Route path="/quality/standards" element={<PlaceholderPage title="Стандарты качества" description="Управление стандартами качества" />} />
+            <Route path="/quality/certificates" element={<PlaceholderPage title="page.quality.certificates.title" description="page.quality.certificates.description" />} />
+            <Route path="/quality/complaints" element={<PlaceholderPage title="page.quality.complaints.title" description="page.quality.complaints.description" />} />
+            <Route path="/quality/standards" element={<PlaceholderPage title="page.quality.standards.title" description="page.quality.standards.description" />} />
 
             {/* Finance */}
-            <Route path="/finance/budget" element={<PlaceholderPage title="Бюджет и планирование" description="Финансовое планирование и бюджетирование" />} />
-            <Route path="/finance/expenses" element={<PlaceholderPage title="Расходы и доходы" description="Учет расходов и доходов" />} />
-            <Route path="/finance/payments" element={<PlaceholderPage title="Платежи" description="Управление платежами" />} />
-            <Route path="/finance/reports" element={<PlaceholderPage title="Финансовые отчеты" description="Финансовая отчетность" />} />
+            <Route path="/finance/budget" element={<PlaceholderPage title="page.finance.budget.title" description="page.finance.budget.description" />} />
+            <Route path="/finance/expenses" element={<PlaceholderPage title="page.finance.expenses.title" description="page.finance.expenses.description" />} />
+            <Route path="/finance/payments" element={<PlaceholderPage title="page.finance.payments.title" description="page.finance.payments.description" />} />
+            <Route path="/finance/reports" element={<PlaceholderPage title="page.finance.reports.title" description="page.finance.reports.description" />} />
 
             {/* Security */}
-            <Route path="/security/audit" element={<PlaceholderPage title="Аудит безопасности" description="Аудит системы безопасности" />} />
-            <Route path="/security/access" element={<PlaceholderPage title="Управление доступом" description="Управление правами доступа" />} />
-            <Route path="/security/events" element={<PlaceholderPage title="Журнал событий" description="Журнал событий безопасности" />} />
-            <Route path="/security/backup" element={<PlaceholderPage title="Резервное копирование" description="Управление резервными копиями" />} />
+            <Route path="/security/audit" element={<PlaceholderPage title="page.security.audit.title" description="page.security.audit.description" />} />
+            <Route path="/security/access" element={<PlaceholderPage title="page.security.access.title" description="page.security.access.description" />} />
+            <Route path="/security/events" element={<PlaceholderPage title="page.security.events.title" description="page.security.events.description" />} />
+            <Route path="/security/backup" element={<PlaceholderPage title="page.security.backup.title" description="page.security.backup.description" />} />
 
             {/* Automation */}
-            <Route path="/automation/workflows" element={<PlaceholderPage title="Рабочие процессы" description="Автоматизация рабочих процессов" />} />
-            <Route path="/automation/scheduler" element={<PlaceholderPage title="Планировщик задач" description="Планирование автоматических задач" />} />
-            <Route path="/automation/notifications" element={<PlaceholderPage title="Автоматические уведомления" description="Настройка автоматических уведомлений" />} />
-            <Route path="/automation/scripts" element={<PlaceholderPage title="Скрипты и макросы" description="Управление скриптами и макросами" />} />
+            <Route path="/automation/workflows" element={<PlaceholderPage title="page.automation.workflows.title" description="page.automation.workflows.description" />} />
+            <Route path="/automation/scheduler" element={<PlaceholderPage title="page.automation.scheduler.title" description="page.automation.scheduler.description" />} />
+            <Route path="/automation/notifications" element={<PlaceholderPage title="page.automation.notifications.title" description="page.automation.notifications.description" />} />
+            <Route path="/automation/scripts" element={<PlaceholderPage title="page.automation.scripts.title" description="page.automation.scripts.description" />} />
 
             {/* Communication */}
-            <Route path="/communication/messages" element={<PlaceholderPage title="Внутренние сообщения" description="Система внутренних сообщений" />} />
-            <Route path="/communication/team-notifications" element={<PlaceholderPage title="Уведомления команды" description="Уведомления для команды" />} />
-            <Route path="/communication/announcements" element={<PlaceholderPage title="Объявления" description="Системные объявления" />} />
-            <Route path="/communication/support-chat" element={<PlaceholderPage title="Чат поддержки" description="Чат с технической поддержкой" />} />
+            <Route path="/communication/messages" element={<PlaceholderPage title="page.communication.messages.title" description="page.communication.messages.description" />} />
+            <Route path="/communication/team-notifications" element={<PlaceholderPage title="page.communication.team-notifications.title" description="page.communication.team-notifications.description" />} />
+            <Route path="/communication/announcements" element={<PlaceholderPage title="page.communication.announcements.title" description="page.communication.announcements.description" />} />
+            <Route path="/communication/support-chat" element={<PlaceholderPage title="page.communication.support-chat.title" description="page.communication.support-chat.description" />} />
 
             {/* Reports */}
             <Route path="/reports/sales" element={<SalesReports />} />
             <Route path="/reports/warehouse" element={<WarehouseReportsPage />} />
-            <Route path="/reports/products" element={<PlaceholderPage title="Отчеты по товарам" description="Анализ товарного ассортимента" />} />
-            <Route path="/reports/locations" element={<PlaceholderPage title="Отчеты по локациям" description="Анализ по точкам продаж" />} />
+            <Route path="/reports/products" element={<PlaceholderPage title="page.reports.products.title" description="page.reports.products.description" />} />
+            <Route path="/reports/locations" element={<PlaceholderPage title="page.reports.locations.title" description="page.reports.locations.description" />} />
 
             {/* Products */}
-            <Route path="/products" element={<PlaceholderPage title="Управление товарами" description="Каталог товаров и управление ассортиментом" />} />
-            <Route path="/product-categories" element={<PlaceholderPage title="Категории товаров" description="Управление категориями товаров" />} />
-            <Route path="/product-groups" element={<PlaceholderPage title="Группы товаров" description="Управление группами товаров" />} />
-            <Route path="/product-kinds" element={<PlaceholderPage title="Виды товаров" description="Управление видами товаров" />} />
-            <Route path="/manufacturers" element={<PlaceholderPage title="Производители" description="Управление производителями" />} />
+            <Route path="/products" element={<PlaceholderPage title="page.products.management.title" description="page.products.management.description" />} />
+            <Route path="/product-categories" element={<PlaceholderPage title="page.products.categories.title" description="page.products.categories.description" />} />
+            <Route path="/product-groups" element={<PlaceholderPage title="page.products.groups.title" description="page.products.groups.description" />} />
+            <Route path="/product-kinds" element={<PlaceholderPage title="page.products.kinds.title" description="page.products.kinds.description" />} />
+            <Route path="/manufacturers" element={<PlaceholderPage title="page.products.manufacturers.title" description="page.products.manufacturers.description" />} />
 
             {/* Organizations and Locations - redirect to admin pages */}
             <Route path="/organizations" element={<Navigate to="/admin/organizations" replace />} />
@@ -208,20 +229,20 @@ export default function App() {
             <Route path="/suppliers" element={<Navigate to="/admin/suppliers" replace />} />
 
             {/* Settings */}
-            <Route path="/settings/organization" element={<PlaceholderPage title="Настройки организации" description="Конфигурация организации" />} />
-            <Route path="/settings/system" element={<PlaceholderPage title="Настройки системы" description="Системные настройки" />} />
+            <Route path="/settings/organization" element={<PlaceholderPage title="page.settings.organization.title" description="page.settings.organization.description" />} />
+            <Route path="/settings/system" element={<PlaceholderPage title="page.settings.system.title" description="page.settings.system.description" />} />
 
             {/* Integrations */}
-            <Route path="/integrations/api" element={<PlaceholderPage title="API подключения" description="Управление API интеграциями" />} />
-            <Route path="/integrations/import-export" element={<PlaceholderPage title="Импорт/экспорт данных" description="Инструменты для импорта и экспорта" />} />
-            <Route path="/integrations/external" element={<PlaceholderPage title="Внешние сервисы" description="Интеграция с внешними сервисами" />} />
-            <Route path="/integrations/webhooks" element={<PlaceholderPage title="Webhook настройки" description="Настройка webhook уведомлений" />} />
+            <Route path="/integrations/api" element={<PlaceholderPage title="page.integrations.api.title" description="page.integrations.api.description" />} />
+            <Route path="/integrations/import-export" element={<PlaceholderPage title="page.integrations.import-export.title" description="page.integrations.import-export.description" />} />
+            <Route path="/integrations/external" element={<PlaceholderPage title="page.integrations.external.title" description="page.integrations.external.description" />} />
+            <Route path="/integrations/webhooks" element={<PlaceholderPage title="page.integrations.webhooks.title" description="page.integrations.webhooks.description" />} />
 
             {/* Help */}
-            <Route path="/help/documentation" element={<PlaceholderPage title="Документация" description="Руководство пользователя" />} />
-            <Route path="/help/support" element={<PlaceholderPage title="Поддержка" description="Техническая поддержка" />} />
-            <Route path="/help/training" element={<PlaceholderPage title="Обучающие материалы" description="Обучающие материалы и курсы" />} />
-            <Route path="/help/faq" element={<PlaceholderPage title="FAQ" description="Часто задаваемые вопросы" />} />
+            <Route path="/help/documentation" element={<PlaceholderPage title="page.help.documentation.title" description="page.help.documentation.description" />} />
+            <Route path="/help/support" element={<PlaceholderPage title="page.help.support.title" description="page.help.support.description" />} />
+            <Route path="/help/training" element={<PlaceholderPage title="page.help.training.title" description="page.help.training.description" />} />
+            <Route path="/help/faq" element={<PlaceholderPage title="page.help.faq.title" description="page.help.faq.description" />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<ProfilePage />} />

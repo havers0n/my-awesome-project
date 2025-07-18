@@ -1,23 +1,30 @@
-# Этап 1: Сборка TypeScript и установка всех зависимостей
+# Stage 1: Build TypeScript and install all dependencies
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Set environment variable for build stage
+ENV NODE_ENV=production
+
 COPY package*.json ./
+# Install dependencies. In production mode, devDependencies will not be installed
 RUN npm install
 COPY . .
-# Эта команда скомпилирует ваш TS в JS в папку /app/dist
-
+# This command will compile your TS to JS in the /app/dist folder
 RUN npm run build
 
-# Этап 2: Создание минималистичного финального образа
+# Stage 2: Creating a minimalistic final image
 FROM node:20-alpine
 WORKDIR /app
 
-# Копируем только необходимые для запуска файлы
-COPY package.json .
+# Set environment variable for the final image
+ENV NODE_ENV=production
 
+# Copy only the files necessary for startup
+COPY package*.json ./
+
+# Copy production dependencies from the builder
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src ./src
 
 EXPOSE 3000
 

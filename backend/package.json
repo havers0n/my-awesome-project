@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "start": "node --dns-result-order=ipv4first dist/app.js",
+    "start": "npx cross-env NODE_ENV=production node --dns-result-order=ipv4first dist/app.js",
     "dev": "npx cross-env UV_TCP_IPV6ONLY=0 NODE_OPTIONS='--dns-result-order=ipv4first' ts-node --project tsconfig.server.json src/app.ts",
     "devlocal": "ts-node --project tsconfig.server.json src/app.ts",
     "build": "tsc --project tsconfig.build.json",
@@ -51,7 +51,6 @@
     "pino-http": "^10.5.0",
     "pino-pretty": "^11.0.0",
     "winston": "^3.11.0",
-    "xss-clean": "^0.1.4",
     "zod": "^3.22.0"
   },
   "devDependencies": {

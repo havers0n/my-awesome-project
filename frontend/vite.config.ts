@@ -13,6 +13,10 @@ export default defineConfig({
         {
           src: 'public/images',
           dest: '' 
+        },
+        {
+          src: 'public/locales',
+          dest: ''
         }
       ]
     }),

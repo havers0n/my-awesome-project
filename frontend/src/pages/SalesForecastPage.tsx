@@ -44,7 +44,8 @@ const SalesForecastPage: React.FC = () => {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [predictionLoading, setPredictionLoading] = useState(false); // For new prediction loading
   const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
-  const { status, isConnected, error: wsError, reconnect } = useWebSocket('wss://your.websocket.url');
+  const wsUrl = import.meta.env.VITE_WEBSOCKET_URL || '';
+  const { status, isConnected, error: wsError, reconnect } = useWebSocket(wsUrl, { enabled: !!wsUrl });
   const chartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstance = useRef<Chart | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);

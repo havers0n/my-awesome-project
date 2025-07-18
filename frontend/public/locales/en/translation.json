@@ -1,0 +1,296 @@
+{
+  "userManagement": {
+    "title": "User Management",
+    "createUser": "Create User",
+    "searchPlaceholder": "By email, name...",
+    "resetFilters": "Reset All Filters",
+    "deleteConfirmation": "Are you sure you want to delete this user? This action cannot be undone.",
+    "regDate": "Reg",
+    "lastLogin": "Login",
+    "table": {
+      "user": "User",
+      "orgAndLocation": "Organization / Location",
+      "status": "Status",
+      "dates": "Dates",
+      "actions": "Actions"
+    },
+    "noUsersFound": "No users found",
+    "tryChangeCriteria": "Try changing your search criteria or resetting the filters."
+  },
+  "dashboard": {
+    "metrics": {
+      "customers": "Customers",
+      "orders": "Orders"
+    },
+    "reset_confirm": "Are you sure you want to reset the dashboard to its default settings? All changes will be lost.",
+    "load_error": {
+      "title": "Dashboard loading error",
+      "reload": "Reload"
+    },
+    "page_meta": {
+      "title": "Customizable Dashboard | Management System",
+      "description": "Customizable dashboard with analytics, sales, and inventory management widgets"
+    },
+    "setup_instructions": {
+      "title": "Start customizing your dashboard",
+      "description": "Click the \"Add Widget\" button to add your first widget to the dashboard. You can drag and drop widgets to change their order."
+    },
+    "controls": {
+      "title": "Dashboard",
+      "unsaved_changes": "You have unsaved changes",
+      "view_mode": "View",
+      "edit_mode": "Edit",
+      "add_widget": "Add Widget",
+      "save": "Save",
+      "reset": "Reset",
+      "reset_tooltip": "Reset layout to default"
+    }
+  },
+  "sidebar": {
+    "nav": {
+      "dashboard": { "title": "Dashboard", "overview": "Overview", "widgets": "Widget Setup" },
+      "salesForecast": { "title": "Sales Forecasting", "current": "Current Forecast", "new": "New Forecast" },
+      "testApi": { "title": "Test Forecast API" },
+      "inventory": { "title": "Inventory Management" },
+      "shelfAvailability": { "title": "Shelf Availability" },
+      "warehouseAnalytics": { "title": "Warehouse Analytics" },
+      "monitoring": { "title": "System Monitoring", "events": "System Events", "performance": "Performance", "notifications": "Notifications", "logs": "System Logs" },
+      "planning": { "title": "Planning", "tasks": "Tasks & Projects", "calendar": "Event Calendar", "procurement": "Procurement Plans", "budgeting": "Budgeting" },
+      "qualityControl": { "title": "Quality Control", "inspections": "Quality Inspections", "certificates": "Certificates", "complaints": "Complaints & Returns", "standards": "Quality Standards" },
+      "finance": { "title": "Finance", "budget": "Budget & Planning", "expenses": "Expenses & Income", "payments": "Payments", "reports": "Financial Reports" },
+      "reports": { "title": "Reports", "sales": "Sales", "warehouse": "Operations History", "products": "Products", "locations": "Locations" },
+      "products": { "title": "Products", "manage": "Manage Products", "categories": "Categories", "groups": "Groups", "kinds": "Kinds", "manufacturers": "Manufacturers" },
+      "organizations": { "title": "Organizations / Locations", "manageOrgs": "Manage Organizations", "manageLocs": "Manage Locations", "suppliers": "Suppliers" },
+      "admin": { "title": "Admin Panel", "users": "User Management", "orgs": "Organization Management", "roles": "Role Management", "suppliers": "Supplier Management" },
+      "settings": { "title": "Settings", "organization": "Organization Settings", "system": "System Settings" }
+    },
+    "others": {
+      "security": { "title": "Security", "audit": "Security Audit", "access": "Access Management", "events": "Event Log", "backup": "Backup" },
+      "automation": { "title": "Automation", "workflows": "Workflows", "scheduler": "Task Scheduler", "notifications": "Auto-notifications", "scripts": "Scripts & Macros" },
+      "communication": { "title": "Communications", "messages": "Internal Messages", "teamNotifications": "Team Notifications", "announcements": "Announcements", "supportChat": "Support Chat" },
+      "integrations": { "title": "Integrations", "api": "API Connections", "importExport": "Import/Export Data", "external": "External Services", "webhooks": "Webhook Settings" },
+      "help": { "title": "Help", "documentation": "Documentation", "support": "Support", "training": "Training Materials", "faq": "FAQ" }
+    },
+    "controls": {
+      "show_item": "Show item",
+      "hide_item": "Hide item",
+      "edit_mode": "Editing Menu",
+      "setup_menu": "Setup Menu",
+      "view_mode": "View Mode",
+      "edit_mode_tooltip": "Edit Menu",
+      "reset_order": "Reset Order",
+      "hidden_items_count": "Hidden items: {{count}}",
+      "done": "Done",
+      "reset_all_settings": "Reset all settings",
+      "reset": "Reset",
+      "hint": "💡 <strong>Hint:</strong> Use <GripVertical size={12} className=\"inline\" /> to drag and <Eye size={12} className=\"inline\" /> to hide items"
+    },
+    "hidden_label": "hidden"
+  },
+  "common": {
+    "search": "Search",
+    "role": "Role",
+    "allRoles": "All Roles",
+    "status": "Status",
+    "allStatuses": "All Statuses",
+    "organization": "Organization",
+    "allOrganizations": "All Organizations",
+    "location": "Location",
+    "allLocations": "All Locations",
+    "reset": "Reset",
+    "edit": "Edit",
+    "delete": "Delete",
+    "details": "Details",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "notFound": "Not Found",
+    "notApplicable": "N/A",
+    "never": "Never",
+    "cancel": "Cancel"
+  },
+  "months": {
+    "short": {
+      "jan": "Jan",
+      "feb": "Feb",
+      "mar": "Mar",
+      "apr": "Apr",
+      "may": "May",
+      "jun": "Jun",
+      "jul": "Jul",
+      "aug": "Aug",
+      "sep": "Sep",
+      "oct": "Oct",
+      "nov": "Nov",
+      "dec": "Dec"
+    }
+  },
+  "charts": {
+    "monthly_sales": {
+      "title": "Monthly Sales",
+      "series_name": "Sales"
+    },
+    "monthlyTarget": {
+      "title": "Monthly Target",
+      "subtitle": "Your goal for this month",
+      "summary": "Today you earned {{amount}}, which is more than last month. Keep it up!",
+      "progress_label": "Progress",
+      "revenue": "Revenue",
+      "profit": "Profit",
+      "orders": "Orders",
+      "sales": "Sales",
+      "target": "Target",
+      "income": "Income",
+      "today": "Today"
+    },
+    "ecommerceMetrics": {
+      "customers": "Customers",
+      "orders": "Orders",
+      "averageOrderValue": "Average Order Value",
+      "income": "Income",
+      "today": "Today"
+    }
+  },
+  "widget": {
+    "shelfAvailability": {
+      "title": "Shelf Availability",
+      "updatedNow": "Updated now",
+      "loadError": "Failed to load data",
+      "attentionRequired": "Attention required:",
+      "status": {
+        "available": "Available",
+        "outOfStock": "Out of Stock",
+        "lowStock": "Low Stock",
+        "critical": "Critical"
+      },
+      "urgentItems": {
+        "item1": "Doctor's sausage",
+        "item2": "Round grain rice",
+        "item3": "Black tea",
+        "item4": "Russian cheese"
+      }
+    }
+  },
+  "inventoryAlerts": {
+    "title": "Critical Notifications",
+    "lowStock": "Low Stock: {{product}}",
+    "criticalStock": "Critical Stock: {{product}}",
+    "stockLevel": "Stock: {{count}} units",
+    "viewAll": "View All",
+    "criticalShortageTitle": "Critical Shortage",
+    "criticalShortageMessage": "Product has been out of stock for 2 days",
+    "criticalShortageProduct": "Milk \"Farm House\" 3.2%",
+    "lowStockTitle": "Low Stock",
+    "lowStockMessage": "Less than 10% of the norm remains",
+    "lowStockProduct": "Bread \"Darnitsky\"",
+    "expiredProductTitle": "Expired Product",
+    "expiredProductMessage": "An expired product has been detected",
+    "expiredProduct": "Yogurt \"Activia\"",
+    "slowSalesTitle": "Slow Sales",
+    "slowSalesMessage": "Product is selling slower than usual",
+    "slowSalesProduct": "Cheese \"Russian\"",
+    "plannedReplenishmentTitle": "Replenishment Scheduled",
+    "plannedReplenishmentMessage": "Delivery expected tomorrow",
+    "plannedReplenishmentProduct": "Butter",
+    "minutesAgo": "min ago",
+    "hoursAgo": "h ago",
+    "failedToLoad": "Failed to load notifications",
+    "criticalNotificationsTitle": "Critical Notifications",
+    "critical": "Critical",
+    "warnings": "Warnings",
+    "total": "Total",
+    "unread": "Unread",
+    "recentNotifications": "Recent Notifications:",
+    "actionRequired": "Action Required",
+    "new": "New"
+  },
+  "page": {
+    "quality": {
+      "certificates": {
+        "title": "Certificates",
+        "description": "Manage quality certificates"
+      },
+      "complaints": {
+        "title": "Complaints & Returns",
+        "description": "Handle complaints and returns"
+      },
+      "standards": {
+        "title": "Quality Standards",
+        "description": "Manage quality standards"
+      }
+    },
+    "finance": {
+      "budget": {
+        "title": "Budget & Planning",
+        "description": "Financial planning and budgeting"
+      },
+      "expenses": {
+        "title": "Expenses & Income",
+        "description": "Track expenses and income"
+      },
+      "payments": {
+        "title": "Payments",
+        "description": "Manage payments"
+      },
+      "reports": {
+        "title": "Financial Reports",
+        "description": "Financial reporting"
+      }
+    },
+    "security": {
+      "audit": {
+        "title": "Security Audit",
+        "description": "System security audit"
+      },
+      "access": {
+        "title": "Access Management",
+        "description": "Manage access rights"
+      },
+      "events": {
+        "title": "Event Log",
+        "description": "Security event log"
+      },
+      "backup": {
+        "title": "Backup",
+        "description": "Manage backups"
+      }
+    },
+    "automation": {
+      "workflows": {
+        "title": "Workflows",
+        "description": "Automate workflows"
+      },
+      "scheduler": {
+        "title": "Task Scheduler",
+        "description": "Schedule automated tasks"
+      },
+      "notifications": {
+        "title": "Auto-notifications",
+        "description": "Configure auto-notifications"
+      },
+      "scripts": {
+        "title": "Scripts & Macros",
+        "description": "Manage scripts and macros"
+      }
+    },
+    "communication": {
+      "messages": {
+        "title": "Internal Messages",
+        "description": "Internal messaging system"
+      },
+      "team-notifications": {
+        "title": "Team Notifications",
+        "description": "Notifications for the team"
+      },
+      "announcements": {
+        "title": "Announcements",
+        "description": "System announcements"
+      },
+      "support-chat": {
+        "title": "Support Chat",
+        "description": "Chat for user support"
+      }
+    }
+  }
+} 
