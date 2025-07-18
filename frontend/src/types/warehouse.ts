@@ -23,7 +23,29 @@ export interface Product {
   product_name: string;
   price: number;
   sku: string;
+  code?: string;
+  article?: string;
+  weight?: number;
+  shelf_life_hours?: number;
+  manufacturer?: {
+    id: number;
+    name: string;
+  } | null;
+  category?: {
+    id: number;
+    name: string;
+  } | null;
+  group?: {
+    id: number;
+    name: string;
+  } | null;
+  kind?: {
+    id: number;
+    name: string;
+  } | null;
   stock_by_location: StockByLocation[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ProductSnapshot {

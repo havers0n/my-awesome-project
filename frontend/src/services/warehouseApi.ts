@@ -88,6 +88,19 @@ async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
 
 export const fetchProducts = async (page: number = 1, limit: number = 50): Promise<{data: Product[], pagination: any}> => {
   const response = await apiFetch<{data: Product[], pagination: any}>(`/inventory/products?page=${page}&limit=${limit}`);
+  
+  // Проверяем формат ответа - если это старый формат (массив), преобразуем в новый
+  if (Array.isArray(response)) {
+    return {
+      data: response,
+      pagination: {
+        page: 1,
+        limit: response.length,
+        total: response.length
+      }
+    };
+  }
+  
   return response;
 };
 
@@ -118,11 +131,260 @@ export const updateProductQuantity = (productId: number, quantity: number, type:
   });
 };
 
-export const deleteProduct = (productId: number): Promise<{ product_id: number }> => {
-  return apiFetch(`/inventory/products/${productId}`, {
+export async function deleteProduct(productId: number): Promise<void> {
+  return apiFetch<void>(`/inventory/products/${productId}`, {
     method: 'DELETE',
-  }).then(() => ({ product_id: productId }));
-};
+  });
+}
+
+export async function getProductOperations(productId: number): Promise<{
+  productId: number;
+  operations: Array<{
+    id: number;
+    type: string;
+    date: string;
+    quantity: number;
+    totalAmount?: number;
+    costPrice?: number;
+    shelfPrice?: number;
+    stockOnHand?: number;
+    deliveryDelayDays?: number;
+    wasOutOfStock?: boolean;
+    location?: {
+      id: number;
+      name: string;
+    };
+    supplier?: {
+      id: number;
+      name: string;
+    };
+    createdAt: string;
+  }>;
+  total: number;
+}> {
+  return apiFetch<{
+    productId: number;
+    operations: Array<{
+      id: number;
+      type: string;
+      date: string;
+      quantity: number;
+      totalAmount?: number;
+      costPrice?: number;
+      shelfPrice?: number;
+      stockOnHand?: number;
+      deliveryDelayDays?: number;
+      wasOutOfStock?: boolean;
+      location?: {
+        id: number;
+        name: string;
+      };
+      supplier?: {
+        id: number;
+        name: string;
+      };
+      createdAt: string;
+    }>;
+    total: number;
+  }>(`/inventory/products/${productId}/operations`);
+}
+
+export async function getSuppliers(): Promise<Array<{
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}>> {
+  return apiFetch<Array<{
+    id: number;
+    name: string;
+    created_at: string;
+    updated_at: string;
+  }>>('/inventory/suppliers');
+}
+
+export async function getSupplierDeliveryInfo(supplierId: number): Promise<{
+  supplierId: number;
+  analytics: {
+    totalDeliveries: number;
+    averageDelay: number;
+    totalAmount: number;
+    onTimeDeliveries: number;
+    delayedDeliveries: number;
+    recentDeliveries: Array<{
+      date: string;
+      delay: number;
+      amount: number;
+      product: {
+        id: number;
+        name: string;
+      } | null;
+    }>;
+  };
+  deliveries: Array<{
+    date: string;
+    delay: number;
+    quantity: number;
+    amount: number;
+    costPrice: number;
+    product: {
+      id: number;
+      name: string;
+    } | null;
+  }>;
+}> {
+  return apiFetch<{
+    supplierId: number;
+    analytics: {
+      totalDeliveries: number;
+      averageDelay: number;
+      totalAmount: number;
+      onTimeDeliveries: number;
+      delayedDeliveries: number;
+      recentDeliveries: Array<{
+        date: string;
+        delay: number;
+        amount: number;
+        product: {
+          id: number;
+          name: string;
+        } | null;
+      }>;
+    };
+    deliveries: Array<{
+      date: string;
+      delay: number;
+      quantity: number;
+      amount: number;
+      costPrice: number;
+      product: {
+        id: number;
+        name: string;
+      } | null;
+    }>;
+  }>(`/inventory/suppliers/${supplierId}/delivery-info`);
+}
+
+export async function getMLForecast(productId: number, days: number = 7): Promise<{
+  productId: number;
+  forecastDays: number;
+  predictions: Array<{
+    date: string;
+    predictedQuantity: number;
+    confidence: number;
+  }>;
+  recommendations: {
+    recommendedOrder: number;
+    stockoutRisk: 'low' | 'medium' | 'high';
+    optimalOrderDate: string;
+    reason: string;
+  };
+}> {
+  return apiFetch<{
+    productId: number;
+    forecastDays: number;
+    predictions: Array<{
+      date: string;
+      predictedQuantity: number;
+      confidence: number;
+    }>;
+    recommendations: {
+      recommendedOrder: number;
+      stockoutRisk: 'low' | 'medium' | 'high';
+      optimalOrderDate: string;
+      reason: string;
+    };
+  }>(`/forecast`, {
+    method: 'POST',
+    body: JSON.stringify({
+      DaysCount: days,
+      products: [{ productId }]
+    })
+  });
+}
+
+export async function getOutOfStockReports(): Promise<Array<{
+  id: number;
+  quantityNeeded: number;
+  priority: 'low' | 'medium' | 'high';
+  notes: string;
+  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+  product: {
+    id: number;
+    name: string;
+    sku: string;
+  } | null;
+  location: {
+    id: number;
+    name: string;
+  } | null;
+  reporter: {
+    id: string;
+    name: string;
+  } | null;
+}>> {
+  return apiFetch<Array<{
+    id: number;
+    quantityNeeded: number;
+    priority: 'low' | 'medium' | 'high';
+    notes: string;
+    status: 'pending' | 'processing' | 'completed' | 'cancelled';
+    createdAt: string;
+    updatedAt: string;
+    product: {
+      id: number;
+      name: string;
+      sku: string;
+    } | null;
+    location: {
+      id: number;
+      name: string;
+    } | null;
+    reporter: {
+      id: string;
+      name: string;
+    } | null;
+  }>>('/inventory/out-of-stock-reports');
+}
+
+export async function createOutOfStockReport(data: {
+  productId: number;
+  locationId?: number;
+  quantityNeeded?: number;
+  priority?: 'low' | 'medium' | 'high';
+  notes?: string;
+}): Promise<{
+  id: number;
+  message: string;
+}> {
+  return apiFetch<{
+    id: number;
+    message: string;
+  }>('/inventory/out-of-stock-reports', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+export async function updateOutOfStockReportStatus(
+  reportId: number,
+  status: 'pending' | 'processing' | 'completed' | 'cancelled'
+): Promise<{
+  id: number;
+  status: string;
+  message: string;
+}> {
+  return apiFetch<{
+    id: number;
+    status: string;
+    message: string;
+  }>(`/inventory/out-of-stock-reports/${reportId}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status })
+  });
+}
 
 export const fetchProductSnapshot = (productId: number): Promise<ProductSnapshot> => {
   // This endpoint might not exist on the backend, this is a plausible implementation.
