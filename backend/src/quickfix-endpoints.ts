@@ -28,13 +28,56 @@ app.get('/api/inventory/test', (req, res) => {
   });
 });
 
-// Inventory products endpoint (mock)
+// Inventory products endpoint (mock) - ИСПРАВЛЕНО: правильная структура данных
 app.get('/api/inventory/products', (req, res) => {
   console.log('Inventory products endpoint called');
   res.json([
-    { id: 1, name: 'Product 1', quantity: 10, price: 19.99 },
-    { id: 2, name: 'Product 2', quantity: 5, price: 29.99 },
-    { id: 3, name: 'Product 3', quantity: 15, price: 9.99 }
+    {
+      product_id: 1,
+      product_name: 'Колбаса докторская',
+      price: 450.00,
+      sku: 'KOL001',
+      stock_by_location: [
+        { location_id: 1, location_name: 'Центральный склад', stock: 36 },
+        { location_id: 2, location_name: 'Магазин на Ленина', stock: 12 }
+      ]
+    },
+    {
+      product_id: 2,
+      product_name: 'Сыр российский',
+      price: 380.00,
+      sku: 'SYR001',
+      stock_by_location: [
+        { location_id: 1, location_name: 'Центральный склад', stock: 7 }
+      ]
+    },
+    {
+      product_id: 3,
+      product_name: 'Молоко 3.2%',
+      price: 65.00,
+      sku: 'MOL001',
+      stock_by_location: [
+        { location_id: 1, location_name: 'Центральный склад', stock: 0 }
+      ]
+    },
+    {
+      product_id: 4,
+      product_name: 'Хлеб белый',
+      price: 45.00,
+      sku: 'HLB001',
+      stock_by_location: [
+        { location_id: 1, location_name: 'Центральный склад', stock: 33 }
+      ]
+    },
+    {
+      product_id: 5,
+      product_name: 'Масло сливочное',
+      price: 280.00,
+      sku: 'MAS001',
+      stock_by_location: [
+        { location_id: 1, location_name: 'Центральный склад', stock: 14 }
+      ]
+    }
   ]);
 });
 
