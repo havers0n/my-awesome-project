@@ -12,15 +12,18 @@ export interface HistoryEntry {
   newQuantity: number;
 }
 
+export interface StockByLocation {
+  location_id: number;
+  location_name: string;
+  stock: number;
+}
+
 export interface Product {
-  id: string;
-  name: string;
-  shelf: string;
-  category: string;
-  quantity: number;
-  status: ProductStatus;
-  history: HistoryEntry[];
-  price?: number;
+  product_id: number;
+  product_name: string;
+  price: number;
+  sku: string;
+  stock_by_location: StockByLocation[];
 }
 
 export interface ProductSnapshot {

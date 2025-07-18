@@ -1,6 +1,5 @@
 import { 
   Product, 
-  HistoryEntry, 
   ForecastData, 
   ProductSnapshot, 
   ComparativeForecastData, 
@@ -91,35 +90,40 @@ export const fetchProducts = (): Promise<Product[]> => {
   return apiFetch('/inventory/products');
 };
 
-export const addProduct = (productData: Omit<Product, 'id' | 'status' | 'history'>): Promise<Product> => {
+export const addProduct = (productData: Omit<Product, 'product_id' | 'stock_by_location'>): Promise<Product> => {
   return apiFetch('/inventory/products', {
     method: 'POST',
     body: JSON.stringify(productData),
   });
 };
 
-export const updateProductQuantity = (productId: string, quantity: number, type: HistoryEntry['type']): Promise<Product> => {
+export const updateProduct = (productId: number, productData: Omit<Product, 'product_id' | 'stock_by_location'>): Promise<Product> => {
+  return apiFetch(`/inventory/products/${productId}`, {
+    method: 'PUT',
+    body: JSON.stringify(productData),
+  });
+};
+
+export const updateProductQuantity = (productId: number, quantity: number, type: 'Поступление' | 'Списание' | 'Коррекция' | 'Отчет о нехватке'): Promise<Product> => {
   return apiFetch(`/inventory/products/${productId}/quantity`, {
     method: 'PUT',
     body: JSON.stringify({ quantity, type }),
   });
 };
 
-export const deleteProduct = (productId: string): Promise<{ id: string }> => {
+export const deleteProduct = (productId: number): Promise<{ product_id: number }> => {
   return apiFetch(`/inventory/products/${productId}`, {
     method: 'DELETE',
-  }).then(() => ({ id: productId }));
+  }).then(() => ({ product_id: productId }));
 };
 
-
-export const fetchProductSnapshot = (productId: string): Promise<ProductSnapshot> => {
+export const fetchProductSnapshot = (productId: number): Promise<ProductSnapshot> => {
   // This endpoint might not exist on the backend, this is a plausible implementation.
   // The original mock calculated this on the frontend from product history.
   // The backend might need a new endpoint, e.g., /api/products/{id}/snapshot
   console.warn("fetchProductSnapshot is using a placeholder endpoint. Backend implementation may be required.");
   return apiFetch(`/inventory/products/${productId}/snapshot`);
 };
-
 
 export const requestSalesForecast = async (days: number, product: Product, priceOverride?: number): Promise<ForecastData> => {
   // This is a two-step process now:
@@ -132,18 +136,17 @@ export const requestSalesForecast = async (days: number, product: Product, price
     method: 'POST',
     body: JSON.stringify({ 
       DaysCount: days,
-      ProductId: product.id,
+      ProductId: product.product_id,
       PriceOverride: priceOverride
     }),
   });
   
   // Step 2: Fetch the latest forecast data to display on the page
   // The backend's getForecastData seems to be what we need.
-  return apiFetch(`/forecast/forecast?days=${days}&productId=${product.id}`);
+  return apiFetch(`/forecast/forecast?days=${days}&productId=${product.product_id}`);
 };
 
-
-export const requestComparativeForecast = async (productIds: string[], days: number): Promise<ComparativeForecastData> => {
+export const requestComparativeForecast = async (productIds: number[], days: number): Promise<ComparativeForecastData> => {
   // Make a direct call to the comparative forecast endpoint
   try {
     const response = await apiFetch<ComparativeForecastData>('/forecast/comparative', {

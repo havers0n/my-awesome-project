@@ -1,34 +1,32 @@
 ---
-description:
-globs:
 alwaysApply: true
 ---
-[RU]
-После любого изменения кода обязательно:
+  [RU]
+  После любого изменения кода обязательно:
 
-1. Выполни сборку проекта (dotnet build / npm build / ...).
-2. Немедленно исправь все ошибки, если они есть.
-3. Проверь работоспособность приложения, исправь баги.
-4. При необходимости обнови документацию (README.md, CLAUDE.md и другие файлы).
-5. Сделай осмысленный коммит и отправь изменения (push) в репозиторий.
-6. Не используй заглушки и тестовые данные — только рабочий код.
-7. Всегда проверяй совместимость с WinUI 3 (если используется).
-8. Следи за безопасностью и архитектурой — не нарушай паттерны, не ослабляй защиту.
-9. Все изменения документируй, чтобы они были понятны для любого нового участника.
+  1. Выполни сборку проекта (dotnet build / npm build / ...).
+  2. Немедленно исправь все ошибки, если они есть.
+  3. Проверь работоспособность приложения, исправь баги.
+  4. При необходимости обнови документацию (README.md, CLAUDE.md и другие файлы).
+  5. Сделай осмысленный коммит и отправь изменения (push) в репозиторий.
+  6. Не используй заглушки и тестовые данные — только рабочий код.
+  7. Всегда проверяй совместимость с WinUI 3 (если используется).
+  8. Следи за безопасностью и архитектурой — не нарушай паттерны, не ослабляй защиту.
+  9. Все изменения документируй, чтобы они были понятны для любого нового участника.
 
-Это обязательный процесс — не рекомендация!
+  Это обязательный процесс — не рекомендация!
 
-[EN]
-After every code change you MUST:
+  [EN]
+  After every code change you MUST:
 
-1. Build the project (dotnet build / npm build / ...).
-2. Immediately fix all errors if any appear.
-3. Test the application, fix all bugs.
-4. Update documentation if needed (README.md, CLAUDE.md, and other files).
-5. Create a meaningful commit and push changes to the repository.
-6. Never use stubs or test data — only production-ready code.
-7. Always check compatibility with WinUI 3 (if used).
-8. Maintain security and architecture — don’t break patterns, don’t weaken protections.
-9. Document all changes so any new team member can understand your logic.
+  1. Build the project (dotnet build / npm build / ...).
+  2. Immediately fix all errors if any appear.
+  3. Test the application, fix all bugs.
+  4. Update documentation if needed (README.md, CLAUDE.md, and other files).
+  5. Create a meaningful commit and push changes to the repository.
+  6. Never use stubs or test data — only production-ready code.
+  7. Always check compatibility with WinUI 3 (if used).
+  8. Maintain security and architecture — don’t break patterns, don’t weaken protections.
+  9. Document all changes so any new team member can understand your logic.
 
-This is a strict requirement — not a suggestion!
+  This is a strict require
