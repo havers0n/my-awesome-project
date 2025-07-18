@@ -98,10 +98,10 @@ export const addProduct = (productData: Omit<Product, 'id' | 'status' | 'history
   });
 };
 
-export const updateProductQuantity = (productId: string, newQuantity: number, type: HistoryEntry['type']): Promise<Product> => {
+export const updateProductQuantity = (productId: string, quantity: number, type: HistoryEntry['type']): Promise<Product> => {
   return apiFetch(`/inventory/products/${productId}/quantity`, {
     method: 'PUT',
-    body: JSON.stringify({ newQuantity, type }),
+    body: JSON.stringify({ quantity, type }),
   });
 };
 

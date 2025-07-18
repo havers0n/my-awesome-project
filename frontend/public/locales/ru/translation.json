@@ -374,6 +374,21 @@
         "noProductsFound": "Товары не найдены",
         "tryFilters": "Попробуйте изменить фильтры или поисковый запрос."
       },
+      "addProductModal": {
+        "title": "Добавить продукт",
+        "nameLabel": "Название продукта",
+        "namePlaceholder": "Введите название продукта",
+        "shelfLabel": "Полка",
+        "shelfPlaceholder": "A1, B2, C3...",
+        "categoryLabel": "Категория",
+        "categoryPlaceholder": "Молочные продукты, Мясные изделия...",
+        "quantityLabel": "Количество",
+        "priceLabel": "Цена (₽)",
+        "cancel": "Отмена",
+        "add": "Добавить",
+        "adding": "Добавление...",
+        "required": "*"
+      },
       "history": {
         "arrival": "Поступление",
         "writeOff": "Списание", 

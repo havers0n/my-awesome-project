@@ -1,42 +1,40 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Warehouse, Zap, Search, Plus, ChevronUp, ChevronDown, TestTube } from 'lucide-react';
+import { Warehouse, Zap, Search, Plus, ChevronUp, ChevronDown, TestTube, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Product, ProductStatus, HistoryEntry } from '@/types/warehouse';
+import { fetchProducts, addProduct, deleteProduct } from '@/services/warehouseApi';
 
-// Типы данных (соответствуют system)
-export enum ProductStatus {
-  InStock = 'inStock',
-  LowStock = 'lowStock',
-  OutOfStock = 'outOfStock',
-}
-
-export interface HistoryEntry {
-  id: string;
-  date: string;
-  type: 'arrival' | 'writeOff' | 'correction' | 'shortageReport';
-  change: number;
-  newQuantity: number;
-}
+// Хелпер для расчета статуса продукта на основе количества
+const calculateProductStatus = (quantity: number): ProductStatus => {
+  if (quantity === 0) return ProductStatus.OutOfStock;
+  if (quantity <= 10) return ProductStatus.LowStock;
+  return ProductStatus.InStock;
+};
 
 // Хелпер для получения переводов статуса
 const getStatusTranslation = (t: any, status: ProductStatus) => {
-  return t(`inventory.management.status.${status}`);
+  switch (status) {
+    case ProductStatus.InStock:
+      return t('inventory.management.status.inStock');
+    case ProductStatus.LowStock:
+      return t('inventory.management.status.lowStock');
+    case ProductStatus.OutOfStock:
+      return t('inventory.management.status.outOfStock');
+    default:
+      return status;
+  }
 };
 
 // Хелпер для получения переводов типа операции
 const getHistoryTypeTranslation = (t: any, type: string) => {
-  return t(`inventory.management.history.${type}`);
+  const typeMap: Record<string, string> = {
+    'Поступление': t('inventory.management.history.arrival'),
+    'Списание': t('inventory.management.history.writeOff'),
+    'Коррекция': t('inventory.management.history.correction'),
+    'Отчет о нехватке': t('inventory.management.history.shortageReport'),
+  };
+  return typeMap[type] || type;
 };
-
-export interface Product {
-  id: string;
-  name: string;
-  shelf: string;
-  category: string;
-  quantity: number;
-  status: ProductStatus;
-  history: HistoryEntry[];
-  price?: number;
-}
 
 // Компоненты
 const StatCard: React.FC<{ label: string; value: number; color?: string }> = ({ label, value, color = "text-gray-800" }) => (
@@ -46,7 +44,7 @@ const StatCard: React.FC<{ label: string; value: number; color?: string }> = ({ 
   </div>
 );
 
-const Header: React.FC<{ stats: { total: number; inStock: number; lowStock: number; outOfStock: number } }> = ({ stats }) => {
+const Header: React.FC<{ stats: { total: number; inStock: number; lowStock: number; outOfStock: number }; error?: string | null }> = ({ stats, error }) => {
   const { t } = useTranslation();
   return (
     <header className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-8">
@@ -54,18 +52,25 @@ const Header: React.FC<{ stats: { total: number; inStock: number; lowStock: numb
         <div className="bg-amber-600 p-3 rounded-xl text-white">
           <Warehouse className="w-8 h-8"/>
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-800">{t('inventory.management.title')}</h1>
           <p className="text-gray-400">{t('inventory.management.subtitle')}</p>
+          {error && (
+            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800 text-sm">
+                <strong>Предупреждение:</strong> {error}. Показаны демонстрационные данные.
+              </p>
+            </div>
+          )}
         </div>
       </div>
       
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard label={t('inventory.management.stats.totalSKU')} value={stats.total} />
-          <StatCard label={getStatusTranslation(t, ProductStatus.InStock)} value={stats.inStock} color="text-green-500" />
-          <StatCard label={getStatusTranslation(t, ProductStatus.LowStock)} value={stats.lowStock} color="text-yellow-500" />
-          <StatCard label={getStatusTranslation(t, ProductStatus.OutOfStock)} value={stats.outOfStock} color="text-red-500" />
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard label={t('inventory.management.stats.totalSKU')} value={stats.total} />
+        <StatCard label={getStatusTranslation(t, ProductStatus.InStock)} value={stats.inStock} color="text-green-500" />
+        <StatCard label={getStatusTranslation(t, ProductStatus.LowStock)} value={stats.lowStock} color="text-yellow-500" />
+        <StatCard label={getStatusTranslation(t, ProductStatus.OutOfStock)} value={stats.outOfStock} color="text-red-500" />
+      </div>
     </header>
   );
 };
@@ -477,11 +482,323 @@ const ProductList: React.FC<{
   );
 };
 
+// Модальное окно для добавления продукта
+const AddProductModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (productData: Omit<Product, 'id' | 'status' | 'history'>) => Promise<void>;
+}> = ({ isOpen, onClose, onSubmit }) => {
+  const { t } = useTranslation();
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    shelf: '',
+    category: '',
+    quantity: 0,
+    price: 0
+  });
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      shelf: '',
+      category: '',
+      quantity: 0,
+      price: 0
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim()) return;
+
+    setIsLoading(true);
+    try {
+      await onSubmit(formData);
+      resetForm();
+      onClose();
+    } catch (error) {
+      console.error('Ошибка добавления продукта:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800">{t('inventory.management.addProductModal.title')}</h2>
+          <button
+            onClick={handleClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('inventory.management.addProductModal.nameLabel')} {t('inventory.management.addProductModal.required')}
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                placeholder={t('inventory.management.addProductModal.namePlaceholder')}
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('inventory.management.addProductModal.shelfLabel')}
+              </label>
+              <input
+                type="text"
+                value={formData.shelf}
+                onChange={(e) => setFormData({ ...formData, shelf: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                placeholder={t('inventory.management.addProductModal.shelfPlaceholder')}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('inventory.management.addProductModal.categoryLabel')}
+              </label>
+              <input
+                type="text"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                placeholder={t('inventory.management.addProductModal.categoryPlaceholder')}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('inventory.management.addProductModal.quantityLabel')} {t('inventory.management.addProductModal.required')}
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.quantity}
+                onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('inventory.management.addProductModal.priceLabel')}
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-3 mt-6">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading || !formData.name.trim()}
+              className="flex-1 py-3 px-4 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {isLoading ? 'Добавление...' : 'Добавить'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// Модальное окно с деталями продукта
+const ProductDetailsModal: React.FC<{
+  product: Product | null;
+  onClose: () => void;
+}> = ({ product, onClose }) => {
+  const { t } = useTranslation();
+
+  if (!product) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-800">{t('inventory.management.modal.productDetails')}</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('inventory.management.productList.name')}
+                </label>
+                <p className="text-lg font-semibold text-gray-900">{product.name}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('inventory.management.modal.category')}
+                </label>
+                <p className="text-gray-900">{product.category}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('inventory.management.productList.shelf')}
+                </label>
+                <p className="text-gray-900">{product.shelf}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('inventory.management.productList.quantity')}
+                </label>
+                <p className="text-2xl font-bold text-gray-900">{product.quantity}</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('inventory.management.productList.status')}
+                </label>
+                <span className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
+                  product.status === ProductStatus.InStock ? 'bg-green-100 text-green-800' :
+                  product.status === ProductStatus.LowStock ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {getStatusTranslation(t, product.status)}
+                </span>
+              </div>
+              
+              {product.price && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('inventory.management.modal.price')}
+                  </label>
+                  <p className="text-lg font-semibold text-gray-900">{product.price} ₽</p>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {product.history.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                {t('inventory.management.modal.movementHistory')}
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('inventory.management.modal.date')}
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('inventory.management.modal.type')}
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('inventory.management.modal.change')}
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('inventory.management.modal.newQuantity')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {product.history.map((entry) => (
+                      <tr key={entry.id}>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(entry.date).toLocaleDateString('ru-RU', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                          {getHistoryTypeTranslation(t, entry.type)}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
+                          <span className={`font-medium ${
+                            entry.change > 0 ? 'text-green-600' : 
+                            entry.change < 0 ? 'text-red-600' : 'text-gray-600'
+                          }`}>
+                            {entry.change > 0 ? '+' : ''}{entry.change}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                          {entry.newQuantity}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          
+          {product.history.length === 0 && (
+            <div className="mt-8 text-center py-8">
+              <p className="text-gray-500">{t('inventory.management.modal.noHistory')}</p>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex justify-end p-6 border-t border-gray-200">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+          >
+            {t('inventory.management.modal.close')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Главный компонент
 const InventoryManagementPage: React.FC = () => {
   const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<ProductStatus | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -492,7 +809,30 @@ const InventoryManagementPage: React.FC = () => {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        // Имитация загрузки данных
+        setError(null);
+        console.log('Загружаем продукты из API...');
+        
+        const apiProducts = await fetchProducts();
+        console.log('Получено продуктов:', apiProducts.length);
+        
+        // Преобразуем данные из API к формату интерфейса
+        const transformedProducts: Product[] = apiProducts.map((apiProduct: any) => ({
+          id: String(apiProduct.id),
+          name: apiProduct.name || '',
+          shelf: apiProduct.sku || 'N/A', // Используем SKU как полку временно
+          category: 'Общие', // Пока используем общую категорию
+          quantity: parseInt(apiProduct.quantity || '0'),
+          status: calculateProductStatus(parseInt(apiProduct.quantity || '0')),
+          history: [], // История пока пустая
+          price: parseFloat(apiProduct.price || '0')
+        }));
+        
+        setProducts(transformedProducts);
+      } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+        setError(error instanceof Error ? error.message : 'Ошибка загрузки данных');
+        
+        // Показываем моковые данные в случае ошибки для демонстрации интерфейса
         const mockProducts: Product[] = [
           {
             id: '1',
@@ -523,52 +863,9 @@ const InventoryManagementPage: React.FC = () => {
             status: ProductStatus.OutOfStock,
             history: [],
             price: 65
-          },
-          {
-            id: '4',
-            name: 'Хлеб белый',
-            shelf: 'A1',
-            category: 'Хлебобулочные изделия',
-            quantity: 33,
-            status: ProductStatus.InStock,
-            history: [],
-            price: 45
-          },
-          {
-            id: '5',
-            name: 'Масло сливочное',
-            shelf: 'D1',
-            category: 'Молочные продукты',
-            quantity: 14,
-            status: ProductStatus.InStock,
-            history: [],
-            price: 280
-          },
-          {
-            id: '6',
-            name: 'Яйца куриные (десяток)',
-            shelf: 'C2',
-            category: 'Яйца',
-            quantity: 25,
-            status: ProductStatus.InStock,
-            history: [],
-            price: 90
-          },
-          {
-            id: '7',
-            name: 'Рис круглозерный 1кг',
-            shelf: 'A1',
-            category: 'Крупы',
-            quantity: 8,
-            status: ProductStatus.LowStock,
-            history: [],
-            price: 85
           }
         ];
-        
         setProducts(mockProducts);
-      } catch (error) {
-        console.error('Ошибка загрузки данных:', error);
       } finally {
         setIsInitialLoading(false);
       }
@@ -590,13 +887,76 @@ const InventoryManagementPage: React.FC = () => {
 
   // Обработчики
   const handleReportSubmit = async (productId: string) => {
-    // Имитация отправки отчета
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('Отчет отправлен для продукта:', productId);
+    try {
+      const product = products.find(p => p.id === productId);
+      if (!product) {
+        throw new Error('Продукт не найден');
+      }
+
+      // В будущем здесь можно добавить API для отправки отчета
+      // Пока имитируем отправку
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Отчет отправлен для продукта:', product.name);
+      
+      // Можно добавить обновление истории продукта
+      const updatedProducts = products.map(p => 
+        p.id === productId 
+          ? {
+              ...p,
+              history: [
+                ...p.history,
+                {
+                  id: Date.now().toString(),
+                  date: new Date().toISOString(),
+                  type: 'Отчет о нехватке' as const,
+                  change: 0,
+                  newQuantity: p.quantity
+                }
+              ]
+            }
+          : p
+      );
+      setProducts(updatedProducts);
+      
+    } catch (error) {
+      console.error('Ошибка отправки отчета:', error);
+      throw error;
+    }
   };
 
   const handleSelectProduct = (product: Product) => {
     setSelectedProduct(product);
+  };
+
+  const handleAddProduct = async (productData: Omit<Product, 'id' | 'status' | 'history'>) => {
+    try {
+      // Попытка добавить через API
+      const newProduct = await addProduct(productData);
+      
+      // Если API недоступно, добавляем локально для демонстрации
+      const localProduct: Product = {
+        ...productData,
+        id: Date.now().toString(),
+        status: calculateProductStatus(productData.quantity),
+        history: []
+      };
+      
+      setProducts(prev => [...prev, localProduct]);
+      console.log('Продукт добавлен:', localProduct.name);
+    } catch (error) {
+      console.error('Ошибка добавления продукта:', error);
+      
+      // Добавляем локально в случае ошибки API
+      const localProduct: Product = {
+        ...productData,
+        id: Date.now().toString(),
+        status: calculateProductStatus(productData.quantity),
+        history: []
+      };
+      
+      setProducts(prev => [...prev, localProduct]);
+      console.log('Продукт добавлен локально (API недоступно):', localProduct.name);
+    }
   };
 
   const handleSort = (key: string) => {
@@ -667,7 +1027,7 @@ const InventoryManagementPage: React.FC = () => {
   return (
     <div className="bg-gray-50 min-h-screen text-gray-800 font-sans">
       <div className="container mx-auto p-4 md:p-8">
-        <Header stats={stats} />
+        <Header stats={stats} error={error} />
         
         <div className="animate-fadeIn">
           <main className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
@@ -697,6 +1057,17 @@ const InventoryManagementPage: React.FC = () => {
             onSort={handleSort}
           />
         </div>
+        
+        <AddProductModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSubmit={handleAddProduct}
+        />
+        
+        <ProductDetailsModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
       </div>
       
       <style>{`

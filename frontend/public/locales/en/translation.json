@@ -373,6 +373,21 @@
           "noProductsFound": "No products found",
           "tryFilters": "Try changing filters or search query."
         },
+        "addProductModal": {
+          "title": "Add Product",
+          "nameLabel": "Product Name",
+          "namePlaceholder": "Enter product name",
+          "shelfLabel": "Shelf",
+          "shelfPlaceholder": "A1, B2, C3...",
+          "categoryLabel": "Category",
+          "categoryPlaceholder": "Dairy products, Meat products...",
+          "quantityLabel": "Quantity",
+          "priceLabel": "Price (₽)",
+          "cancel": "Cancel",
+          "add": "Add",
+          "adding": "Adding...",
+          "required": "*"
+        },
         "history": {
           "arrival": "Arrival",
           "writeOff": "Write-off",
