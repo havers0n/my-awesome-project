@@ -32,7 +32,7 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001', // real_data_server с правильной структурой данных
         changeOrigin: true,
         secure: false,
       }

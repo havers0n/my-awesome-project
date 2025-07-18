@@ -165,7 +165,7 @@ app.get('/api/test', (req, res) => {
 });
 
 // Start the server
-const PORT = 3000; // Изменено с 3001 на 3000 для совместимости с frontend
+const PORT = 3001; // Изменено обратно на 3001 для работы с frontend
 app.listen(PORT, () => {
   console.log(`✅ Real data server running on port ${PORT}`);
   console.log(`📊 Products endpoint: http://localhost:${PORT}/api/inventory/products`);
