@@ -5,7 +5,12 @@ import {
     updateProduct,
     deleteProduct,
     updateProductQuantity,
-    initializeStockView
+    getProductOperations,
+    getSuppliers,
+    getSupplierDeliveryInfo,
+    getOutOfStockReports,
+    createOutOfStockReport,
+    updateOutOfStockReportStatus
 } from '../controllers/inventoryController';
 import { authenticate } from '../middleware/authenticate';
 import { requireOrganization } from '../middleware/requireOrganization';
@@ -51,17 +56,23 @@ router.get('/products-test', async (req, res) => {
 // ВРЕМЕННО ОТКЛЮЧЕНО для диагностики - включить после исправления
 // router.use(requireOrganization);
 
-router.route('/products')
-    .get(getProducts)
-    .post(createProduct);
+// Core product routes (auth required)
+router.get('/products', authenticate, requireOrganization, getProducts);
+router.post('/products', authenticate, requireOrganization, createProduct);
+router.get('/products/:id/operations', authenticate, requireOrganization, getProductOperations);
+router.put('/products/:id', authenticate, requireOrganization, updateProduct);
+router.delete('/products/:id', authenticate, requireOrganization, deleteProduct);
+router.patch('/products/:id/quantity', authenticate, requireOrganization, updateProductQuantity);
 
-router.route('/products/:id')
-    .put(updateProduct)
-    .delete(deleteProduct);
+// Supplier routes
+router.get('/suppliers', authenticate, requireOrganization, getSuppliers);
+router.get('/suppliers/:id/delivery-info', authenticate, requireOrganization, getSupplierDeliveryInfo);
 
-router.put('/products/:id/quantity', updateProductQuantity);
+// Out of stock reports routes
+router.get('/out-of-stock-reports', authenticate, requireOrganization, getOutOfStockReports);
+router.post('/out-of-stock-reports', authenticate, requireOrganization, createOutOfStockReport);
+router.put('/out-of-stock-reports/:id/status', authenticate, requireOrganization, updateOutOfStockReportStatus);
 
-// Инициализация представления для остатков
-router.post('/initialize-stock-view', initializeStockView);
+// УБРАНО: initialize-stock-view endpoint - VIEW создаются миграциями
 
 export default router;

@@ -21,250 +21,97 @@ const getOrgId = (req: Request): number | null => {
     return user?.organization_id || null;
 };
 
-// Helper to generate mock data with stock quantities
-const generateMockProductsWithStock = (organizationId: number): any[] => {
-    return [
-        {
-            product_id: 1,
-            organization_id: organizationId,
-            product_name: 'Колбаса докторская',
-            sku: 'KOL001',
-            code: 'P001',
-            price: 450.00,
-            current_stock: 36,
-            stock_status: 'В наличии',
-            locations_with_stock: 1,
-            last_update: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        },
-        {
-            product_id: 2,
-            organization_id: organizationId,
-            product_name: 'Сыр российский',
-            sku: 'SYR001',
-            code: 'P002',
-            price: 380.00,
-            current_stock: 7,
-            stock_status: 'Мало',
-            locations_with_stock: 1,
-            last_update: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        },
-        {
-            product_id: 3,
-            organization_id: organizationId,
-            product_name: 'Молоко 3.2%',
-            sku: 'MOL001',
-            code: 'P003',
-            price: 65.00,
-            current_stock: 0,
-            stock_status: 'Нет в наличии',
-            locations_with_stock: 0,
-            last_update: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        },
-        {
-            product_id: 4,
-            organization_id: organizationId,
-            product_name: 'Хлеб белый',
-            sku: 'HLB001',
-            code: 'P004',
-            price: 45.00,
-            current_stock: 33,
-            stock_status: 'В наличии',
-            locations_with_stock: 1,
-            last_update: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        },
-        {
-            product_id: 5,
-            organization_id: organizationId,
-            product_name: 'Масло сливочное',
-            sku: 'MAS001',
-            code: 'P005',
-            price: 280.00,
-            current_stock: 14,
-            stock_status: 'В наличии',
-            locations_with_stock: 1,
-            last_update: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        },
-        {
-            product_id: 6,
-            organization_id: organizationId,
-            product_name: 'Яйца куриные (десяток)',
-            sku: 'YAI001',
-            code: 'P006',
-            price: 90.00,
-            current_stock: 25,
-            stock_status: 'В наличии',
-            locations_with_stock: 1,
-            last_update: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        },
-        {
-            product_id: 7,
-            organization_id: organizationId,
-            product_name: 'Рис круглозерный 1кг',
-            sku: 'RIS001',
-            code: 'P007',
-            price: 85.00,
-            current_stock: 8,
-            stock_status: 'Мало',
-            locations_with_stock: 1,
-            last_update: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        }
-    ];
-};
+// УБРАНО: mock данные больше не нужны, работаем только с реальными данными из VIEW
 
-// Функция для создания представления current_stock_view
-export const initializeStockView = async (req: Request, res: Response) => {
-    console.log('\n--- [START] initializeStockView CONTROLLER ---');
-    try {
-        const user = (req as any).user;
-        if (!user?.organization_id) {
-            return res.status(403).json({ error: 'Access denied: organization membership required' });
-        }
-
-        const supabase = getSupabaseUserClient(req.headers['authorization']!.replace('Bearer ', ''));
-
-        // SQL для создания представления current_stock_view
-        const createViewSQL = `
-            CREATE OR REPLACE VIEW public.current_stock_view AS
-            WITH latest_operations AS (
-              SELECT DISTINCT ON (product_id, location_id, organization_id)
-                product_id,
-                location_id,
-                organization_id,
-                stock_on_hand as current_stock,
-                operation_date,
-                operation_type
-              FROM public.operations
-              WHERE stock_on_hand IS NOT NULL
-              ORDER BY product_id, location_id, organization_id, operation_date DESC
-            ),
-            aggregated_stock AS (
-              SELECT 
-                product_id,
-                organization_id,
-                SUM(COALESCE(current_stock, 0)) as total_stock,
-                COUNT(location_id) as locations_count,
-                MAX(operation_date) as last_update
-              FROM latest_operations
-              GROUP BY product_id, organization_id
-            )
-            SELECT 
-              p.id as product_id,
-              p.organization_id,
-              p.name as product_name,
-              p.sku,
-              p.code,
-              p.price,
-              COALESCE(ast.total_stock, 0) as current_stock,
-              COALESCE(ast.locations_count, 0) as locations_with_stock,
-              ast.last_update,
-              CASE 
-                WHEN COALESCE(ast.total_stock, 0) = 0 THEN 'Нет в наличии'
-                WHEN COALESCE(ast.total_stock, 0) <= 10 THEN 'Мало'
-                ELSE 'В наличии'
-              END as stock_status,
-              p.created_at,
-              p.updated_at
-            FROM public.products p
-            LEFT JOIN aggregated_stock ast ON p.id = ast.product_id AND p.organization_id = ast.organization_id
-            ORDER BY p.name;
-        `;
-
-        // Выполняем SQL через rpc функцию (если доступна) или напрямую
-        console.log('[1] Attempting to create current_stock_view...');
-        
-        // Поскольку создание VIEW через Supabase JS может быть ограничено,
-        // возвращаем успешный ответ и инструкции по ручному выполнению
-        res.status(200).json({
-            message: 'View creation initiated',
-            sql: createViewSQL,
-            note: 'Execute this SQL manually in Supabase SQL Editor if view does not exist'
-        });
-
-    } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error('[ERROR] Failed to initialize stock view:', message);
-        res.status(500).json({ error: 'Failed to initialize stock view', details: message });
-    }
-    console.log('--- [END] initializeStockView CONTROLLER ---\n');
-};
+// УБРАНО: initializeStockView - VIEW должны создаваться миграциями, а не через API
 
 
-// ИСПРАВЛЕНО: Восстановлена безопасная проверка organization_id
-export const getProducts = async (req: Request, res: Response) => {
-    console.log('\n--- [START] getProducts CONTROLLER ---');
+// ИСПРАВЛЕНО: Работа ТОЛЬКО с правильными VIEW current_stock_view и stock_by_location_view
+export const getProducts = async (req: Request, res: Response): Promise<void> => {
+    console.log('\n--- [START] getProducts CONTROLLER (ИСПРАВЛЕННАЯ ВЕРСИЯ) ---');
     try {
         const user = (req as any).user;
         let organizationId = user?.organization_id;
 
-        // ВРЕМЕННО: если нет пользователя, используем организацию по умолчанию
+        // Если нет пользователя, используем организацию по умолчанию (для совместимости)
         if (!organizationId) {
             console.log('⚠️ No organization_id found, using default organization_id = 1');
             organizationId = 1;
         }
 
-        console.log(`📊 Fetching products for organization_id: ${organizationId}`);
+        console.log(`📊 Fetching stock from current_stock_view for organization_id: ${organizationId}`);
 
         // Получаем Supabase клиент
         const supabase = getSupabaseUserClient(req.headers['authorization']?.replace('Bearer ', '') || process.env.SUPABASE_SERVICE_ROLE_KEY || '');
 
-        // Запрос к реальной таблице products
-        const { data: products, error } = await supabase
-            .from('products')
-            .select(`
-                id,
-                name,
-                sku,
-                price,
-                organization_id
-            `)
+        // ИСПРАВЛЕНО: Получаем данные из current_stock_view
+        const { data: stockData, error } = await supabase
+            .from('current_stock_view')
+            .select('*')
             .eq('organization_id', organizationId)
-            .limit(10);
+            .order('product_name');
 
         if (error) {
             console.error('❌ Database error:', error);
-            return res.status(500).json({ error: 'Database query failed', details: error.message });
+            res.status(500).json({ error: 'Database query failed', details: error.message });
+            return;
         }
 
-        if (!products || products.length === 0) {
-            console.log('⚠️ No products found for this organization');
-            return res.json([]);
+        if (!stockData || stockData.length === 0) {
+            console.log('⚠️ No stock data found, returning empty result');
+            res.json({ data: [], pagination: { page: 1, limit: 100, total: 0 } });
+            return;
         }
 
-        // Преобразуем в нужный формат для frontend
-        const formattedProducts = products.map((product, index) => ({
-            product_id: product.id,
-            product_name: product.name,
-            sku: product.sku || `SKU-${product.id}`,
-            price: product.price || 0,
-            stock_by_location: [
-                // Временно добавляем случайные остатки
-                // В реальности нужен JOIN с таблицами operations и locations
-                { 
-                    location_id: 1, 
-                    location_name: 'Основной склад', 
-                    stock: Math.floor(Math.random() * 50) + (index % 3 === 0 ? 0 : 1)
-                }
-            ]
-        }));
+        // ИСПРАВЛЕНО: Получаем детализацию по локациям из stock_by_location_view
+        console.log(`📍 Fetching location details from stock_by_location_view...`);
+        const { data: locationStockData, error: locationError } = await supabase
+            .from('stock_by_location_view')
+            .select('*')
+            .eq('organization_id', organizationId);
 
-        console.log(`✅ Successfully fetched ${formattedProducts.length} REAL products from database:`);
-        formattedProducts.forEach(p => console.log(`  - ${p.product_name} (ID: ${p.product_id})`));
+        if (locationError) {
+            console.warn('⚠️ Could not fetch location details:', locationError.message);
+        }
 
-        res.json(formattedProducts);
+        // ИСПРАВЛЕНО: Адаптируем данные под формат frontend (Product с stock_by_location)
+        const formattedProducts = stockData.map((item: any) => {
+            // Находим остатки по локациям для этого продукта
+            const stockByLocation = (locationStockData || [])
+                .filter((loc: any) => loc.product_id === item.product_id)
+                .map((loc: any) => ({
+                    location_id: loc.location_id,
+                    location_name: loc.location_name,
+                    stock: Number(loc.stock) || 0
+                }));
+
+            return {
+                product_id: item.product_id,
+                product_name: item.product_name,
+                sku: item.sku,
+                code: item.code,
+                price: Number(item.price) || 0,
+                stock_by_location: stockByLocation,
+                created_at: item.created_at,
+                updated_at: item.updated_at,
+                // Дополнительные поля для совместимости
+                current_stock: Number(item.current_stock) || 0,
+                stock_status: item.stock_status || 'Неизвестно',
+                locations_with_stock: Number(item.locations_with_stock) || 0
+            };
+        });
+
+        console.log(`✅ Successfully fetched ${formattedProducts.length} products with location details`);
+
+        res.json({
+            data: formattedProducts,
+            pagination: {
+                page: 1,
+                limit: 100,
+                total: formattedProducts.length
+            }
+        });
+        return;
 
     } catch (error) {
         console.error('💥 Error in getProducts:', error);
@@ -272,7 +119,9 @@ export const getProducts = async (req: Request, res: Response) => {
             error: 'Failed to fetch products', 
             details: error instanceof Error ? error.message : String(error) 
         });
+        return;
     }
+    console.log('--- [END] getProducts CONTROLLER ---\n');
 };
 
 // POST /products - Create a new product
@@ -462,4 +311,450 @@ export const updateProductQuantity = async (req: Request, res: Response): Promis
         }
         res.status(500).json({ error: 'Failed to update product quantity', details: message });
     }
+}; 
+
+// GET /products/:id/operations - Get operations history for a specific product
+export const getProductOperations = async (req: Request, res: Response): Promise<void> => {
+    console.log('\n--- [START] getProductOperations CONTROLLER ---');
+    
+    try {
+        const { id: productId } = req.params;
+        const user = (req as any).user;
+        let organizationId = user?.organization_id;
+
+        // ВРЕМЕННО: если нет пользователя, используем организацию по умолчанию
+        if (!organizationId) {
+            console.log('⚠️ No organization_id found, using default organization_id = 1');
+            organizationId = 1;
+        }
+
+        console.log(`📊 Fetching operations for product ${productId}, organization: ${organizationId}`);
+
+        const supabase = getSupabaseUserClient(req.headers['authorization']?.replace('Bearer ', '') || process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+
+        // Получаем операции для конкретного товара
+        const { data: operations, error } = await supabase
+            .from('operations')
+            .select(`
+                id,
+                operation_type,
+                operation_date,
+                quantity,
+                total_amount,
+                cost_price,
+                shelf_price,
+                stock_on_hand,
+                delivery_delay_days,
+                was_out_of_stock,
+                created_at,
+                locations (
+                    id,
+                    name
+                ),
+                suppliers (
+                    id,
+                    name
+                )
+            `)
+            .eq('product_id', productId)
+            .eq('organization_id', organizationId)
+            .order('operation_date', { ascending: false })
+            .limit(50);
+
+        if (error) {
+            console.error('❌ Database error:', error);
+            res.status(500).json({ error: 'Database query failed', details: error.message });
+            return;
+        }
+
+        // Форматируем данные для frontend
+        const formattedOperations = (operations || []).map(op => ({
+            id: op.id,
+            type: op.operation_type,
+            date: op.operation_date,
+            quantity: op.quantity,
+            totalAmount: op.total_amount,
+            costPrice: op.cost_price,
+            shelfPrice: op.shelf_price,
+            stockOnHand: op.stock_on_hand,
+            deliveryDelayDays: op.delivery_delay_days,
+            wasOutOfStock: op.was_out_of_stock,
+            location: (op.locations as any) ? {
+                id: (op.locations as any).id,
+                name: (op.locations as any).name
+            } : null,
+            supplier: (op.suppliers as any) ? {
+                id: (op.suppliers as any).id,
+                name: (op.suppliers as any).name
+            } : null,
+            createdAt: op.created_at
+        }));
+
+        console.log(`✅ Successfully fetched ${formattedOperations.length} operations for product ${productId}`);
+
+        res.json({
+            productId: parseInt(productId),
+            operations: formattedOperations,
+            total: formattedOperations.length
+        });
+
+    } catch (error) {
+        console.error('💥 Error in getProductOperations:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch product operations', 
+            details: error instanceof Error ? error.message : String(error) 
+        });
+    }
+    
+    console.log('--- [END] getProductOperations CONTROLLER ---\n');
+};
+
+// GET /suppliers - Get all suppliers for organization
+export const getSuppliers = async (req: Request, res: Response): Promise<void> => {
+    console.log('\n--- [START] getSuppliers CONTROLLER ---');
+    
+    try {
+        const user = (req as any).user;
+        let organizationId = user?.organization_id;
+
+        // ВРЕМЕННО: если нет пользователя, используем организацию по умолчанию
+        if (!organizationId) {
+            console.log('⚠️ No organization_id found, using default organization_id = 1');
+            organizationId = 1;
+        }
+
+        console.log(`📊 Fetching suppliers for organization: ${organizationId}`);
+
+        const supabase = getSupabaseUserClient(req.headers['authorization']?.replace('Bearer ', '') || process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+
+        // Получаем всех поставщиков организации
+        const { data: suppliers, error } = await supabase
+            .from('suppliers')
+            .select(`
+                id,
+                name,
+                created_at,
+                updated_at
+            `)
+            .eq('organization_id', organizationId)
+            .order('name');
+
+        if (error) {
+            console.error('❌ Database error:', error);
+            res.status(500).json({ error: 'Database query failed', details: error.message });
+            return;
+        }
+
+        console.log(`✅ Successfully fetched ${suppliers?.length || 0} suppliers`);
+
+        res.json(suppliers || []);
+
+    } catch (error) {
+        console.error('💥 Error in getSuppliers:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch suppliers', 
+            details: error instanceof Error ? error.message : String(error) 
+        });
+    }
+    
+    console.log('--- [END] getSuppliers CONTROLLER ---\n');
+};
+
+// GET /suppliers/:id/delivery-info - Get delivery information for a supplier
+export const getSupplierDeliveryInfo = async (req: Request, res: Response): Promise<void> => {
+    console.log('\n--- [START] getSupplierDeliveryInfo CONTROLLER ---');
+    
+    try {
+        const { id: supplierId } = req.params;
+        const user = (req as any).user;
+        let organizationId = user?.organization_id;
+
+        // ВРЕМЕННО: если нет пользователя, используем организацию по умолчанию
+        if (!organizationId) {
+            console.log('⚠️ No organization_id found, using default organization_id = 1');
+            organizationId = 1;
+        }
+
+        console.log(`📊 Fetching delivery info for supplier ${supplierId}, organization: ${organizationId}`);
+
+        const supabase = getSupabaseUserClient(req.headers['authorization']?.replace('Bearer ', '') || process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+
+        // Получаем информацию о доставках от поставщика (из операций)
+        const { data: deliveryData, error } = await supabase
+            .from('operations')
+            .select(`
+                operation_date,
+                delivery_delay_days,
+                quantity,
+                total_amount,
+                cost_price,
+                products (
+                    id,
+                    name
+                )
+            `)
+            .eq('supplier_id', supplierId)
+            .eq('organization_id', organizationId)
+            .eq('operation_type', 'purchase')
+            .order('operation_date', { ascending: false })
+            .limit(20);
+
+        if (error) {
+            console.error('❌ Database error:', error);
+            res.status(500).json({ error: 'Database query failed', details: error.message });
+            return;
+        }
+
+        // Аналитика по поставщику
+        const deliveries = deliveryData || [];
+        const analytics = {
+            totalDeliveries: deliveries.length,
+            averageDelay: deliveries.length > 0 
+                ? deliveries.reduce((sum: number, d: any) => sum + (d.delivery_delay_days || 0), 0) / deliveries.length 
+                : 0,
+            totalAmount: deliveries.reduce((sum: number, d: any) => sum + (d.total_amount || 0), 0),
+            onTimeDeliveries: deliveries.filter(d => (d.delivery_delay_days || 0) === 0).length,
+            delayedDeliveries: deliveries.filter(d => (d.delivery_delay_days || 0) > 0).length,
+            recentDeliveries: deliveries.slice(0, 10).map(d => ({
+                date: d.operation_date,
+                delay: d.delivery_delay_days || 0,
+                amount: d.total_amount || 0,
+                product: (d.products as any) ? {
+                    id: (d.products as any).id,
+                    name: (d.products as any).name
+                } : null
+            }))
+        };
+
+        console.log(`✅ Successfully analyzed ${deliveries.length} deliveries for supplier ${supplierId}`);
+
+        res.json({
+            supplierId: parseInt(supplierId),
+            analytics,
+            deliveries: deliveries.map(d => ({
+                date: d.operation_date,
+                delay: d.delivery_delay_days || 0,
+                quantity: d.quantity,
+                amount: d.total_amount || 0,
+                costPrice: d.cost_price || 0,
+                product: (d.products as any) ? {
+                    id: (d.products as any).id,
+                    name: (d.products as any).name
+                } : null
+            }))
+        });
+
+    } catch (error) {
+        console.error('💥 Error in getSupplierDeliveryInfo:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch supplier delivery info', 
+            details: error instanceof Error ? error.message : String(error) 
+        });
+    }
+    
+    console.log('--- [END] getSupplierDeliveryInfo CONTROLLER ---\n');
+};
+
+// GET /out-of-stock-reports - Get all out of stock reports
+export const getOutOfStockReports = async (req: Request, res: Response): Promise<void> => {
+    console.log('\n--- [START] getOutOfStockReports CONTROLLER ---');
+    
+    try {
+        const user = (req as any).user;
+        let organizationId = user?.organization_id;
+
+        // ВРЕМЕННО: если нет пользователя, используем организацию по умолчанию
+        if (!organizationId) {
+            console.log('⚠️ No organization_id found, using default organization_id = 1');
+            organizationId = 1;
+        }
+
+        console.log(`📊 Fetching out of stock reports for organization: ${organizationId}`);
+
+        const supabase = getSupabaseUserClient(req.headers['authorization']?.replace('Bearer ', '') || process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+
+        // Получаем отчеты о нехватке
+        const { data: reports, error } = await supabase
+            .from('out_of_stock_items')
+            .select(`
+                id,
+                quantity_needed,
+                priority,
+                notes,
+                status,
+                created_at,
+                updated_at,
+                products (
+                    id,
+                    name,
+                    sku
+                ),
+                locations (
+                    id,
+                    name
+                ),
+                users!out_of_stock_items_user_id_fkey (
+                    id,
+                    full_name
+                )
+            `)
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+        if (error) {
+            console.error('❌ Database error:', error);
+            res.status(500).json({ error: 'Database query failed', details: error.message });
+            return;
+        }
+
+        // Форматируем данные
+        const formattedReports = (reports || []).map(report => ({
+            id: report.id,
+            quantityNeeded: report.quantity_needed,
+            priority: report.priority,
+            notes: report.notes,
+            status: report.status,
+            createdAt: report.created_at,
+            updatedAt: report.updated_at,
+            product: (report.products as any) ? {
+                id: (report.products as any).id,
+                name: (report.products as any).name,
+                sku: (report.products as any).sku
+            } : null,
+            location: (report.locations as any) ? {
+                id: (report.locations as any).id,
+                name: (report.locations as any).name
+            } : null,
+            reporter: (report.users as any) ? {
+                id: (report.users as any).id,
+                name: (report.users as any).full_name
+            } : null
+        }));
+
+        console.log(`✅ Successfully fetched ${formattedReports.length} out of stock reports`);
+
+        res.json(formattedReports);
+
+    } catch (error) {
+        console.error('💥 Error in getOutOfStockReports:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch out of stock reports', 
+            details: error instanceof Error ? error.message : String(error) 
+        });
+    }
+    
+    console.log('--- [END] getOutOfStockReports CONTROLLER ---\n');
+};
+
+// POST /out-of-stock-reports - Create new out of stock report
+export const createOutOfStockReport = async (req: Request, res: Response): Promise<void> => {
+    console.log('\n--- [START] createOutOfStockReport CONTROLLER ---');
+    
+    try {
+        const user = (req as any).user;
+        const { productId, locationId, quantityNeeded, priority, notes } = req.body;
+
+        if (!user || !user.id) {
+            res.status(401).json({ error: 'User not authenticated' });
+            return;
+        }
+
+        console.log(`📊 Creating out of stock report for product ${productId}`);
+
+        const supabase = getSupabaseUserClient(req.headers['authorization']?.replace('Bearer ', '') || process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+
+        // Создаем новый отчет
+        const { data: newReport, error } = await supabase
+            .from('out_of_stock_items')
+            .insert({
+                user_id: user.id,
+                product_id: productId,
+                location_id: locationId || 1, // Default location
+                quantity_needed: quantityNeeded || 1,
+                priority: priority || 'medium',
+                notes: notes || '',
+                status: 'pending'
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error('❌ Database error:', error);
+            res.status(500).json({ error: 'Failed to create report', details: error.message });
+            return;
+        }
+
+        console.log(`✅ Successfully created out of stock report ${newReport.id}`);
+
+        res.status(201).json({
+            id: newReport.id,
+            message: 'Report created successfully'
+        });
+
+    } catch (error) {
+        console.error('💥 Error in createOutOfStockReport:', error);
+        res.status(500).json({ 
+            error: 'Failed to create out of stock report', 
+            details: error instanceof Error ? error.message : String(error) 
+        });
+    }
+    
+    console.log('--- [END] createOutOfStockReport CONTROLLER ---\n');
+};
+
+// PUT /out-of-stock-reports/:id/status - Update report status
+export const updateOutOfStockReportStatus = async (req: Request, res: Response): Promise<void> => {
+    console.log('\n--- [START] updateOutOfStockReportStatus CONTROLLER ---');
+    
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (!['pending', 'processing', 'completed', 'cancelled'].includes(status)) {
+            res.status(400).json({ error: 'Invalid status value' });
+            return;
+        }
+
+        console.log(`📊 Updating report ${id} status to ${status}`);
+
+        const supabase = getSupabaseUserClient(req.headers['authorization']?.replace('Bearer ', '') || process.env.SUPABASE_SERVICE_ROLE_KEY || '');
+
+        const { data, error } = await supabase
+            .from('out_of_stock_items')
+            .update({ 
+                status,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('❌ Database error:', error);
+            res.status(500).json({ error: 'Failed to update report status', details: error.message });
+            return;
+        }
+
+        if (!data) {
+            res.status(404).json({ error: 'Report not found' });
+            return;
+        }
+
+        console.log(`✅ Successfully updated report ${id} status to ${status}`);
+
+        res.json({
+            id: data.id,
+            status: data.status,
+            message: 'Status updated successfully'
+        });
+
+    } catch (error) {
+        console.error('💥 Error in updateOutOfStockReportStatus:', error);
+        res.status(500).json({ 
+            error: 'Failed to update report status', 
+            details: error instanceof Error ? error.message : String(error) 
+        });
+    }
+    
+    console.log('--- [END] updateOutOfStockReportStatus CONTROLLER ---\n');
 }; 
