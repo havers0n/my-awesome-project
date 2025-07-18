@@ -291,6 +291,107 @@
         "title": "Support Chat",
         "description": "Chat for user support"
       }
+    },
+    "inventory": {
+      "management": {
+        "title": "Warehouse Management System",
+        "subtitle": "Complete control over inventory in real time",
+        "stats": {
+          "totalSKU": "Total SKU",
+          "inStock": "In Stock",
+          "lowStock": "Low Stock",
+          "outOfStock": "Out of Stock"
+        },
+        "status": {
+          "inStock": "In Stock",
+          "lowStock": "Low Stock",
+          "outOfStock": "Out of Stock"
+        },
+        "actions": {
+          "quickActions": "Quick Actions",
+          "filterBy": "Filter by status",
+          "allProducts": "All Products",
+          "addProduct": "Add Product",
+          "lowStockAlert": "Low Stock Alerts",
+          "generateReport": "Generate Report"
+        },
+        "table": {
+          "name": "Name",
+          "shelf": "Shelf",
+          "quantity": "Quantity",
+          "status": "Status",
+          "edit": "Edit",
+          "noProductsFound": "No products found",
+          "noProductsFoundDesc": "Try changing filters or search query."
+        },
+        "search": {
+          "placeholder": "Search products..."
+        },
+        "reports": {
+          "title": "Shortage Reports",
+          "description": "Track missing items with automatic report generation",
+          "lowStockItems": "low stock items",
+          "outOfStockItems": "out of stock items",
+          "generateStockReport": "Generate Stock Report",
+          "scheduleReport": "Schedule Automatic Report",
+          "reportCreated": "Report created successfully!",
+          "reportFor": "Report for",
+          "criticalItems": "critical items",
+          "totalValue": "Total Value",
+          "rub": "₽"
+        },
+        "donut": {
+          "totalItems": "items"
+        },
+        "quickActions": {
+          "title": "Warehouse Overview"
+        },
+        "reportForm": {
+          "title": "Product Shortage Report",
+          "selectProduct": "Select Product",
+          "chooseProduct": "-- Choose Product --",
+          "detectionDate": "Detection Date and Time",
+          "setNow": "Now",
+          "expectedDelivery": "Expected Delivery",
+          "sending": "Sending...",
+          "submitReport": "Submit Report",
+          "successMessage": "Report sent successfully!",
+          "errorMessage": "Error sending report."
+        },
+        "productItem": {
+          "details": "Details"
+        },
+        "productList": {
+          "title": "Warehouse Status",
+          "filteredBy": "Showing products with status: \"{{status}}\"",
+          "searchPlaceholder": "Search by name or shelf...",
+          "addProduct": "Add",
+          "name": "Name",
+          "shelf": "Shelf",
+          "quantity": "Quantity",
+          "status": "Status",
+          "noProductsFound": "No products found",
+          "tryFilters": "Try changing filters or search query."
+        },
+        "history": {
+          "arrival": "Arrival",
+          "writeOff": "Write-off",
+          "correction": "Correction",
+          "shortageReport": "Shortage Report"
+        },
+        "modal": {
+          "productDetails": "Product Details",
+          "close": "Close",
+          "category": "Category",
+          "price": "Price",
+          "movementHistory": "Movement History",
+          "date": "Date",
+          "type": "Type",
+          "change": "Change",
+          "newQuantity": "New Quantity",
+          "noHistory": "Movement history is empty"
+        }
+      }
     }
   }
 } 

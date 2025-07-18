@@ -292,5 +292,106 @@
         "description": "Чат для поддержки пользователей"
       }
     }
+  },
+  "inventory": {
+    "management": {
+      "title": "Система управления складом",
+      "subtitle": "Полный контроль над товарными запасами в режиме реального времени",
+      "stats": {
+        "totalSKU": "Всего SKU",
+        "inStock": "В наличии",
+        "lowStock": "Мало",
+        "outOfStock": "Нет в наличии"
+      },
+      "status": {
+        "inStock": "В наличии",
+        "lowStock": "Мало",
+        "outOfStock": "Нет в наличии"
+      },
+      "actions": {
+        "quickActions": "Быстрые действия",
+        "filterBy": "Фильтр по статусу",
+        "allProducts": "Все товары",
+        "addProduct": "Добавить товар",
+        "lowStockAlert": "Уведомления о нехватке",
+        "generateReport": "Создать отчет"
+      },
+      "table": {
+        "name": "Название",
+        "shelf": "Полка", 
+        "quantity": "Кол-во",
+        "status": "Статус",
+        "edit": "Редактировать",
+        "noProductsFound": "Товары не найдены",
+        "noProductsFoundDesc": "Попробуйте изменить фильтры или поисковый запрос."
+      },
+      "search": {
+        "placeholder": "Поиск товаров..."
+      },
+      "reports": {
+        "title": "Отчеты о нехватках",
+        "description": "Отслеживание недостающих товаров с возможностью создания автоматических отчетов",
+        "lowStockItems": "товаров с низким остатком",
+        "outOfStockItems": "товаров нет в наличии",
+        "generateStockReport": "Создать отчет по остаткам",
+        "scheduleReport": "Запланировать автоматический отчет",
+        "reportCreated": "Отчет создан успешно!",
+        "reportFor": "Отчет за",
+        "criticalItems": "критических позиций",
+        "totalValue": "Общая стоимость",
+        "rub": "₽"
+      },
+      "donut": {
+        "totalItems": "товаров"
+      },
+      "quickActions": {
+        "title": "Обзор склада"
+      },
+      "reportForm": {
+        "title": "Отчёт о недостатке товара",
+        "selectProduct": "Выберите товар",
+        "chooseProduct": "-- Выберите товар --",
+        "detectionDate": "Дата и время обнаружения",
+        "setNow": "Сейчас",
+        "expectedDelivery": "Ожидаемая поставка",
+        "sending": "Отправка...",
+        "submitReport": "Отправить отчёт",
+        "successMessage": "Отчёт успешно отправлен!",
+        "errorMessage": "Ошибка при отправке отчёта."
+      },
+      "productItem": {
+        "details": "Детали"
+      },
+      "productList": {
+        "title": "Состояние склада",
+        "filteredBy": "Показаны товары со статусом: \"{{status}}\"",
+        "searchPlaceholder": "Поиск по названию или полке...",
+        "addProduct": "Добавить",
+        "name": "Название",
+        "shelf": "Полка",
+        "quantity": "Кол-во",
+        "status": "Статус",
+        "noProductsFound": "Товары не найдены",
+        "tryFilters": "Попробуйте изменить фильтры или поисковый запрос."
+      },
+      "history": {
+        "arrival": "Поступление",
+        "writeOff": "Списание", 
+        "correction": "Коррекция",
+        "shortageReport": "Отчет о нехватке"
+      },
+      "modal": {
+        "productDetails": "Детали товара",
+        "close": "Закрыть",
+        "category": "Категория",
+        "price": "Цена",
+        "movementHistory": "История движений",
+        "date": "Дата",
+        "type": "Тип",
+        "change": "Изменение",
+        "newQuantity": "Новое количество",
+        "noHistory": "История движений пуста"
+      }
+    }
   }
 } 

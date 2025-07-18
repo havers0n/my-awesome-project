@@ -1,20 +1,31 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Warehouse, Zap, Search, Plus, ChevronUp, ChevronDown, TestTube } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // Типы данных (соответствуют system)
 export enum ProductStatus {
-  InStock = 'В наличии',
-  LowStock = 'Мало',
-  OutOfStock = 'Нет в наличии',
+  InStock = 'inStock',
+  LowStock = 'lowStock',
+  OutOfStock = 'outOfStock',
 }
 
 export interface HistoryEntry {
   id: string;
   date: string;
-  type: 'Поступление' | 'Списание' | 'Коррекция' | 'Отчет о нехватке';
+  type: 'arrival' | 'writeOff' | 'correction' | 'shortageReport';
   change: number;
   newQuantity: number;
 }
+
+// Хелпер для получения переводов статуса
+const getStatusTranslation = (t: any, status: ProductStatus) => {
+  return t(`inventory.management.status.${status}`);
+};
+
+// Хелпер для получения переводов типа операции
+const getHistoryTypeTranslation = (t: any, type: string) => {
+  return t(`inventory.management.history.${type}`);
+};
 
 export interface Product {
   id: string;
@@ -35,32 +46,36 @@ const StatCard: React.FC<{ label: string; value: number; color?: string }> = ({ 
   </div>
 );
 
-const Header: React.FC<{ stats: { total: number; inStock: number; lowStock: number; outOfStock: number } }> = ({ stats }) => (
-  <header className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-8">
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-      <div className="bg-amber-600 p-3 rounded-xl text-white">
-        <Warehouse className="w-8 h-8"/>
+const Header: React.FC<{ stats: { total: number; inStock: number; lowStock: number; outOfStock: number } }> = ({ stats }) => {
+  const { t } = useTranslation();
+  return (
+    <header className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+        <div className="bg-amber-600 p-3 rounded-xl text-white">
+          <Warehouse className="w-8 h-8"/>
+        </div>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">{t('inventory.management.title')}</h1>
+          <p className="text-gray-400">{t('inventory.management.subtitle')}</p>
+        </div>
       </div>
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800">Система управления складом</h1>
-        <p className="text-gray-400">Полный контроль над товарными запасами в режиме реального времени</p>
-      </div>
-    </div>
-    
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <StatCard label="Всего SKU" value={stats.total} />
-      <StatCard label={ProductStatus.InStock} value={stats.inStock} color="text-green-500" />
-      <StatCard label={ProductStatus.LowStock} value={stats.lowStock} color="text-yellow-500" />
-      <StatCard label={ProductStatus.OutOfStock} value={stats.outOfStock} color="text-red-500" />
-    </div>
-  </header>
-);
+      
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard label={t('inventory.management.stats.totalSKU')} value={stats.total} />
+          <StatCard label={getStatusTranslation(t, ProductStatus.InStock)} value={stats.inStock} color="text-green-500" />
+          <StatCard label={getStatusTranslation(t, ProductStatus.LowStock)} value={stats.lowStock} color="text-yellow-500" />
+          <StatCard label={getStatusTranslation(t, ProductStatus.OutOfStock)} value={stats.outOfStock} color="text-red-500" />
+        </div>
+    </header>
+  );
+};
 
 const DonutChart: React.FC<{ 
   data: { name: string; value: number; color: string }[];
   total: number;
   onSliceClick?: (payload: any) => void;
 }> = ({ data, total, onSliceClick }) => {
+  const { t } = useTranslation();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   // Простая реализация круговой диаграммы без recharts
@@ -128,7 +143,7 @@ const DonutChart: React.FC<{
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
         <span className="text-4xl font-bold text-gray-800">{total}</span>
-        <span className="text-sm text-gray-400">товаров</span>
+        <span className="text-sm text-gray-400">{t('inventory.management.donut.totalItems')}</span>
       </div>
     </div>
   );
@@ -139,6 +154,7 @@ const QuickActions: React.FC<{
   onFilterChange: (status: ProductStatus | null) => void;
   activeFilter: ProductStatus | null;
 }> = ({ products, onFilterChange, activeFilter }) => {
+  const { t } = useTranslation();
   const data = useMemo(() => {
     const counts = {
       [ProductStatus.InStock]: 0,
@@ -173,7 +189,7 @@ const QuickActions: React.FC<{
         <div className="bg-amber-100 text-amber-600 p-2 rounded-lg">
           <Zap className="w-5 h-5" />
         </div>
-        <h2 className="text-xl font-bold text-gray-800">Обзор склада</h2>
+        <h2 className="text-xl font-bold text-gray-800">{t('inventory.management.quickActions.title')}</h2>
       </div>
 
       <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
@@ -195,10 +211,10 @@ const QuickActions: React.FC<{
                 onClick={() => handleFilter(status)}
                 className={`flex items-center gap-4 p-2 rounded-lg cursor-pointer transition-all duration-200 ${isActive ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
               >
-                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></span>
-                <span className={`font-semibold text-gray-700 ${isActive ? 'font-bold' : ''}`}>
-                  {item.value} {item.name}
-                </span>
+                                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></span>
+                  <span className={`font-semibold text-gray-700 ${isActive ? 'font-bold' : ''}`}>
+                    {item.value} {getStatusTranslation(t, item.name as ProductStatus)}
+                  </span>
               </li>
             );
           })}
@@ -212,6 +228,7 @@ const ReportForm: React.FC<{
   products: Product[];
   onReportSubmit: (productId: string) => Promise<void>;
 }> = ({ products, onReportSubmit }) => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -241,10 +258,10 @@ const ReportForm: React.FC<{
     setIsLoading(true);
     try {
       await onReportSubmit(selectedProductId);
-      alert('Отчёт успешно отправлен!');
+      alert(t('inventory.management.reportForm.successMessage'));
       resetForm();
     } catch (error) {
-      alert('Ошибка при отправке отчёта.');
+      alert(t('inventory.management.reportForm.errorMessage'));
       console.error("Failed to submit report:", error);
     } finally {
       setIsLoading(false);
@@ -253,10 +270,10 @@ const ReportForm: React.FC<{
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 h-full">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Отчёт о недостатке товара</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-4">{t('inventory.management.reportForm.title')}</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="productSelect">Выберите товар</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="productSelect">{t('inventory.management.reportForm.selectProduct')}</label>
           <select 
             id="productSelect"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-600 focus:border-amber-600"
@@ -264,7 +281,7 @@ const ReportForm: React.FC<{
             onChange={(e) => setSelectedProductId(e.target.value)}
             required
           >
-            <option value="" disabled>-- Выберите товар --</option>
+            <option value="" disabled>{t('inventory.management.reportForm.chooseProduct')}</option>
             {products.map(product => (
               <option key={product.id} value={product.id}>
                 {product.name}
@@ -273,7 +290,7 @@ const ReportForm: React.FC<{
           </select>
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Дата и время обнаружения</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('inventory.management.reportForm.detectionDate')}</label>
           <div className="flex items-center gap-2">
             <input 
               type="date" 
@@ -292,12 +309,12 @@ const ReportForm: React.FC<{
               onClick={handleSetNow} 
               className="text-sm text-amber-700 font-semibold hover:underline whitespace-nowrap"
             >
-              Сейчас
+              {t('inventory.management.reportForm.setNow')}
             </button>
           </div>
         </div>
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="expectedDelivery">Ожидаемая поставка</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="expectedDelivery">{t('inventory.management.reportForm.expectedDelivery')}</label>
           <input 
             type="date" 
             id="expectedDelivery" 
@@ -309,7 +326,7 @@ const ReportForm: React.FC<{
           disabled={isLoading || !selectedProductId}
           className="w-full font-bold py-3 px-4 rounded-lg text-white transition-all duration-300 shadow-lg hover:shadow-xl bg-amber-700 hover:bg-amber-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          {isLoading ? 'Отправка...' : 'Отправить отчёт'}
+          {isLoading ? t('inventory.management.reportForm.sending') : t('inventory.management.reportForm.submitReport')}
         </button>
       </form>
     </div>
@@ -320,6 +337,7 @@ const ProductItem: React.FC<{
   product: Product;
   onSelect: (product: Product) => void;
 }> = ({ product, onSelect }) => {
+  const { t } = useTranslation();
   const getStatusClasses = (status: ProductStatus) => {
     switch (status) {
       case ProductStatus.InStock:
@@ -344,13 +362,13 @@ const ProductItem: React.FC<{
       <td className="px-6 py-4 whitespace-nowrap text-center">
         <div className="text-sm font-bold text-gray-900">{product.quantity}</div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap text-center">
-        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClasses(product.status)}`}>
-          {product.status}
-        </span>
-      </td>
+              <td className="px-6 py-4 whitespace-nowrap text-center">
+          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClasses(product.status)}`}>
+            {getStatusTranslation(t, product.status)}
+          </span>
+        </td>
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-        <span className="text-amber-600 hover:text-amber-800">Детали</span>
+        <span className="text-amber-600 hover:text-amber-800">{t('inventory.management.productItem.details')}</span>
       </td>
     </tr>
   );
@@ -363,13 +381,14 @@ const SortableHeader: React.FC<{
   onSort: (key: string) => void;
   className?: string;
 }> = ({ title, sortKey, sortConfig, onSort, className }) => {
+  const { t } = useTranslation();
   const isSorted = sortConfig?.key === sortKey;
   const direction = sortConfig?.direction;
 
   return (
     <th scope="col" className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${className}`}>
       <button onClick={() => onSort(sortKey)} className="flex items-center gap-1 group">
-        {title}
+        {t(title)}
         <span className="opacity-0 group-hover:opacity-100 transition-opacity">
           {isSorted ? (
             direction === 'ascending' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
@@ -392,17 +411,18 @@ const ProductList: React.FC<{
   sortConfig: any;
   onSort: (key: string) => void;
 }> = ({ products, onSelectProduct, filter, searchQuery, onSearchChange, onAddProductClick, sortConfig, onSort }) => {
+  const { t } = useTranslation();
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
       <div className="p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">Состояние склада</h2>
-            {filter && (
-              <p className="mt-1 text-sm text-amber-700 font-semibold">
-                Показаны товары со статусом: &quot;{filter}&quot;
-              </p>
-            )}
+            <h2 className="text-xl font-bold text-gray-800">{t('inventory.management.productList.title')}</h2>
+                          {filter && (
+                <p className="mt-1 text-sm text-amber-700 font-semibold">
+                  {t('inventory.management.productList.filteredBy', { status: getStatusTranslation(t, filter) })}
+                </p>
+              )}
           </div>
           <div className="flex w-full sm:w-auto items-center gap-2">
             <div className="relative flex-grow">
@@ -411,7 +431,7 @@ const ProductList: React.FC<{
               </span>
               <input
                 type="text"
-                placeholder="Поиск по названию или полке..."
+                placeholder={t('inventory.management.productList.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-amber-600 focus:border-amber-600 transition"
@@ -422,7 +442,7 @@ const ProductList: React.FC<{
               className="flex items-center gap-2 bg-amber-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-amber-600 transition-colors duration-300"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Добавить</span>
+              <span className="hidden sm:inline">{t('inventory.management.productList.addProduct')}</span>
             </button>
           </div>
         </div>
@@ -431,10 +451,10 @@ const ProductList: React.FC<{
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <SortableHeader title="Название" sortKey="name" sortConfig={sortConfig} onSort={onSort} className="text-left" />
-              <SortableHeader title="Полка" sortKey="shelf" sortConfig={sortConfig} onSort={onSort} className="text-left" />
-              <SortableHeader title="Кол-во" sortKey="quantity" sortConfig={sortConfig} onSort={onSort} className="text-center" />
-              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
+              <SortableHeader title="inventory.management.productList.name" sortKey="name" sortConfig={sortConfig} onSort={onSort} className="text-left" />
+              <SortableHeader title="inventory.management.productList.shelf" sortKey="shelf" sortConfig={sortConfig} onSort={onSort} className="text-left" />
+              <SortableHeader title="inventory.management.productList.quantity" sortKey="quantity" sortConfig={sortConfig} onSort={onSort} className="text-center" />
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('inventory.management.productList.status')}</th>
               <th scope="col" className="relative px-6 py-3"><span className="sr-only">Edit</span></th>
             </tr>
           </thead>
@@ -445,8 +465,8 @@ const ProductList: React.FC<{
             {products.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-10 text-gray-500">
-                  <h4 className="font-semibold text-lg text-gray-600">Товары не найдены</h4>
-                  <p className="text-sm">Попробуйте изменить фильтры или поисковый запрос.</p>
+                  <h4 className="font-semibold text-lg text-gray-600">{t('inventory.management.productList.noProductsFound')}</h4>
+                  <p className="text-sm">{t('inventory.management.productList.tryFilters')}</p>
                 </td>
               </tr>
             )}
@@ -459,6 +479,7 @@ const ProductList: React.FC<{
 
 // Главный компонент
 const InventoryManagementPage: React.FC = () => {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<ProductStatus | null>(null);
