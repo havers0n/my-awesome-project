@@ -816,16 +816,37 @@ const InventoryManagementPage: React.FC = () => {
         console.log('Получено продуктов:', apiProducts.length);
         
         // Преобразуем данные из API к формату интерфейса
-        const transformedProducts: Product[] = apiProducts.map((apiProduct: any) => ({
-          id: String(apiProduct.id),
-          name: apiProduct.name || '',
-          shelf: apiProduct.sku || 'N/A', // Используем SKU как полку временно
-          category: 'Общие', // Пока используем общую категорию
-          quantity: parseInt(apiProduct.quantity || '0'),
-          status: calculateProductStatus(parseInt(apiProduct.quantity || '0')),
-          history: [], // История пока пустая
-          price: parseFloat(apiProduct.price || '0')
-        }));
+        const transformedProducts: Product[] = apiProducts.map((apiProduct: any) => {
+          const quantity = parseInt(apiProduct.current_stock || '0');
+          const apiStatus = apiProduct.stock_status;
+          
+          // Преобразуем статус из русского в enum
+          let status: ProductStatus;
+          switch (apiStatus) {
+            case 'В наличии':
+              status = ProductStatus.InStock;
+              break;
+            case 'Мало':
+              status = ProductStatus.LowStock;
+              break;
+            case 'Нет в наличии':
+              status = ProductStatus.OutOfStock;
+              break;
+            default:
+              status = calculateProductStatus(quantity);
+          }
+          
+          return {
+            id: String(apiProduct.product_id),
+            name: apiProduct.product_name || '',
+            shelf: apiProduct.sku || 'N/A',
+            category: 'Общие', // Пока используем общую категорию
+            quantity: quantity,
+            status: status,
+            history: [], // История пока пустая
+            price: parseFloat(apiProduct.price || '0')
+          };
+        });
         
         setProducts(transformedProducts);
       } catch (error) {

@@ -4,7 +4,8 @@ import {
     createProduct,
     updateProduct,
     deleteProduct,
-    updateProductQuantity
+    updateProductQuantity,
+    initializeStockView
 } from '../controllers/inventoryController';
 import { authenticate } from '../middleware/authenticate';
 import { requireOrganization } from '../middleware/requireOrganization';
@@ -40,5 +41,8 @@ router.route('/products/:id')
     .delete(deleteProduct);
 
 router.put('/products/:id/quantity', updateProductQuantity);
+
+// Инициализация представления для остатков
+router.post('/initialize-stock-view', initializeStockView);
 
 export default router;
