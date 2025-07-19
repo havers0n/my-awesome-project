@@ -6,6 +6,7 @@ import { fetchAllProducts, addProduct, deleteProduct } from '@/services/warehous
 
 // Импорт новой функции для операций
 import { getProductOperations, getSuppliers, getSupplierDeliveryInfo, getMLForecast, createOutOfStockReport } from '@/services/warehouseApi';
+import TranslationDebug from '@/components/common/TranslationDebug';
 
 
 // Компоненты
@@ -29,12 +30,12 @@ const Header: React.FC<{
           <Warehouse className="w-8 h-8"/>
         </div>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-800">{t('inventory.management.title')}</h1>
-          <p className="text-gray-400">{t('inventory.management.subtitle')}</p>
+          <h1 className="text-3xl font-bold text-gray-800">{t('page.inventory.management.title')}</h1>
+          <p className="text-gray-400">{t('page.inventory.management.subtitle')}</p>
           {error && (
             <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-yellow-800 text-sm">
-                <strong>{t('inventory.management.warning.title')}:</strong> {error}. {t('inventory.management.warning.demoData')}.
+                <strong>{t('page.inventory.management.warning.title')}:</strong> {error}. {t('page.inventory.management.warning.demoData')}.
               </p>
             </div>
           )}
@@ -45,16 +46,16 @@ const Header: React.FC<{
             className="flex items-center gap-2 bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-700 transition-colors duration-300"
           >
             <span>📋</span>
-            {t('inventory.management.reports.title')}
+            {t('page.inventory.management.reports.title')}
           </button>
         </div>
       </div>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label={t('inventory.management.stats.totalSKU')} value={stats.total} />
-        <StatCard label={t('inventory.management.stats.inStock')} value={stats.inStock} color="text-green-600" />
-        <StatCard label={t('inventory.management.stats.lowStock')} value={stats.lowStock} color="text-yellow-600" />
-        <StatCard label={t('inventory.management.stats.outOfStock')} value={stats.outOfStock} color="text-red-600" />
+        <StatCard label={t('page.inventory.management.stats.totalSKU')} value={stats.total} />
+        <StatCard label={t('page.inventory.management.stats.inStock')} value={stats.inStock} color="text-green-600" />
+        <StatCard label={t('page.inventory.management.stats.lowStock')} value={stats.lowStock} color="text-yellow-600" />
+        <StatCard label={t('page.inventory.management.stats.outOfStock')} value={stats.outOfStock} color="text-red-600" />
       </div>
     </header>
   );
@@ -133,7 +134,7 @@ const DonutChart: React.FC<{
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
         <span className="text-4xl font-bold text-gray-800">{total}</span>
-        <span className="text-sm text-gray-400">{t('inventory.management.donutChart.totalProducts')}</span>
+        <span className="text-sm text-gray-400">{t('page.inventory.management.donutChart.totalProducts')}</span>
       </div>
     </div>
   );
@@ -168,9 +169,9 @@ const QuickActions: React.FC<{
     });
 
     return [
-      { name: 'inStock', value: counts['inStock'], color: '#22c55e', label: t('inventory.management.status.inStock') },
-      { name: 'lowStock', value: counts['lowStock'], color: '#d97706', label: t('inventory.management.status.lowStock') },
-      { name: 'outOfStock', value: counts['outOfStock'], color: '#991b1b', label: t('inventory.management.status.outOfStock') },
+      { name: 'inStock', value: counts['inStock'], color: '#22c55e', label: t('page.inventory.management.status.inStock') },
+      { name: 'lowStock', value: counts['lowStock'], color: '#d97706', label: t('page.inventory.management.status.lowStock') },
+      { name: 'outOfStock', value: counts['outOfStock'], color: '#991b1b', label: t('page.inventory.management.status.outOfStock') },
     ].filter(item => item.value > 0);
   }, [products]);
 
@@ -190,7 +191,7 @@ const QuickActions: React.FC<{
         <div className="bg-amber-100 text-amber-600 p-2 rounded-lg">
           <Zap className="w-5 h-5" />
         </div>
-        <h2 className="text-xl font-bold text-gray-800">{t('inventory.management.quickActions.title')}</h2>
+        <h2 className="text-xl font-bold text-gray-800">{t('page.inventory.management.quickActions.title')}</h2>
       </div>
 
       <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
@@ -271,10 +272,10 @@ const ReportForm: React.FC<{
     setIsLoading(true);
     try {
       await onReportSubmit(parseInt(selectedProductId));
-      alert(t('inventory.management.reportForm.successMessage'));
+      alert(t('page.inventory.management.reportForm.successMessage'));
       resetForm();
     } catch (error) {
-      alert(t('inventory.management.reportForm.errorMessage'));
+      alert(t('page.inventory.management.reportForm.errorMessage'));
       console.error("Failed to submit report:", error);
     } finally {
       setIsLoading(false);
@@ -283,10 +284,10 @@ const ReportForm: React.FC<{
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 h-full">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">{t('inventory.management.reportForm.title')}</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-4">{t('page.inventory.management.reportForm.title')}</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="productSelect">{t('inventory.management.reportForm.selectProduct')}</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="productSelect">{t('page.inventory.management.reportForm.selectProduct')}</label>
           
           {/* Поле поиска товаров */}
           <div className="mb-2 relative">
@@ -295,7 +296,7 @@ const ReportForm: React.FC<{
             </div>
             <input
               type="text"
-              placeholder={t('inventory.management.reportForm.searchPlaceholder')}
+              placeholder={t('page.inventory.management.reportForm.searchPlaceholder')}
               value={productSearchQuery}
               onChange={(e) => setProductSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-amber-600 focus:border-amber-600 text-sm"
@@ -319,7 +320,7 @@ const ReportForm: React.FC<{
             onChange={(e) => setSelectedProductId(e.target.value)}
             required
           >
-            <option value="" disabled>{t('inventory.management.reportForm.selectProduct')}</option>
+            <option value="" disabled>{t('page.inventory.management.reportForm.selectProduct')}</option>
             {filteredProducts.map(product => (
               <option key={product.product_id} value={product.product_id}>
                 {product.product_name}
@@ -330,12 +331,12 @@ const ReportForm: React.FC<{
           {/* Показ количества найденных товаров */}
           {productSearchQuery && (
             <p className="text-xs text-gray-500 mt-1">
-              {t('inventory.management.reportForm.foundProducts', { count: filteredProducts.length, total: products.length })}
+              {t('page.inventory.management.reportForm.foundProducts', { count: filteredProducts.length, total: products.length })}
             </p>
           )}
         </div>
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('inventory.management.reportForm.detectionDate')}</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('page.inventory.management.reportForm.detectionDate')}</label>
           <div className="flex items-center gap-2">
             <input 
               type="date" 
@@ -354,12 +355,12 @@ const ReportForm: React.FC<{
               onClick={handleSetNow} 
               className="text-sm text-amber-700 font-semibold hover:underline whitespace-nowrap"
             >
-              {t('inventory.management.reportForm.setNow')}
+              {t('page.inventory.management.reportForm.setNow')}
             </button>
           </div>
         </div>
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="expectedDelivery">{t('inventory.management.reportForm.expectedDelivery')}</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="expectedDelivery">{t('page.inventory.management.reportForm.expectedDelivery')}</label>
           <input 
             type="date" 
             id="expectedDelivery" 
@@ -371,7 +372,7 @@ const ReportForm: React.FC<{
           disabled={isLoading || !selectedProductId}
           className="w-full font-bold py-3 px-4 rounded-lg text-white transition-all duration-300 shadow-lg hover:shadow-xl bg-amber-700 hover:bg-amber-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          {isLoading ? t('inventory.management.reportForm.sending') : t('inventory.management.reportForm.submitReport')}
+          {isLoading ? t('page.inventory.management.reportForm.sending') : t('page.inventory.management.reportForm.submitReport')}
         </button>
       </form>
     </div>
@@ -411,24 +412,24 @@ const AdvancedFilters: React.FC<{
   }, [products]);
 
   const statusOptions = [
-    { value: 'inStock', label: t('inventory.management.status.inStock') },
-    { value: 'lowStock', label: t('inventory.management.status.lowStock') },
-    { value: 'outOfStock', label: t('inventory.management.status.outOfStock') }
+    { value: 'inStock', label: t('page.inventory.management.status.inStock') },
+    { value: 'lowStock', label: t('page.inventory.management.status.lowStock') },
+    { value: 'outOfStock', label: t('page.inventory.management.status.outOfStock') }
   ];
 
   return (
     <div className="bg-white rounded-lg shadow p-4 mb-4">
-      <h3 className="text-lg font-semibold text-gray-800 mb-3">{t('inventory.management.filters.title')}</h3>
+      <h3 className="text-lg font-semibold text-gray-800 mb-3">{t('page.inventory.management.filters.title')}</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Фильтр по категориям */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('inventory.management.filters.category')}</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('page.inventory.management.filters.category')}</label>
           <select
             value={activeFilters.category || ''}
             onChange={(e) => onFilterChange('category', e.target.value || null)}
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
           >
-            <option value="">{t('inventory.management.filters.allCategories')}</option>
+            <option value="">{t('page.inventory.management.filters.allCategories')}</option>
             {categories.map(category => (
               <option key={category} value={category}>{category}</option>
             ))}
@@ -437,13 +438,13 @@ const AdvancedFilters: React.FC<{
 
         {/* Фильтр по производителям */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('inventory.management.filters.manufacturer')}</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('page.inventory.management.filters.manufacturer')}</label>
           <select
             value={activeFilters.manufacturer || ''}
             onChange={(e) => onFilterChange('manufacturer', e.target.value || null)}
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
           >
-            <option value="">{t('inventory.management.filters.allManufacturers')}</option>
+            <option value="">{t('page.inventory.management.filters.allManufacturers')}</option>
             {manufacturers.map(manufacturer => (
               <option key={manufacturer} value={manufacturer}>{manufacturer}</option>
             ))}
@@ -452,13 +453,13 @@ const AdvancedFilters: React.FC<{
 
         {/* Фильтр по статусу */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('inventory.management.filters.stockStatus')}</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('page.inventory.management.filters.stockStatus')}</label>
           <select
             value={activeFilters.status || ''}
             onChange={(e) => onFilterChange('status', e.target.value || null)}
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500"
           >
-            <option value="">{t('inventory.management.filters.allStatuses')}</option>
+            <option value="">{t('page.inventory.management.filters.allStatuses')}</option>
             {statusOptions.map(option => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
@@ -470,10 +471,10 @@ const AdvancedFilters: React.FC<{
       {(activeFilters.category || activeFilters.manufacturer || activeFilters.status) && (
         <div className="mt-3 pt-3 border-t border-gray-200">
           <div className="flex flex-wrap gap-2">
-            <span className="text-sm text-gray-600">{t('inventory.management.filters.activeFilters')}:</span>
+            <span className="text-sm text-gray-600">{t('page.inventory.management.filters.activeFilters')}:</span>
             {activeFilters.category && (
               <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                {t('inventory.management.filters.category')}: {activeFilters.category}
+                {t('page.inventory.management.filters.category')}: {activeFilters.category}
                 <button
                   onClick={() => onFilterChange('category', null)}
                   className="ml-1 text-blue-600 hover:text-blue-800"
@@ -484,7 +485,7 @@ const AdvancedFilters: React.FC<{
             )}
             {activeFilters.manufacturer && (
               <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
-                {t('inventory.management.filters.manufacturer')}: {activeFilters.manufacturer}
+                {t('page.inventory.management.filters.manufacturer')}: {activeFilters.manufacturer}
                 <button
                   onClick={() => onFilterChange('manufacturer', null)}
                   className="ml-1 text-green-600 hover:text-green-800"
@@ -495,7 +496,7 @@ const AdvancedFilters: React.FC<{
             )}
             {activeFilters.status && (
               <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800">
-                {t('inventory.management.filters.stockStatus')}: {statusOptions.find(opt => opt.value === activeFilters.status)?.label}
+                {t('page.inventory.management.filters.stockStatus')}: {statusOptions.find(opt => opt.value === activeFilters.status)?.label}
                 <button
                   onClick={() => onFilterChange('status', null)}
                   className="ml-1 text-amber-600 hover:text-amber-800"
@@ -512,7 +513,7 @@ const AdvancedFilters: React.FC<{
               }}
               className="text-xs text-gray-500 hover:text-gray-700 underline"
             >
-              {t('inventory.management.filters.clearAll')}
+              {t('page.inventory.management.filters.clearAll')}
             </button>
           </div>
         </div>
@@ -535,32 +536,32 @@ const ProductItem: React.FC<{
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="text-sm font-medium text-gray-900">{product.product_name}</div>
         {product.category && (
-          <div className="text-xs text-gray-500">{t('inventory.management.productItem.category')}: {product.category.name}</div>
+          <div className="text-xs text-gray-500">{t('page.inventory.management.productItem.category')}: {product.category.name}</div>
         )}
         {product.manufacturer && (
-          <div className="text-xs text-gray-500">{t('inventory.management.productItem.manufacturer')}: {product.manufacturer.name}</div>
+          <div className="text-xs text-gray-500">{t('page.inventory.management.productItem.manufacturer')}: {product.manufacturer.name}</div>
         )}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="text-sm text-gray-500">{product.sku}</div>
         {product.code && (
-          <div className="text-xs text-gray-400">{t('inventory.management.productItem.code')}: {product.code}</div>
+          <div className="text-xs text-gray-400">{t('page.inventory.management.productItem.code')}: {product.code}</div>
         )}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="text-sm text-gray-500">{product.price} ₽</div>
         {product.weight && (
-          <div className="text-xs text-gray-400">{t('inventory.management.productItem.weight')}: {product.weight} кг</div>
+          <div className="text-xs text-gray-400">{t('page.inventory.management.productItem.weight')}: {product.weight} кг</div>
         )}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-center">
         <div className="text-sm font-bold text-gray-900">{totalStock}</div>
         {product.shelf_life_hours && (
-          <div className="text-xs text-gray-400">{t('inventory.management.productItem.shelfLife')}: {product.shelf_life_hours}ч</div>
+          <div className="text-xs text-gray-400">{t('page.inventory.management.productItem.shelfLife')}: {product.shelf_life_hours}ч</div>
         )}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-        <span className="text-amber-600 hover:text-amber-800">{t('inventory.management.productItem.details')}</span>
+        <span className="text-amber-600 hover:text-amber-800">{t('page.inventory.management.productItem.details')}</span>
       </td>
     </tr>
   );
@@ -608,13 +609,13 @@ const ProductList: React.FC<{
       <div className="p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">{t('inventory.management.productList.title')}</h2>
+            <h2 className="text-xl font-bold text-gray-800">{t('page.inventory.management.productList.title')}</h2>
             {filter && (
               <p className="mt-1 text-sm text-amber-700 font-semibold">
-                {t('inventory.management.productList.filteredBy', { 
-                  status: filter === 'inStock' ? t('inventory.management.status.inStock') : 
-                           filter === 'lowStock' ? t('inventory.management.status.lowStock') : 
-                           t('inventory.management.status.outOfStock')
+                {t('page.inventory.management.productList.filteredBy', { 
+                  status: filter === 'inStock' ? t('page.inventory.management.status.inStock') : 
+                           filter === 'lowStock' ? t('page.inventory.management.status.lowStock') : 
+                           t('page.inventory.management.status.outOfStock')
                 })}
               </p>
             )}
@@ -626,7 +627,7 @@ const ProductList: React.FC<{
               </span>
               <input
                 type="text"
-                placeholder={t('inventory.management.productList.searchPlaceholder')}
+                placeholder={t('page.inventory.management.productList.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-amber-600 focus:border-amber-600 transition"
@@ -637,7 +638,7 @@ const ProductList: React.FC<{
               className="flex items-center gap-2 bg-amber-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-amber-600 transition-colors duration-300"
             >
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('inventory.management.productList.addProduct')}</span>
+              <span className="hidden sm:inline">{t('page.inventory.management.productList.addProduct')}</span>
             </button>
           </div>
         </div>
@@ -646,11 +647,11 @@ const ProductList: React.FC<{
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <SortableHeader title={t('inventory.management.productList.name')} sortKey="product_name" sortConfig={sortConfig} onSort={onSort} className="text-left" />
-              <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-left">{t('inventory.management.productList.sku')}</th>
-              <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-left">{t('inventory.management.productList.price')}</th>
-              <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">{t('inventory.management.productList.totalStock')}</th>
-              <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-right">{t('inventory.management.productList.details')}</th>
+              <SortableHeader title={t('page.inventory.management.productList.name')} sortKey="product_name" sortConfig={sortConfig} onSort={onSort} className="text-left" />
+              <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-left">{t('page.inventory.management.productList.sku')}</th>
+              <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-left">{t('page.inventory.management.productList.price')}</th>
+              <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">{t('page.inventory.management.productList.totalStock')}</th>
+              <th className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-right">{t('page.inventory.management.productList.details')}</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -660,8 +661,8 @@ const ProductList: React.FC<{
             {products.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-10 text-gray-500">
-                  <h4 className="font-semibold text-lg text-gray-600">{t('inventory.management.productList.noProductsFound')}</h4>
-                  <p className="text-sm">{t('inventory.management.productList.tryFilters')}</p>
+                  <h4 className="font-semibold text-lg text-gray-600">{t('page.inventory.management.productList.noProductsFound')}</h4>
+                  <p className="text-sm">{t('page.inventory.management.productList.tryFilters')}</p>
                 </td>
               </tr>
             )}
@@ -721,7 +722,7 @@ const AddProductModal: React.FC<{
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">{t('inventory.management.addProductModal.title')}</h2>
+          <h2 className="text-xl font-bold text-gray-800">{t('page.inventory.management.addProductModal.title')}</h2>
           <button
             onClick={handleClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -734,35 +735,35 @@ const AddProductModal: React.FC<{
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('inventory.management.addProductModal.nameLabel')} <span className="text-red-500">{t('inventory.management.addProductModal.required')}</span>
+                {t('page.inventory.management.addProductModal.nameLabel')} <span className="text-red-500">{t('page.inventory.management.addProductModal.required')}</span>
               </label>
               <input
                 type="text"
                 value={formData.product_name}
                 onChange={(e) => setFormData({ ...formData, product_name: e.target.value })}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                placeholder={t('inventory.management.addProductModal.namePlaceholder')}
+                placeholder={t('page.inventory.management.addProductModal.namePlaceholder')}
                 required
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('inventory.management.addProductModal.skuLabel')} <span className="text-red-500">{t('inventory.management.addProductModal.required')}</span>
+                {t('page.inventory.management.addProductModal.skuLabel')} <span className="text-red-500">{t('page.inventory.management.addProductModal.required')}</span>
               </label>
               <input
                 type="text"
                 value={formData.sku}
                 onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                placeholder={t('inventory.management.addProductModal.skuPlaceholder')}
+                placeholder={t('page.inventory.management.addProductModal.skuPlaceholder')}
                 required
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('inventory.management.addProductModal.priceLabel')} <span className="text-red-500">{t('inventory.management.addProductModal.required')}</span>
+                {t('page.inventory.management.addProductModal.priceLabel')} <span className="text-red-500">{t('page.inventory.management.addProductModal.required')}</span>
               </label>
               <input
                 type="number"
@@ -782,14 +783,14 @@ const AddProductModal: React.FC<{
               onClick={handleClose}
               className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              {t('inventory.management.addProductModal.cancel')}
+              {t('page.inventory.management.addProductModal.cancel')}
             </button>
             <button
               type="submit"
               disabled={isLoading || !formData.product_name.trim()}
               className="flex-1 py-3 px-4 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? t('inventory.management.addProductModal.adding') : t('inventory.management.addProductModal.add')}
+              {isLoading ? t('page.inventory.management.addProductModal.adding') : t('page.inventory.management.addProductModal.add')}
             </button>
           </div>
         </form>
@@ -2097,6 +2098,8 @@ const InventoryManagementPage: React.FC = () => {
             onClose={() => setIsReportsModalOpen(false)}
           />
         )}
+        
+        <TranslationDebug />
       </div>
       
       <style>{`
