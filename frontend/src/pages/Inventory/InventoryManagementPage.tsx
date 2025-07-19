@@ -808,9 +808,9 @@ const ProductDetailsModal: React.FC<{
   const [mlForecast, setMlForecast] = useState<any>(null);
   const [isLoadingForecast, setIsLoadingForecast] = useState(false);
 
-  // Загружаем операции при открытии таба
+  // Загружаем операции при открытии модального окна ИЛИ при переключении таба
   useEffect(() => {
-    if (product && activeTab === 'operations' && operations.length === 0) {
+    if (product && (activeTab === 'operations' || activeTab === 'details') && operations.length === 0) {
       setIsLoadingOperations(true);
       getProductOperations(product.product_id)
         .then(data => {
@@ -826,9 +826,9 @@ const ProductDetailsModal: React.FC<{
     }
   }, [product, activeTab, operations.length]);
 
-  // Загружаем поставщиков при открытии таба
+  // Загружаем поставщиков при открытии модального окна ИЛИ при переключении таба
   useEffect(() => {
-    if (product && activeTab === 'suppliers' && suppliers.length === 0) {
+    if (product && (activeTab === 'suppliers' || activeTab === 'details') && suppliers.length === 0) {
       setIsLoadingSuppliers(true);
       getSuppliers()
         .then(data => {
@@ -863,9 +863,9 @@ const ProductDetailsModal: React.FC<{
     }
   }, [selectedSupplier]);
 
-  // Загружаем ML прогноз при открытии таба
+  // Загружаем ML прогноз при открытии модального окна ИЛИ при переключении таба
   useEffect(() => {
-    if (product && activeTab === 'forecast' && !mlForecast) {
+    if (product && (activeTab === 'forecast' || activeTab === 'details') && !mlForecast) {
       setIsLoadingForecast(true);
       getMLForecast(product.product_id)
         .then(data => {
