@@ -1,27 +1,33 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import Backend from 'i18next-http-backend';
+
+// Импортируем переводы напрямую
+import enTranslation from './locales/en/translation.json';
+import ruTranslation from './locales/ru/translation.json';
+
+const resources = {
+  en: {
+    translation: enTranslation
+  },
+  ru: {
+    translation: ruTranslation
+  }
+};
 
 i18n
-  .use(Backend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    resources,
+    fallbackLng: 'en',
+    debug: true,
+    interpolation: {
+      escapeValue: false,
+    },
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
-    },
-    fallbackLng: 'en',
-    debug: false, // Отключаем debug для продакшена
-    interpolation: {
-      escapeValue: false, // not needed for react as it escapes by default
-    },
-    backend: {
-      loadPath: '/locales/{{lng}}/{{ns}}.json',
-    },
-    react: {
-      useSuspense: false, // Отключаем Suspense чтобы контролировать загрузку сами
     },
   });
 
