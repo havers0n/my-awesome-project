@@ -921,7 +921,7 @@ const ProductDetailsModal: React.FC<{
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">{t('inventory.management.productDetails.title')}</h2>
+          <h2 className="text-xl font-bold text-gray-800">{t('page.inventory.management.productDetails.title')}</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -941,7 +941,7 @@ const ProductDetailsModal: React.FC<{
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              {t('inventory.management.productDetails.information')}
+              {t('page.inventory.management.productDetails.information')}
             </button>
             <button
               onClick={() => setActiveTab('operations')}
@@ -951,7 +951,7 @@ const ProductDetailsModal: React.FC<{
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              {t('inventory.management.productDetails.operationsHistory')}
+              {t('page.inventory.management.productDetails.operationsHistory')}
             </button>
             <button
               onClick={() => setActiveTab('suppliers')}
@@ -961,7 +961,7 @@ const ProductDetailsModal: React.FC<{
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              {t('inventory.management.productDetails.suppliers')}
+              {t('page.inventory.management.productDetails.suppliers')}
             </button>
             <button
               onClick={() => setActiveTab('forecast')}
@@ -971,7 +971,7 @@ const ProductDetailsModal: React.FC<{
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              {t('inventory.management.productDetails.mlForecast')}
+              {t('page.inventory.management.productDetails.mlForecast')}
             </button>
           </nav>
         </div>
@@ -981,42 +981,42 @@ const ProductDetailsModal: React.FC<{
             <div>
               <div className="mb-6">
                 <div className="text-lg font-semibold text-gray-900">{product.product_name}</div>
-                <div className="text-gray-500">{t('inventory.management.productDetails.sku')}: {product.sku}</div>
-                {product.code && <div className="text-gray-500">{t('inventory.management.productDetails.code')}: {product.code}</div>}
-                {product.article && <div className="text-gray-500">{t('inventory.management.productDetails.article')}: {product.article}</div>}
-                <div className="text-gray-500">{t('inventory.management.productDetails.price')}: {product.price} ₽</div>
-                {product.weight && <div className="text-gray-500">{t('inventory.management.productDetails.weight')}: {product.weight} кг</div>}
+                <div className="text-gray-500">{t('page.inventory.management.productDetails.sku')}: {product.sku}</div>
+                {product.code && <div className="text-gray-500">{t('page.inventory.management.productDetails.code')}: {product.code}</div>}
+                {product.article && <div className="text-gray-500">{t('page.inventory.management.productDetails.article')}: {product.article}</div>}
+                <div className="text-gray-500">{t('page.inventory.management.productDetails.price')}: {product.price} ₽</div>
+                {product.weight && <div className="text-gray-500">{t('page.inventory.management.productDetails.weight')}: {product.weight} кг</div>}
                 {product.shelf_life_hours && (
-                  <div className="text-gray-500">{t('inventory.management.productDetails.shelfLife')}: {product.shelf_life_hours} часов</div>
+                  <div className="text-gray-500">{t('page.inventory.management.productDetails.shelfLife')}: {product.shelf_life_hours} часов</div>
                 )}
               </div>
 
               {/* Дополнительная информация */}
               {(product.category || product.manufacturer || product.group || product.kind) && (
                 <div className="mb-6">
-                  <h3 className="font-semibold mb-3 text-gray-800">{t('inventory.management.productDetails.additionalInfo')}:</h3>
+                  <h3 className="font-semibold mb-3 text-gray-800">{t('page.inventory.management.productDetails.additionalInfo')}:</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {product.category && (
                       <div className="flex justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600">{t('inventory.management.productDetails.category')}:</span>
+                        <span className="text-gray-600">{t('page.inventory.management.productDetails.category')}:</span>
                         <span className="font-medium text-gray-900">{product.category.name}</span>
                       </div>
                     )}
                     {product.manufacturer && (
                       <div className="flex justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600">{t('inventory.management.productDetails.manufacturer')}:</span>
+                        <span className="text-gray-600">{t('page.inventory.management.productDetails.manufacturer')}:</span>
                         <span className="font-medium text-gray-900">{product.manufacturer.name}</span>
                       </div>
                     )}
                     {product.group && (
                       <div className="flex justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600">{t('inventory.management.productDetails.group')}:</span>
+                        <span className="text-gray-600">{t('page.inventory.management.productDetails.group')}:</span>
                         <span className="font-medium text-gray-900">{product.group.name}</span>
                       </div>
                     )}
                     {product.kind && (
                       <div className="flex justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600">{t('inventory.management.productDetails.type')}:</span>
+                        <span className="text-gray-600">{t('page.inventory.management.productDetails.type')}:</span>
                         <span className="font-medium text-gray-900">{product.kind.name}</span>
                       </div>
                     )}
@@ -1025,13 +1025,13 @@ const ProductDetailsModal: React.FC<{
               )}
 
               <div className="mb-4">
-                <h3 className="font-semibold mb-2">{t('inventory.management.productDetails.stockByLocation')}:</h3>
+                <h3 className="font-semibold mb-2">{t('page.inventory.management.productDetails.stockByLocation')}:</h3>
                 {product.stock_by_location && product.stock_by_location.length > 0 ? (
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('inventory.management.productDetails.location')}</th>
-                        <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('inventory.management.productDetails.stock')}</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('page.inventory.management.productDetails.location')}</th>
+                        <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{t('page.inventory.management.productDetails.stock')}</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -1044,7 +1044,7 @@ const ProductDetailsModal: React.FC<{
                     </tbody>
                   </table>
                 ) : (
-                  <p className="text-gray-500 text-sm">{t('inventory.management.productDetails.noStockData')}</p>
+                  <p className="text-gray-500 text-sm">{t('page.inventory.management.productDetails.noStockData')}</p>
                 )}
               </div>
             </div>
@@ -1052,7 +1052,7 @@ const ProductDetailsModal: React.FC<{
 
           {activeTab === 'operations' && (
             <div>
-              <h3 className="font-semibold mb-4 text-gray-800">{t('inventory.management.productDetails.operationsHistoryTitle')}</h3>
+              <h3 className="font-semibold mb-4 text-gray-800">{t('page.inventory.management.productDetails.operationsHistoryTitle')}</h3>
               <OperationsHistory
                 productId={product.product_id}
                 isLoading={isLoadingOperations}
@@ -1063,7 +1063,7 @@ const ProductDetailsModal: React.FC<{
 
           {activeTab === 'suppliers' && (
             <div>
-              <h3 className="font-semibold mb-4 text-gray-800">{t('inventory.management.productDetails.suppliersInfoTitle')}</h3>
+              <h3 className="font-semibold mb-4 text-gray-800">{t('page.inventory.management.productDetails.suppliersInfoTitle')}</h3>
                              <SuppliersInfo
                  suppliers={suppliers}
                  onSupplierSelect={(supplierId) => {
@@ -1087,7 +1087,7 @@ const ProductDetailsModal: React.FC<{
 
           {activeTab === 'forecast' && (
             <div>
-              <h3 className="font-semibold mb-4 text-gray-800">{t('inventory.management.productDetails.mlForecastTitle')}</h3>
+              <h3 className="font-semibold mb-4 text-gray-800">{t('page.inventory.management.productDetails.mlForecastTitle')}</h3>
               <MLForecastPanel
                 productId={product.product_id}
                 productName={product.product_name}
@@ -1117,7 +1117,7 @@ const ProductDetailsModal: React.FC<{
             onClick={onClose}
             className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
           >
-            {t('inventory.management.productDetails.close')}
+            {t('page.inventory.management.productDetails.close')}
           </button>
         </div>
       </div>

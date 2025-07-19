@@ -41,7 +41,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, onSelect }) => {
                 </span>
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                 <span className="text-amber-600 hover:text-amber-800">{t('inventory.management.productItem.details')}</span>
+                 <span className="text-amber-600 hover:text-amber-800">{t('page.inventory.management.productItem.details')}</span>
             </td>
         </tr>
     );
