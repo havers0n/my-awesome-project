@@ -395,18 +395,82 @@
         "correction": "Коррекция",
         "shortageReport": "Отчет о нехватке"
       },
-      "modal": {
-        "productDetails": "Детали товара",
-        "close": "Закрыть",
-        "category": "Категория",
-        "price": "Цена",
-        "movementHistory": "История движений",
-        "date": "Дата",
-        "type": "Тип",
-        "change": "Изменение",
-        "newQuantity": "Новое количество",
-        "noHistory": "История движений пуста"
-      }
+              "modal": {
+          "productDetails": "Детали товара",
+          "close": "Закрыть",
+          "category": "Категория",
+          "price": "Цена",
+          "movementHistory": "История движений",
+          "date": "Дата",
+          "type": "Тип",
+          "change": "Изменение",
+          "newQuantity": "Новое количество",
+          "noHistory": "История движений пуста"
+        },
+        "warning": {
+          "title": "Предупреждение",
+          "demoData": "Показаны демонстрационные данные"
+        },
+        "donutChart": {
+          "totalProducts": "Всего товаров"
+        },
+        "quickActions": {
+          "title": "Быстрые действия"
+        },
+        "reportForm": {
+          "title": "Сообщить об отсутствии",
+          "selectProduct": "Выберите товар",
+          "searchPlaceholder": "Поиск товара по названию или SKU...",
+          "foundProducts": "Найдено товаров: {{count}} из {{total}}",
+          "detectionDate": "Дата обнаружения",
+          "setNow": "Сейчас",
+          "submitReport": "Отправить отчет",
+          "successMessage": "Отчет успешно отправлен!",
+          "errorMessage": "Ошибка отправки отчета"
+        },
+        "filters": {
+          "title": "Фильтры",
+          "category": "Категория",
+          "allCategories": "Все категории",
+          "manufacturer": "Производитель",
+          "allManufacturers": "Все производители",
+          "stockStatus": "Статус остатков",
+          "allStatuses": "Все статусы",
+          "activeFilters": "Активные фильтры",
+          "clearAll": "Очистить все"
+        },
+        "productItem": {
+          "category": "Категория",
+          "manufacturer": "Производитель",
+          "code": "Код",
+          "weight": "Вес",
+          "shelfLife": "Срок",
+          "details": "Детали"
+        },
+        "productList": {
+          "title": "Список товаров",
+          "filteredBy": "Фильтр: {{status}}",
+          "searchPlaceholder": "Поиск товаров...",
+          "addProduct": "Добавить",
+          "name": "Название",
+          "sku": "SKU",
+          "price": "Цена",
+          "totalStock": "Общий остаток",
+          "noProductsFound": "Нет товаров",
+          "tryFilters": "Попробуйте изменить фильтры или поисковый запрос."
+        },
+        "addProductModal": {
+          "title": "Добавить продукт",
+          "nameLabel": "Название продукта",
+          "namePlaceholder": "Введите название продукта",
+          "skuLabel": "SKU",
+          "skuPlaceholder": "Введите SKU",
+          "priceLabel": "Цена (₽)",
+          "cancel": "Отмена",
+          "add": "Добавить",
+          "adding": "Добавление...",
+          "required": "*"
+        }
     }
   }
 } 

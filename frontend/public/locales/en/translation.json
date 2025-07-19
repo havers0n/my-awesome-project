@@ -405,6 +405,70 @@
           "change": "Change",
           "newQuantity": "New Quantity",
           "noHistory": "Movement history is empty"
+        },
+        "warning": {
+          "title": "Warning",
+          "demoData": "Demo data is shown"
+        },
+        "donutChart": {
+          "totalProducts": "Total Products"
+        },
+        "quickActions": {
+          "title": "Quick Actions"
+        },
+        "reportForm": {
+          "title": "Report Out of Stock",
+          "selectProduct": "Select Product",
+          "searchPlaceholder": "Search product by name or SKU...",
+          "foundProducts": "Found products: {{count}} of {{total}}",
+          "detectionDate": "Detection Date",
+          "setNow": "Now",
+          "submitReport": "Submit Report",
+          "successMessage": "Report sent successfully!",
+          "errorMessage": "Error sending report"
+        },
+        "filters": {
+          "title": "Filters",
+          "category": "Category",
+          "allCategories": "All Categories",
+          "manufacturer": "Manufacturer",
+          "allManufacturers": "All Manufacturers",
+          "stockStatus": "Stock Status",
+          "allStatuses": "All Statuses",
+          "activeFilters": "Active Filters",
+          "clearAll": "Clear All"
+        },
+        "productItem": {
+          "category": "Category",
+          "manufacturer": "Manufacturer",
+          "code": "Code",
+          "weight": "Weight",
+          "shelfLife": "Shelf Life",
+          "details": "Details"
+        },
+        "productList": {
+          "title": "Product List",
+          "filteredBy": "Filter: {{status}}",
+          "searchPlaceholder": "Search products...",
+          "addProduct": "Add",
+          "name": "Name",
+          "sku": "SKU",
+          "price": "Price",
+          "totalStock": "Total Stock",
+          "noProductsFound": "No Products",
+          "tryFilters": "Try changing filters or search query."
+        },
+        "addProductModal": {
+          "title": "Add Product",
+          "nameLabel": "Product Name",
+          "namePlaceholder": "Enter product name",
+          "skuLabel": "SKU",
+          "skuPlaceholder": "Enter SKU",
+          "priceLabel": "Price (₽)",
+          "cancel": "Cancel",
+          "add": "Add",
+          "adding": "Adding...",
+          "required": "*"
         }
       }
     }

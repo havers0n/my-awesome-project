@@ -48,6 +48,42 @@ router.get('/products-test', async (req, res) => {
     }
 });
 
+// ВРЕМЕННЫЙ МАРШРУТ: для тестирования операций без аутентификации
+router.get('/products/:id/operations-test', async (req, res) => {
+    try {
+        // Временно устанавливаем тестового пользователя для получения данных
+        (req as any).user = {
+            id: 'test-user-id',
+            organization_id: 1, // Используем организацию с ID 1
+            email: 'test@example.com'
+        };
+        
+        // Вызываем getProductOperations напрямую
+        await getProductOperations(req, res);
+    } catch (error) {
+        console.error('Error in operations-test route:', error);
+        res.status(500).json({ error: 'Failed to fetch test operations', details: error instanceof Error ? error.message : String(error) });
+    }
+});
+
+// ВРЕМЕННЫЙ МАРШРУТ: для тестирования поставщиков без аутентификации  
+router.get('/suppliers-test', async (req, res) => {
+    try {
+        // Временно устанавливаем тестового пользователя для получения данных
+        (req as any).user = {
+            id: 'test-user-id',
+            organization_id: 1, // Используем организацию с ID 1
+            email: 'test@example.com'
+        };
+        
+        // Вызываем getSuppliers напрямую
+        await getSuppliers(req, res);
+    } catch (error) {
+        console.error('Error in suppliers-test route:', error);
+        res.status(500).json({ error: 'Failed to fetch test suppliers', details: error instanceof Error ? error.message : String(error) });
+    }
+});
+
 // Protected routes
 // All routes below are protected and require a valid user session
 // ВРЕМЕННО ОТКЛЮЧЕНО для работы с реальными данными
