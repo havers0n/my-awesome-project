@@ -12,7 +12,7 @@ i18n
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
     },
-    fallbackLng: 'ru',
+    fallbackLng: 'en',
     debug: false, // Отключаем debug для продакшена
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default

@@ -344,51 +344,7 @@
       "donut": {
         "totalItems": "товаров"
       },
-      "quickActions": {
-        "title": "Обзор склада"
-      },
-      "reportForm": {
-        "title": "Отчёт о недостатке товара",
-        "selectProduct": "Выберите товар",
-        "chooseProduct": "-- Выберите товар --",
-        "detectionDate": "Дата и время обнаружения",
-        "setNow": "Сейчас",
-        "expectedDelivery": "Ожидаемая поставка",
-        "sending": "Отправка...",
-        "submitReport": "Отправить отчёт",
-        "successMessage": "Отчёт успешно отправлен!",
-        "errorMessage": "Ошибка при отправке отчёта."
-      },
-      "productItem": {
-        "details": "Детали"
-      },
-      "productList": {
-        "title": "Состояние склада",
-        "filteredBy": "Показаны товары со статусом: \"{{status}}\"",
-        "searchPlaceholder": "Поиск по названию или полке...",
-        "addProduct": "Добавить",
-        "name": "Название",
-        "shelf": "Полка",
-        "quantity": "Кол-во",
-        "status": "Статус",
-        "noProductsFound": "Товары не найдены",
-        "tryFilters": "Попробуйте изменить фильтры или поисковый запрос."
-      },
-      "addProductModal": {
-        "title": "Добавить продукт",
-        "nameLabel": "Название продукта",
-        "namePlaceholder": "Введите название продукта",
-        "shelfLabel": "Полка",
-        "shelfPlaceholder": "A1, B2, C3...",
-        "categoryLabel": "Категория",
-        "categoryPlaceholder": "Молочные продукты, Мясные изделия...",
-        "quantityLabel": "Количество",
-        "priceLabel": "Цена (₽)",
-        "cancel": "Отмена",
-        "add": "Добавить",
-        "adding": "Добавление...",
-        "required": "*"
-      },
+
       "history": {
         "arrival": "Поступление",
         "writeOff": "Списание", 

@@ -7,6 +7,7 @@ import { fetchAllProducts, addProduct, deleteProduct } from '@/services/warehous
 // Импорт новой функции для операций
 import { getProductOperations, getSuppliers, getSupplierDeliveryInfo, getMLForecast, createOutOfStockReport } from '@/services/warehouseApi';
 
+
 // Компоненты
 const StatCard: React.FC<{ label: string; value: number; color?: string }> = ({ label, value, color = "text-gray-800" }) => (
   <div className="text-center">

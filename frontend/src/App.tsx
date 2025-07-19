@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/services/supabaseClient";
 import { useTranslation } from "react-i18next";
+import './i18n'; // Импортируем i18n для инициализации
 
 // Eager load critical components
 import AppLayout from "@/layout/AppLayout";

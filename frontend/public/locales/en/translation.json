@@ -343,51 +343,7 @@
         "donut": {
           "totalItems": "items"
         },
-        "quickActions": {
-          "title": "Warehouse Overview"
-        },
-        "reportForm": {
-          "title": "Product Shortage Report",
-          "selectProduct": "Select Product",
-          "chooseProduct": "-- Choose Product --",
-          "detectionDate": "Detection Date and Time",
-          "setNow": "Now",
-          "expectedDelivery": "Expected Delivery",
-          "sending": "Sending...",
-          "submitReport": "Submit Report",
-          "successMessage": "Report sent successfully!",
-          "errorMessage": "Error sending report."
-        },
-        "productItem": {
-          "details": "Details"
-        },
-        "productList": {
-          "title": "Warehouse Status",
-          "filteredBy": "Showing products with status: \"{{status}}\"",
-          "searchPlaceholder": "Search by name or shelf...",
-          "addProduct": "Add",
-          "name": "Name",
-          "shelf": "Shelf",
-          "quantity": "Quantity",
-          "status": "Status",
-          "noProductsFound": "No products found",
-          "tryFilters": "Try changing filters or search query."
-        },
-        "addProductModal": {
-          "title": "Add Product",
-          "nameLabel": "Product Name",
-          "namePlaceholder": "Enter product name",
-          "shelfLabel": "Shelf",
-          "shelfPlaceholder": "A1, B2, C3...",
-          "categoryLabel": "Category",
-          "categoryPlaceholder": "Dairy products, Meat products...",
-          "quantityLabel": "Quantity",
-          "priceLabel": "Price (₽)",
-          "cancel": "Cancel",
-          "add": "Add",
-          "adding": "Adding...",
-          "required": "*"
-        },
+
         "history": {
           "arrival": "Arrival",
           "writeOff": "Write-off",
