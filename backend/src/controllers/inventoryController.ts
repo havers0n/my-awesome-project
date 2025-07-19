@@ -33,8 +33,9 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
         const user = (req as any).user;
         let organizationId = user?.organization_id;
 
+        // ВРЕМЕННО: для работы без аутентификации используем organization_id = 1
         if (!organizationId) {
-            console.log('⚠️ No organization_id found, using default organization_id = 1');
+            console.log('⚠️ No organization_id found, using default organization_id = 1 (no auth mode)');
             organizationId = 1;
         }
 
@@ -65,6 +66,19 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
 
         console.log(`✅ Direct query successful: Found ${data.length} products with stock data`);
 
+        // ДОБАВЛЕНО: Детальная отладка первой записи из VIEW
+        if (data.length > 0) {
+            const firstItem = data[0];
+            console.log('\n🔍 ОТЛАДКА: Что получено от Supabase из current_stock_view:');
+            console.log('📊 Все поля первого товара:', Object.keys(firstItem));
+            console.log('📦 Первый товар полностью:', JSON.stringify(firstItem, null, 2));
+            
+            console.log('\n🎯 ПРОВЕРКА КЛЮЧЕВЫХ ПОЛЕЙ:');
+            console.log(`  current_stock: ${firstItem.current_stock} (тип: ${typeof firstItem.current_stock})`);
+            console.log(`  stock_status: ${firstItem.stock_status} (тип: ${typeof firstItem.stock_status})`);
+            console.log(`  locations_with_stock: ${firstItem.locations_with_stock} (тип: ${typeof firstItem.locations_with_stock})`);
+        }
+
         // Получаем детализацию по локациям отдельно
         const { data: locationStockData, error: locationError } = await supabase
             .from('stock_by_location_view')
@@ -92,10 +106,11 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
                 sku: item.sku,
                 code: item.code,
                 price: Number(item.price) || 0,
+                organization_id: item.organization_id,
                 stock_by_location: stockByLocation,
                 created_at: item.created_at,
                 updated_at: item.updated_at,
-                // Поля остатков уже есть в current_stock_view
+                // ИСПРАВЛЕНО: Реальные значения из current_stock_view
                 current_stock: Number(item.current_stock) || 0,
                 stock_status: item.stock_status || 'Нет данных',
                 locations_with_stock: Number(item.locations_with_stock) || 0

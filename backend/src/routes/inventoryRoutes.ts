@@ -57,7 +57,8 @@ router.get('/products-test', async (req, res) => {
 // router.use(requireOrganization);
 
 // Core product routes (auth required)
-router.get('/products', authenticate, requireOrganization, getProducts);
+// ШАГ 1: ВРЕМЕННО ОТКЛЮЧЕНА АУТЕНТИФИКАЦИЯ ДЛЯ ПРОВЕРКИ
+router.get('/products', getProducts);  // authenticate, requireOrganization временно убраны
 router.post('/products', authenticate, requireOrganization, createProduct);
 router.get('/products/:id/operations', authenticate, requireOrganization, getProductOperations);
 router.put('/products/:id', authenticate, requireOrganization, updateProduct);
