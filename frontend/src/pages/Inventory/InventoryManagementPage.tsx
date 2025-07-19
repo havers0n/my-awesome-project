@@ -6,7 +6,7 @@ import { fetchAllProducts, addProduct, deleteProduct } from '@/services/warehous
 
 // Импорт новой функции для операций
 import { getProductOperations, getSuppliers, getSupplierDeliveryInfo, getMLForecast, createOutOfStockReport } from '@/services/warehouseApi';
-import TranslationDebug from '@/components/common/TranslationDebug';
+
 
 
 // Компоненты
@@ -2100,7 +2100,7 @@ const InventoryManagementPage: React.FC = () => {
           />
         )}
         
-        <TranslationDebug />
+  
       </div>
       
       <style>{`
