@@ -33,10 +33,10 @@ export const getProducts = async (req: Request, res: Response): Promise<void> =>
         const user = (req as any).user;
         let organizationId = user?.organization_id;
 
-        // ВРЕМЕННО: для работы без аутентификации используем organization_id = 1
         if (!organizationId) {
-            console.log('⚠️ No organization_id found, using default organization_id = 1 (no auth mode)');
-            organizationId = 1;
+            console.log('❌ No organization_id found, user not authenticated properly');
+            res.status(401).json({ error: 'User is not associated with an organization.' });
+            return;
         }
 
         console.log(`📊 Fetching data for organization_id: ${organizationId}`);
