@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Product, ProductStatus } from '../../types';
 
 interface ProductItemProps {
@@ -21,6 +22,8 @@ const getStatusClasses = (status: ProductStatus) => {
 }
 
 const ProductItem: React.FC<ProductItemProps> = ({ product, onSelect }) => {
+    const { t } = useTranslation();
+    
     return (
         <tr onClick={() => onSelect(product)} className="hover:bg-gray-50 cursor-pointer transition-colors duration-200">
             <td className="px-6 py-4 whitespace-nowrap">
@@ -38,7 +41,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, onSelect }) => {
                 </span>
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                 <span className="text-amber-600 hover:text-amber-800">Детали</span>
+                 <span className="text-amber-600 hover:text-amber-800">{t('inventory.management.productItem.details')}</span>
             </td>
         </tr>
     );
