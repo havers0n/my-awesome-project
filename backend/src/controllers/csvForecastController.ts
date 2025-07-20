@@ -5,7 +5,7 @@ import { loadCSVProducts, findProductByName } from '../utils/csvLoader';
 import { forecastInputSchema } from '../schemas/forecastSchema';
 import { retryWithBackoff, classifyError, ConsoleErrorMonitor, DEFAULT_RETRY_CONFIG } from '../utils/errorHandling';
 
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:8000/predict';
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:8000/predict';
 
 export const predictSalesFromCSV = async (req: Request, res: Response) => {
   const log = (message: string, data?: any) => {
