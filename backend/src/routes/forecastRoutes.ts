@@ -3,6 +3,7 @@ import { getSupabaseUserClient } from '../supabaseUserClient';
 import { createMlPayload } from '../services/mlPayloadFormatter';
 import { supabaseAdmin } from '../supabaseClient';
 import { predictSales, getForecastData, getForecastHistory, getOverallMetrics } from '../controllers/forecastController';
+import { predictSalesFromCSV, getCSVProducts, getCSVMetrics } from '../controllers/csvForecastController';
 import { authenticate } from '../middleware/authenticate';
 import axios from 'axios';
 
@@ -10,6 +11,9 @@ const router = express.Router();
 
 // POST /predict — предсказание продаж по данным и DaysCount
 router.post('/predict', authenticate, predictSales as any);
+
+// POST /predict-csv — предсказание продаж на основе CSV данных
+router.post('/predict-csv', authenticate, predictSalesFromCSV as any);
 
 // GET /forecast
 router.get('/forecast', authenticate, getForecastData as any);
@@ -19,6 +23,12 @@ router.get('/history', authenticate, getForecastHistory as any);
 
 // GET /metrics - получить общие метрики прогнозирования
 router.get('/metrics', authenticate, getOverallMetrics as any);
+
+// GET /csv-products - получить товары из CSV
+router.get('/csv-products', authenticate, getCSVProducts as any);
+
+// GET /csv-metrics - получить метрики из CSV
+router.get('/csv-metrics', authenticate, getCSVMetrics as any);
 
 // POST /bulk-upload (bulk upload продаж/поставок)
 router.post('/bulk-upload', async (req, res) => {

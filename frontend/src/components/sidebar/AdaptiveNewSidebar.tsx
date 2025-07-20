@@ -13,7 +13,8 @@ import {
   Edit3,
   GripVertical,
   Eye,
-  EyeOff
+  EyeOff,
+  Database
 } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
 import { Link, useLocation } from 'react-router-dom';
@@ -203,7 +204,8 @@ const AdaptiveNewSidebar: React.FC = () => {
         color: 'text-purple-600',
         subItems: [
           { id: 'current-forecast', title: t('sidebar.nav.salesForecast.current'), icon: <BarChart3 size={16} />, path: '/sales-forecast', color: 'text-purple-400' },
-          { id: 'new-forecast', title: t('sidebar.nav.salesForecast.new'), icon: <BarChart3 size={16} />, path: '/sales-forecast-new', color: 'text-purple-400' }
+          { id: 'new-forecast', title: t('sidebar.nav.salesForecast.new'), icon: <BarChart3 size={16} />, path: '/sales-forecast-new', color: 'text-purple-400' },
+          { id: 'csv-forecast', title: 'ML модель (CSV)', icon: <Database size={16} />, path: '/sales-forecast-csv', color: 'text-purple-400' }
         ]
       },
       {

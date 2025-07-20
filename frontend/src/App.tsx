@@ -32,6 +32,7 @@ const LineChart = lazy(() => import("@/pages/Charts/LineChart"));
 const BarChart = lazy(() => import("@/pages/Charts/BarChart"));
 const SalesForecastPage = lazy(() => import("@/pages/SalesForecastPage"));
 const SalesForecastNewPage = lazy(() => import("@/pages/SalesForecastNewPage"));
+const SalesForecastCSVPage = lazy(() => import("@/pages/SalesForecastCSVPage"));
 const TestForecastAPI = lazy(() => import("@/pages/TestForecastAPI"));
 
 // Warehouse components
@@ -155,6 +156,7 @@ export default function App() {
             {/* Sales Forecast */}
             <Route path="/sales-forecast" element={<SalesForecastPage />} />
             <Route path="/sales-forecast-new" element={<SalesForecastNewPage />} />
+            <Route path="/sales-forecast-csv" element={<SalesForecastCSVPage />} />
 
             {/* Test API Page */}
             <Route path="/test-forecast-api" element={<TestForecastAPI />} />

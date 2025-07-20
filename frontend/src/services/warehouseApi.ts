@@ -465,6 +465,62 @@ export const fetchItemMetrics = (): Promise<ItemMetrics[]> => {
   return apiFetch('/forecast/metrics/items');
 };
 
+// --- CSV API Functions ---
+
+export const fetchCSVProducts = async (): Promise<Product[]> => {
+  const response = await apiFetch<{data: Product[], pagination: any, source: string}>('/forecast/csv-products');
+  
+  // Проверяем формат ответа
+  if (Array.isArray(response)) {
+    return response;
+  }
+  
+  return response.data || [];
+};
+
+export const fetchCSVMetrics = async (): Promise<OverallMetrics> => {
+  const response = await apiFetch<{data: OverallMetrics, source: string}>('/forecast/csv-metrics');
+  
+  if (response.data) {
+    return response.data;
+  }
+  
+  return response;
+};
+
+export const requestCSVForecast = async (days: number): Promise<ForecastData> => {
+  const response = await apiFetch<{data: any, message: string, source: string}>('/forecast/predict-csv', {
+    method: 'POST',
+    body: JSON.stringify({ DaysCount: days }),
+  });
+  
+  // Преобразуем ответ в формат ForecastData
+  if (response.data && response.data.predictions) {
+    return {
+      totalForecastedQuantity: response.data.predictions.reduce((sum: number, p: any) => sum + (p.Количество || 0), 0),
+      metrics: {
+        mape: response.data.predictions[0]?.MAPE || 0,
+        mae: response.data.predictions[0]?.MAE || 0
+      },
+      forecasts: response.data.predictions.slice(1).map((p: any) => ({
+        date: p.Период,
+        forecastedQuantity: p.Количество || 0,
+        productName: p.Номенклатура || 'Unknown'
+      })),
+      historyEntry: {
+        id: Date.now(),
+        productName: 'CSV Forecast',
+        forecastDate: new Date().toISOString(),
+        accuracy: response.data.predictions[0]?.MAPE || 0,
+        daysForecasted: days
+      },
+      source: 'CSV_ML_MODEL'
+    };
+  }
+  
+  throw new Error('Неверный формат ответа от CSV API');
+};
+
 // Dummy functions for any remaining calls, to avoid breaking the UI
 export const getCategories = (): Promise<string[]> => Promise.resolve(['Мясные изделия', 'Сыры', 'Молочные продукты']);
 export const getShelves = (): Promise<string[]> => Promise.resolve(['A1', 'B1', 'C2', 'E2']); 
