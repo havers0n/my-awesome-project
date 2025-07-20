@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  sales-forecast-service:
+    build:
+      context: ./microservice
+      dockerfile: Dockerfile
+    container_name: sales-forecast-service-${BRANCH_NAME:-Vlad_branch}
+    ports:
+      - "0.0.0.0:8002:8002"
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+    labels:
+      - "branch=${BRANCH_NAME:-Vlad_branch}"
+      - "service=sales-forecast"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

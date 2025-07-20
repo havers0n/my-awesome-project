@@ -1,0 +1,27 @@
+name: CI/CD Deploy
+
+on:
+  push:
+    branches:
+      - Vlad_branch  
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to remote server
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: 158.160.190.103
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd /home/vlad/work/sales/micro/SalesPrediction
+            git pull origin Vlad_branch
+            chmod +x build_and_run.sh
+            ./build_and_run.sh

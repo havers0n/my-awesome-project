@@ -1,49 +1,129 @@
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
-const axios = require('axios');
 
-async function testUserCreation() {
+// Конфигурация Supabase
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ Ошибка: SUPABASE_URL или SUPABASE_SERVICE_ROLE_KEY не настроены в .env');
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+async function createTestUser() {
   try {
-    console.log('Testing user creation API with workaround...');
+    console.log('🔍 Проверяем существующих пользователей...');
     
-    // Test creating a user through our API
-    const testEmail = `test-${Date.now()}@example.com`;
-    console.log('Creating user with email:', testEmail);
+    // Получаем список пользователей
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id, email, full_name, role, organization_id')
+      .limit(5);
     
-    const response = await axios.post('http://localhost:3000/api/admin/users', {
-      email: testEmail,
-      password: 'testpassword123',
-      full_name: 'Test User',
-      organization_id: 1,
-      role: 'EMPLOYEE'
-    }, {
-      headers: {
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6IjZqeGVNTzVvSnpuV3VOdkMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3V4Y3N6aXlsbXlvZ3ZjcXl5dWl3LnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI5NzIwMDdmNS0zMDVmLTQ5Y2EtYTM1MS1lYTU1MjBhMDk4MmMiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzUyNzUzNjY1LCJpYXQiOjE3NTI3NTAwNjUsImVtYWlsIjoiZGFueXBldHJvdjIwMDJAZ21haWwuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZnVsbF9uYW1lIjoiZGFuaWVsIGhhdmVyc29uIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3NTI3NTAwNjV9XSwic2Vzc2lvbl9pZCI6IjBkMzFmNmIxLTRkYTMtNDdjNS1hMWZkLTg3MGU5ZGVhYWVjOCIsImlzX2Fub255bW91cyI6ZmFsc2V9.Fd1hAf_SDFYFw41CuZ3HsPv66NuTMUka8Bcu6IxFxsc',
-        'Content-Type': 'application/json'
-      },
-      timeout: 10000
-    });
-
-    console.log('✅ Success!');
-    console.log('Status:', response.status);
-    console.log('Response:', JSON.stringify(response.data, null, 2));
-
-  } catch (error) {
-    console.error('❌ Error occurred:');
-    if (error.response) {
-      console.error('HTTP Status:', error.response.status);
-      console.error('Response Headers:', error.response.headers);
-      console.error('Response Data:', JSON.stringify(error.response.data, null, 2));
-    } else if (error.request) {
-      console.error('Request made but no response received:', error.request);
-    } else if (error.code === 'ECONNREFUSED') {
-      console.error('Connection refused - is the backend server running?');
-    } else if (error.code === 'ETIMEDOUT') {
-      console.error('Request timed out');
-    } else {
-      console.error('Error setting up request:', error.message);
+    if (usersError) {
+      console.error('❌ Ошибка при получении пользователей:', usersError);
+      return;
     }
-    console.error('Full error:', error);
+    
+    console.log(`📋 Найдено пользователей: ${users?.length || 0}`);
+    if (users && users.length > 0) {
+      console.log('Список пользователей:');
+      users.forEach(user => {
+        console.log(`  - ${user.email} (${user.full_name || 'Без имени'}) - ${user.role || 'Без роли'}`);
+      });
+    }
+    
+    // Проверяем, есть ли тестовый пользователь
+    const testUser = users?.find(u => u.email === 'test@example.com');
+    
+    if (testUser) {
+      console.log('✅ Тестовый пользователь уже существует:', testUser.email);
+      return;
+    }
+    
+    console.log('🔧 Создаем тестового пользователя...');
+    
+    // Создаем пользователя в Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: 'test@example.com',
+      password: 'test123456',
+      email_confirm: true,
+      user_metadata: {
+        full_name: 'Тестовый Пользователь'
+      }
+    });
+    
+    if (authError) {
+      console.error('❌ Ошибка при создании пользователя в Auth:', authError);
+      return;
+    }
+    
+    console.log('✅ Пользователь создан в Auth:', authData.user.email);
+    
+    // Проверяем, есть ли организация
+    const { data: orgs, error: orgsError } = await supabase
+      .from('organizations')
+      .select('id, name')
+      .limit(1);
+    
+    let organizationId = 1;
+    if (orgs && orgs.length > 0) {
+      organizationId = orgs[0].id;
+      console.log('📋 Используем существующую организацию:', orgs[0].name);
+    } else {
+      console.log('🔧 Создаем тестовую организацию...');
+      const { data: newOrg, error: newOrgError } = await supabase
+        .from('organizations')
+        .insert({
+          id: 1,
+          name: 'Тестовая Компания ООО',
+          inn_or_ogrn: '1234567890',
+          status: 'active'
+        })
+        .select()
+        .single();
+      
+      if (newOrgError) {
+        console.error('❌ Ошибка при создании организации:', newOrgError);
+        return;
+      }
+      
+      organizationId = newOrg.id;
+      console.log('✅ Организация создана:', newOrg.name);
+    }
+    
+    // Добавляем пользователя в таблицу users
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .insert({
+        id: authData.user.id,
+        email: authData.user.email,
+        full_name: 'Тестовый Пользователь',
+        organization_id: organizationId,
+        role: 'employee',
+        is_active: true
+      })
+      .select()
+      .single();
+    
+    if (userError) {
+      console.error('❌ Ошибка при добавлении пользователя в таблицу users:', userError);
+      return;
+    }
+    
+    console.log('✅ Тестовый пользователь создан успешно!');
+    console.log('📋 Данные для входа:');
+    console.log(`   Email: ${userData.email}`);
+    console.log(`   Пароль: test123456`);
+    console.log(`   Роль: ${userData.role}`);
+    console.log(`   Организация: ${organizationId}`);
+    
+  } catch (error) {
+    console.error('❌ Неожиданная ошибка:', error);
   }
 }
 
-testUserCreation(); 
+// Запускаем скрипт
+createTestUser(); 

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест подключения к Supabase</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Тест подключения к Supabase</h1>
+    <div id="status">Проверка...</div>
+    <div id="config"></div>
+    <div id="error"></div>
+
+    <script>
+        async function testSupabaseConnection() {
+            const statusDiv = document.getElementById('status');
+            const configDiv = document.getElementById('config');
+            const errorDiv = document.getElementById('error');
+
+            try {
+                // Получаем конфигурацию из переменных окружения
+                const supabaseUrl = 'https://your-project.supabase.co'; // Замените на ваш URL
+                const supabaseAnonKey = 'your-anon-key'; // Замените на ваш ключ
+
+                configDiv.innerHTML = `
+                    <h3>Конфигурация:</h3>
+                    <p><strong>URL:</strong> ${supabaseUrl}</p>
+                    <p><strong>Anon Key:</strong> ${supabaseAnonKey.substring(0, 20)}...</p>
+                `;
+
+                if (!supabaseUrl || !supabaseAnonKey) {
+                    throw new Error('Supabase URL или Anon Key не настроены');
+                }
+
+                // Создаем клиент
+                const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+                // Тестируем подключение
+                const { data, error } = await supabase.from('users').select('count').limit(1);
+
+                if (error) {
+                    throw error;
+                }
+
+                statusDiv.innerHTML = '<h3 style="color: green;">✅ Подключение к Supabase успешно!</h3>';
+                statusDiv.innerHTML += `<p>Получено записей: ${data?.length || 0}</p>`;
+
+            } catch (error) {
+                statusDiv.innerHTML = '<h3 style="color: red;">❌ Ошибка подключения к Supabase</h3>';
+                errorDiv.innerHTML = `<p><strong>Ошибка:</strong> ${error.message}</p>`;
+                console.error('Supabase connection error:', error);
+            }
+        }
+
+        // Запускаем тест при загрузке страницы
+        testSupabaseConnection();
+    </script>
+</body>
+</html> 

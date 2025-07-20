@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Product, Forecast, ForecastData, ProductSnapshot, ComparativeForecastData, OverallMetrics } from '@/types/warehouse';
-import { fetchProducts, requestSalesForecast, requestComparativeForecast, fetchProductSnapshot, fetchOverallMetrics } from '@/services/warehouseApi';
+import { fetchAllProducts, requestSalesForecast, requestComparativeForecast, fetchProductSnapshot, fetchOverallMetrics } from '@/services/warehouseApi';
 import { useToast } from '@/contexts/ToastContext';
 import { Loader2, Wand2, TrendingUp, AlertTriangle, Search, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -140,7 +140,7 @@ const SalesForecastNewPage: React.FC = () => {
       setIsLoading(true);
       setIsMetricsLoading(true);
       try {
-        const fetchedProducts = await fetchProducts();
+        const fetchedProducts = await fetchAllProducts();
         setProducts(fetchedProducts);
       } catch (error) {
         addToast(error instanceof Error ? error.message : 'Не удалось загрузить товары', 'error');
@@ -172,9 +172,9 @@ const SalesForecastNewPage: React.FC = () => {
       if (data.historyEntry) {
         setHistory(prev => [data.historyEntry, ...prev].filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i));
       }
-      const salesHistoryCount = product.history.filter(h => h.type === 'Списание').length;
-      if (salesHistoryCount < 3) setLowConfidence(true);
-      addToast(`Прогноз для "${product.name}" успешно сгенерирован!`, 'success');
+      // Note: product.history is not available in the current Product type
+      // We'll set low confidence based on other criteria or remove this check
+      addToast(`Прогноз для "${product.product_name}" успешно сгенерирован!`, 'success');
     } catch (error) {
       addToast(error instanceof Error ? error.message : 'Ошибка при запросе прогноза.', 'error');
       setForecastData(null);
@@ -185,7 +185,7 @@ const SalesForecastNewPage: React.FC = () => {
 
   const handleProductSelectionChange = useCallback(async (productId: string) => {
     setSelectedProductId(productId);
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p => p.product_id.toString() === productId);
     if (!product) {
       setSnapshot(null);
       setForecastData(null);
@@ -195,7 +195,7 @@ const SalesForecastNewPage: React.FC = () => {
     setWhatIfPrice(product.price);
     setIsSnapshotLoading(true);
     try {
-      const snapshotData = await fetchProductSnapshot(productId);
+      const snapshotData = await fetchProductSnapshot(parseInt(productId));
       setSnapshot(snapshotData);
     } catch (error) {
       addToast(error instanceof Error ? error.message : 'Не удалось загрузить снимок товара.', 'error');
@@ -208,14 +208,14 @@ const SalesForecastNewPage: React.FC = () => {
   useEffect(() => {
     if (products?.length > 0 && !initialLoadDone.current) {
       const initialProduct = products[0];
-      if (initialProduct) handleProductSelectionChange(initialProduct.id);
+      if (initialProduct) handleProductSelectionChange(initialProduct.product_id.toString());
       initialLoadDone.current = true;
     }
   }, [products, handleProductSelectionChange]);
 
   // --- Event Handlers ---
   const handleForecastRequest = () => {
-    const productToForecast = products.find(p => p.id === selectedProductId);
+    const productToForecast = products.find(p => p.product_id.toString() === selectedProductId);
     if (productToForecast) {
       setForecastData(null);
       fetchTrendData(daysToForecast, productToForecast, whatIfPrice);
@@ -232,7 +232,9 @@ const SalesForecastNewPage: React.FC = () => {
     setIsComparativeLoading(true);
     setComparativeData([]);
     try {
-      const response = await requestComparativeForecast(selectedComparativeIds, daysToForecast);
+      // Преобразуем selectedComparativeIds в массив чисел
+      const ids = selectedComparativeIds.map(id => parseInt(id));
+      const response = await requestComparativeForecast(ids, daysToForecast);
       setComparativeData(response || []);
       if (!response || response.length === 0) {
         addToast('Нет данных для сравнительного прогноза.', 'info');
@@ -245,7 +247,7 @@ const SalesForecastNewPage: React.FC = () => {
   };
 
   // --- Memoized Values ---
-  const selectedProduct = useMemo(() => products?.find(p => p.id === selectedProductId) || null, [products, selectedProductId]);
+  const selectedProduct = useMemo(() => products?.find(p => p.product_id.toString() === selectedProductId) || null, [products, selectedProductId]);
   const filteredHistory = useMemo(() => history.filter(item => item.productName.toLowerCase().includes(searchQuery.toLowerCase())), [history, searchQuery]);
   const paginatedHistory = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -299,7 +301,7 @@ const SalesForecastNewPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Товар</label>
                 <select value={selectedProductId} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleProductSelectionChange(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">Выберите товар</option>
-                  {products?.map(p => <option key={p.id} value={p.id}>{p.name}</option>) ?? []}
+                  {products?.map(p => <option key={p.product_id} value={p.product_id}>{p.product_name}</option>) ?? []}
                 </select>
               </div>
               <div>
@@ -320,12 +322,12 @@ const SalesForecastNewPage: React.FC = () => {
               {isSnapshotLoading ? <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin"/></div> : 
                 selectedProduct && snapshot ? (
                   <Card className="bg-gray-50">
-                    <h3 className="text-lg font-semibold mb-3">Снимок товара: {selectedProduct.name}</h3>
+                    <h3 className="text-lg font-semibold mb-3">Снимок товара: {selectedProduct.product_name}</h3>
                     <div className="grid grid-cols-2 gap-3">
                       <SnapshotCard title="Средние продажи 7д" value={`${snapshot.avgSales7d.toFixed(1)} шт/день`} />
                       <SnapshotCard title="Средние продажи 30д" value={`${snapshot.avgSales30d.toFixed(1)} шт/день`} />
                       <SnapshotCard title="Продажи вчера" value={`${snapshot.salesLag1d} шт`} />
-                      <SnapshotCard title="Текущий остаток" value={`${selectedProduct.quantity} шт`} />
+                      <SnapshotCard title="Текущий остаток" value={`${selectedProduct.stock_by_location?.[0]?.stock ?? 0} шт`} />
                     </div>
                   </Card>
                 ) : <div className="text-center py-8 text-gray-500">Выберите товар для просмотра данных</div>
@@ -359,7 +361,7 @@ const SalesForecastNewPage: React.FC = () => {
              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Товары для сравнения</label>
-                    <MultiSelectDropdown options={products?.map(p => ({ id: p.id, name: p.name })) ?? []} selectedIds={selectedComparativeIds} onSelectionChange={setSelectedComparativeIds} placeholder="Выберите товары" />
+                    <MultiSelectDropdown options={products?.map(p => ({ id: p.product_id.toString(), name: p.product_name })) ?? []} selectedIds={selectedComparativeIds} onSelectionChange={setSelectedComparativeIds} placeholder="Выберите товары" />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Период (дней)</label>

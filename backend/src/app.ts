@@ -10,7 +10,7 @@ import { supabaseAdmin } from './supabaseClient';
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Безопасная конфигурация CORS
-const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:5174,http://localhost:5173').split(',');
+const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:5174,http://localhost:5173,http://127.0.0.1:5173,http://127.0.0.1:5174').split(',');
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
@@ -18,6 +18,8 @@ const corsOptions: cors.CorsOptions = {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log(`CORS blocked origin: ${origin}`);
+      console.log(`Allowed origins: ${allowedOrigins.join(', ')}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -33,6 +35,14 @@ const app = express();
 
 // Apply CORS middleware
 app.use(cors(corsOptions));
+
+// Добавляем логирование для отладки CORS
+app.use((req, res, next) => {
+  console.log(`[CORS DEBUG] Request origin: ${req.headers.origin}`);
+  console.log(`[CORS DEBUG] Request method: ${req.method}`);
+  console.log(`[CORS DEBUG] Request path: ${req.path}`);
+  next();
+});
 
 // Helmet для базовых заголовков безопасности
 app.use(helmet());
