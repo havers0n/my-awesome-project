@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <button onclick="testAPI()">Test API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // Test without auth
+                const response = await fetch('http://localhost:3000/api/inventory/products-test');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h3>Test Endpoint Result:</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>Products count: ${data.data ? data.data.length : 'N/A'}</p>
+                    <p>First product: ${data.data && data.data[0] ? data.data[0].product_name : 'N/A'}</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html> 
