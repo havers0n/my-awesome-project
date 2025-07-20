@@ -11,6 +11,22 @@ export interface CSVProduct {
   R2?: number;
 }
 
+// Функция для очистки названия товара от служебных префиксов
+const cleanProductName = (name: string): string => {
+  // Удаляем префиксы типа "(Х5)", "(не_исп)", "(не_исп.)" и другие
+  let cleanedName = name
+    .replace(/^\([^)]+\)\s*/, '') // Удаляем префиксы в скобках в начале
+    .replace(/^[^а-яё]*/, '') // Удаляем не-кириллические символы в начале
+    .trim();
+  
+  // Если после очистки название пустое, возвращаем оригинальное
+  if (!cleanedName) {
+    return name;
+  }
+  
+  return cleanedName;
+};
+
 export const loadCSVProducts = async (): Promise<CSVProduct[]> => {
   try {
     // Путь к CSV файлу в ML модели
@@ -34,8 +50,11 @@ export const loadCSVProducts = async (): Promise<CSVProduct[]> => {
       const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
       
       if (values.length >= 5) {
+        const originalName = values[0] || '';
+        const cleanedName = cleanProductName(originalName);
+        
         const product: CSVProduct = {
-          Номенклатура: values[0] || '',
+          Номенклатура: cleanedName,
           Код: values[1] || '',
           RMSE: parseFloat(values[2]) || 0,
           MAE: parseFloat(values[3]) || 0,
@@ -44,14 +63,17 @@ export const loadCSVProducts = async (): Promise<CSVProduct[]> => {
           R2: parseFloat(values[6]) || 0
         };
         
-        // Фильтруем только товары с названием
-        if (product.Номенклатура && product.Номенклатура !== 'Номенклатура') {
+        // Фильтруем только товары с названием и разумными метриками
+        if (product.Номенклатура && 
+            product.Номенклатура !== 'Номенклатура' && 
+            product.MAPE > 0 && 
+            product.MAPE < 100) {
           products.push(product);
         }
       }
     }
     
-    console.log(`Загружено ${products.length} товаров из CSV`);
+    console.log(`Загружено ${products.length} товаров из CSV (после очистки)`);
     return products;
     
   } catch (error) {
